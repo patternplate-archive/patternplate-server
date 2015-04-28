@@ -1,45 +1,46 @@
 {
-  "private": true,
   "name": "patternplate-server",
-  "version": "0.0.1",
-  "description": "Server for patternplate projects",
-  "main": "lib/index.js",
+  "version": "0.1.0",
+  "description": "Programmatically serve patternplate components via a well defined REST API",
+  "main": "application",
+  "scripts": {
+    "start": "boilerplate-server"
+  },
   "repository": {
     "type": "git",
-    "url": "git@git.sinnerschrader.com:team-ux/patternplate-server.git"
+    "url": "git@git.sinnerschrader.com:team-ux/duo-server.git"
   },
   "keywords": [
-    "living styleguide",
-    "styleguide",
-    "documentation",
-    "tool",
-    "pattern"
+    "duo",
+    "REST",
+    "JSON"
   ],
   "author": {
-    "name": "S2 Team UX",
+    "name": "Team UX",
     "email": "team-ux@sinnerschrader.com"
   },
   "contributors": [
     {
-      "name": "Daniel Gooß",
-      "email": "daniel.goos@sinnerschrader.com"
-    },
-    {
-      "name": "Veit Lehmann",
-      "email": "veit.lehmann@sinnerschrader.com"
-    },
-    {
       "name": "Mario Nebl",
       "email": "mario.nebl@sinnerschrader.com"
-    },
-    {
-      "name": "Mauricio Palma",
-      "email": "mauricio.palma@sinnerschrader.com"
     }
   ],
   "license": "MIT",
-  "bugs": {
-    "url": "https://git.sinnerschrader.com/team-ux/patternplate-server/issues"
+  "engines": {
+    "iojs": ">= 1.4.3",
+    "node": ">= 0.12.0",
+    "npm": ">= 2.5.1"
   },
-  "homepage": "https://git.sinnerschrader.com/team-ux/patternplate-server"
+  "dependencies": {
+    "boilerplate-server": "git+ssh://git@git.sinnerschrader.com:team-ux/boilerplate-server.git",
+    "duo": "^0.11.2",
+    "jquery": "^2.1.3",
+    "lodash": "^3.7.0",
+    "q-io": "^1.12.0",
+    "require-all": "^1.0.0"
+  },
+  "devDependencies": {
+    "babel-eslint": "^3.0.1",
+    "eslint": "^0.20.0"
+  }
 }
