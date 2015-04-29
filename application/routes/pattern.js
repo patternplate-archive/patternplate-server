@@ -57,9 +57,9 @@ export default function patternRouteFactory (application, configuration) {
 				await pattern.read();
 				await pattern.transform();
 				response.push(pattern);
-
-				mtime = response.map((item) => item.mtime).sort((a, b) => b - a)[0];
 			}
+
+			mtime = response.map((item) => item.getLastModified()).sort((a, b) => b - a)[0];
 		}
 
 		this.set('Last-Modified', mtime.toUTCString());
