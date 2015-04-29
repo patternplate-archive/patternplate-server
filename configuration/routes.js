@@ -5,7 +5,8 @@ const routes = {
 			'method': 'GET',
 			'path': '/pattern/*',
 			'options': {
-				'key': 'patterns'
+				'key': 'patterns',
+				'maxage': 3600000
 			}
 		},
 		'meta': {

@@ -7,7 +7,7 @@ export default function patternRouteFactory (application, configuration) {
 
 	return async function patternRoute () {
 		var id = this.params[0].value;
-		let pattern;
+		let pattern, response, mtime;
 
 		let path = resolve(config.path, id);
 
@@ -16,7 +16,6 @@ export default function patternRouteFactory (application, configuration) {
 		}
 
 		let search = resolve(path, 'pattern.json');
-		let response;
 
 		if (await exists(search)) {
 			// Single pattern
@@ -30,6 +29,7 @@ export default function patternRouteFactory (application, configuration) {
 			}
 
 			response = pattern;
+			mtime = response.mtime;
 		} else {
 			// Check if list view is applicable
 			if (await isDirectory(path) === false) {
@@ -57,8 +57,13 @@ export default function patternRouteFactory (application, configuration) {
 				await pattern.read();
 				await pattern.transform();
 				response.push(pattern);
+
+				mtime = response.map((item) => item.mtime).sort((a, b) => b - a)[0];
 			}
 		}
+
+		this.set('Last-Modified', mtime.toUTCString());
+		this.set('Cache-Control', `maxage=${configuration.options.maxage|0}`);
 
 		this.type = 'json';
 		this.body = response;

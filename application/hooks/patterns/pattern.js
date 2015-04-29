@@ -1,5 +1,5 @@
 import {resolve, basename, extname} from 'path';
-import {exists, toObject} from 'q-io/fs';
+import {exists, stat, toObject} from 'q-io/fs';
 
 export class Pattern {
 	files = {};
@@ -7,6 +7,7 @@ export class Pattern {
 	manifest = {};
 	dependencies = {};
 	results = {};
+	mtime = null;
 
 	constructor(id, base, config = {}, transforms = {}) {
 		this.id = id;
@@ -27,10 +28,21 @@ export class Pattern {
 
 		let files = await toObject(path);
 
-		this.files = Object.keys( files ).reduce(function( results, filePath ){
-			results[basename(filePath)] = files[filePath];
-			return results;
-		}, {});
+		for (let file in files) {
+			let fileBasename = basename(file);
+			let ext = extname(file);
+
+			this.files[fileBasename] = {
+				'buffer': files[file],
+				'source': files[file],
+				'path': file,
+				'ext': ext,
+				'name': fileBasename,
+				'basename': basename(fileBasename, ext),
+				'format': ext.substr(1, ext.length),
+				'stat': await stat(file)
+			};
+		}
 
 		let manifest = this.files['pattern.json'];
 
@@ -39,52 +51,44 @@ export class Pattern {
 		}
 
 		try {
-			this.manifest = JSON.parse(manifest.toString('utf-8'));
+			this.manifest = JSON.parse(manifest.source.toString('utf-8'));
 			delete this.files['pattern.json'];
 		} catch (e) {
 			throw new Error(`Error while reading pattern.json from ${this.path}:`, e);
 		}
 
-		if (typeof this.manifest.pattern !== 'object') {
+		if (typeof this.manifest.patterns !== 'object') {
 			return this;
 		}
 
 		for ( let patternName in this.manifest.patterns ) {
 			let pattern = new Pattern(this.manifest.patterns[patternName], this.base, this.config, this.transforms);
-			await pattern.read();
-			this.dependencies[patternName] = pattern;
+			this.dependencies[patternName] = await pattern.read();
 		}
 
+		this.getLastModified();
 		return this;
 	}
 
-	async transform( display = true ) {
+	async transform() {
 		if ( this.dependencies ) {
 			for (let dependency in this.dependencies) {
-				await this.dependencies[dependency].transform( false );
+				await this.dependencies[dependency].transform();
 			}
 		}
 
-		for ( let file in this.files ) {
-			let ext = extname(file);
-			let name = basename(file, ext);
-			let format = ext.substr(1, ext.length);
+		let demos = {};
 
-			let typeConfig = this.config.types[name];
-			let formatConfig = this.config.formats[format];
+		for ( let fileName in this.files ) {
+			let file = this.files[fileName];
 
-			if (typeof typeConfig !== 'object' || typeof formatConfig !== 'object') {
+			if ( file.basename !== 'demo' ) {
 				continue;
 			}
 
-			let file = Object.assign({ 'name': file, 'buffer': this.files[file] },
-				 typeConfig, { 'display': formatConfig.display });
+			let formatConfig = this.config.formats[file.format];
 
-			if ( display === false && file.build === false ) {
-				continue;
-			}
-
-			if ( file.display !== 'transform' ) {
+			if (typeof formatConfig !== 'object') {
 				continue;
 			}
 
@@ -95,8 +99,49 @@ export class Pattern {
 				file = await fn(file, this.dependencies);
 			}
 
+			demos[formatConfig.name] = file;
+		}
+
+		for ( let fileName in this.files ) {
+			let file = this.files[fileName];
+
+			if ( this.basename === 'demo' ) {
+				continue;
+			}
+
+			let formatConfig = this.config.formats[file.format];
+
+			if (typeof formatConfig !== 'object') {
+				continue;
+			}
+
+			let transforms = formatConfig.transforms || [];
+
+			for (let transform of transforms) {
+				let fn = this.transforms[transform];
+				file = await fn(file, this.dependencies, demos[formatConfig.name]);
+			}
+
 			this.results[formatConfig.name] = file;
 		}
+	}
+
+	getLastModified() {
+		let mtimes = [];
+
+		if ( this.dependencies ) {
+			for (let dependency in this.dependencies) {
+				mtimes.push(this.dependencies[dependency].getLastModified());
+			}
+		}
+
+		for (let fileName in this.files) {
+			let file = this.files[fileName];
+			mtimes.push(new Date(file.stat.node.mtime));
+		}
+
+		this.mtime = mtimes.sort((a, b) => b - a)[0];
+		return this.mtime;
 	}
 
 	toJSON() {

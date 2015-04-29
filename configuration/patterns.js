@@ -4,44 +4,22 @@ export default {
 	'formats': {
 		'js': {
 			'name': 'Script',
-			'transforms': ['browserify'],
-			'display': 'raw'
+			'transforms': ['browserify']
 		},
 		'less': {
 			'name': 'Style',
-			'transforms': ['less'],
-			'display': 'transform'
+			'transforms': ['less']
 		},
 		'html': {
 			'name': 'Markup',
-			'transforms': ['react-jsx'],
-			'display': 'transform'
+			'transforms': ['react-jsx']
 		},
 		'md': {
 			'name': 'Documentation',
-			'transforms': ['markdown'],
-			'display': 'transform'
+			'transforms': ['markdown']
 		},
 		'json': {
-			'name': 'Data',
-			'display': false
-		}
-	},
-	'types': {
-		'demo': {
-			'visible': false,
-			'build': false,
-			'expose': true
-		},
-		'include': {
-			'visible': false,
-			'build': true,
-			'expose': true
-		},
-		'index': {
-			'visible': true,
-			'build': true,
-			'expose': false
+			'name': 'Data'
 		}
 	}
 };
