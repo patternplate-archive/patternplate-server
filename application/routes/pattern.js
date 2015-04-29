@@ -29,7 +29,7 @@ export default function patternRouteFactory (application, configuration) {
 			}
 
 			response = pattern;
-			mtime = response.mtime;
+			mtime = response.getLastModified();
 		} else {
 			// Check if list view is applicable
 			if (await isDirectory(path) === false) {
@@ -62,7 +62,9 @@ export default function patternRouteFactory (application, configuration) {
 			mtime = response.map((item) => item.getLastModified()).sort((a, b) => b - a)[0];
 		}
 
-		this.set('Last-Modified', mtime.toUTCString());
+		if (mtime) {
+			this.set('Last-Modified', mtime.toUTCString());
+		}
 		this.set('Cache-Control', `maxage=${configuration.options.maxage|0}`);
 
 		this.type = 'json';
