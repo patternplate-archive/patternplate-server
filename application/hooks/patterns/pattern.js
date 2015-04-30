@@ -1,3 +1,4 @@
+/* eslint ignore */
 import {resolve, basename, extname} from 'path';
 import {exists, stat, toObject} from 'q-io/fs';
 
@@ -117,9 +118,15 @@ export class Pattern {
 
 			let transforms = formatConfig.transforms || [];
 
+			let dependencies = {};
+
+			for (let dependencyName in this.dependencies) {
+				dependencies[dependencyName] = this.dependencies[dependencyName].results[formatConfig.name];
+			}
+
 			for (let transform of transforms) {
 				let fn = this.transforms[transform];
-				file = await fn(file, this.dependencies, demos[formatConfig.name]);
+				file = await fn(file, dependencies, demos[formatConfig.name]);
 			}
 
 			this.results[formatConfig.name] = file;
@@ -151,6 +158,13 @@ export class Pattern {
 			for (let dependency in copy.dependencies) {
 				copy.dependencies[dependency] = copy.dependencies[dependency].toJSON();
 			}
+		}
+
+		for (let resultName of Object.keys(this.results)) {
+			this.results[resultName] = {
+				'source': this.results[resultName].source.toString('utf-8'),
+				'buffer': this.results[resultName].buffer.toString('utf-8')
+			};
 		}
 
 		delete copy.files;
