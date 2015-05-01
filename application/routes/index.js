@@ -1,8 +1,11 @@
-import {resolve, relative, basename} from 'path';
-import {listTree, split, join, directory} from 'q-io/fs';
+import {resolve} from 'path';
+import {exists, read} from 'q-io/fs';
 import {request} from 'q-io/http';
+import marked from 'marked';
+import {promisify} from 'bluebird';
 
 export default function indexRouteFactory (application, configuration) {
+	const markdown = promisify(marked);
 
 	return async function indexRoute () {
 		let routeConfig = application.configuration.routes.enabled;
@@ -20,7 +23,17 @@ export default function indexRouteFactory (application, configuration) {
 		let response = await request(metaRoute.uri);
 		let meta = await response.body.read();
 
+		let readmePath = resolve(application.runtime.cwd, 'patterns', 'README.md');
+		var readme = '';
+
+		if (await exists(readmePath)) {
+			let readMeSource = await read(readmePath);
+			readMeSource = readMeSource.toString('utf-8');
+			readme = await markdown(readMeSource);
+		}
+
 		meta = JSON.parse(meta.toString('utf-8'));
+
 
 		this.type = 'json';
 		this.body = Object.assign({}, {
@@ -30,7 +43,8 @@ export default function indexRouteFactory (application, configuration) {
 			'host': serverConfig.host,
 			'port': serverConfig.port,
 			'routes': routes,
-			'meta': meta
+			'meta': meta,
+			'readme': readme
 		});
 	};
 }
