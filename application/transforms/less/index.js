@@ -50,6 +50,9 @@ export default function lessTransformFactory (application) {
 		}
 
 		file.buffer = new Buffer(results.css, 'utf-8');
+		file.in = config.inFormat;
+		file.out = config.outFormat;
+		
 		return file;
 	};
 }

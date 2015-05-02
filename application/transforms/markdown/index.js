@@ -3,6 +3,7 @@ import {promisify} from 'bluebird';
 
 export default function markdownTransformFactory (application) {
 	const parser = promisify(marked);
+	const config = application.configuration.transforms.markdown || {};
 
 	return async function markdowTransform (file) {
 		try {
@@ -11,6 +12,9 @@ export default function markdownTransformFactory (application) {
 			application.log.error(err);
 			throw new Error(err);
 		}
+
+		file.in = config.inFormat;
+		file.out = config.outFormat;
 
 		return file;
 	};

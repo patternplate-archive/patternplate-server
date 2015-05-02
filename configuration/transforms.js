@@ -1,7 +1,16 @@
 export default {
 	'path': './application/transforms',
-
+	'markdown': {
+		'inFormat': 'md',
+		'outFormat': 'html'
+	},
+	'react-jsx': {
+		'inFormat': 'jsx',
+		'outFormat': 'html'
+	},
 	'browserify': {
+		'inFormat': 'js',
+		'outFormat': 'js',
 		'opts': {
 			'debug': true,
 			'noParse': [require.resolve('jquery')]
@@ -22,6 +31,8 @@ export default {
 		}
 	},
 	'less': {
+		'inFormat': 'less',
+		'outFormat': 'css',
 		'opts': {
 			'ieCompat': true,
 			'compress': false,

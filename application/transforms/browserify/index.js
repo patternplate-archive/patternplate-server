@@ -38,6 +38,9 @@ function browserifyTransformFactory (application) {
 				}
 
 				file.buffer = buffer;
+				file.in = config.inFormat;
+				file.out = config.outFormat;
+
 				resolve(file);
 			});
 		});

@@ -3,6 +3,8 @@ import jsx from 'react-jsx';
 import pascalCase from 'pascal-case';
 
 export default function reactJSXTransformFactory (application) {
+	const config = application.configuration.transforms['react-jsx'] || {};
+
 	return async function reactJSXTransform (file, dependencies) {
 		let source = file.buffer.toString('utf-8');
 		let sourceTemplate = jsx.server(source, {'raw': true});
@@ -25,6 +27,9 @@ export default function reactJSXTransformFactory (application) {
 		let result = sourceTemplate(data, {'html': true});
 
 		file.buffer = new Buffer(result, 'utf-8');
+		file.in = config.inFormat;
+		file.out = config.outFormat;
+
 		return file;
 	};
 }
