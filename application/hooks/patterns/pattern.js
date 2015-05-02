@@ -163,7 +163,9 @@ export class Pattern {
 		for (let resultName of Object.keys(this.results)) {
 			this.results[resultName] = {
 				'source': this.results[resultName].source.toString('utf-8'),
-				'buffer': this.results[resultName].buffer.toString('utf-8')
+				'buffer': this.results[resultName].buffer.toString('utf-8'),
+				'in': this.results[resultName].in,
+				'out': this.results[resultName].out
 			};
 		}
 
