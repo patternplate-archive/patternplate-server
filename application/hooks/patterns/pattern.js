@@ -97,7 +97,6 @@ export class Pattern {
 
 			for (let transform of transforms) {
 				let fn = this.transforms[transform];
-				file = await fn(file, this.dependencies);
 			}
 
 			demos[formatConfig.name] = file;
@@ -106,7 +105,7 @@ export class Pattern {
 		for ( let fileName in this.files ) {
 			let file = this.files[fileName];
 
-			if ( this.basename === 'demo' ) {
+			if ( file.basename === 'demo' ) {
 				continue;
 			}
 

@@ -34,9 +34,9 @@ export default function reactJSXTransformFactory (application) {
 		if (demo) {
 			let demoTemplate = jsx.server(demo.buffer.toString('utf-8'), {'raw': true});
 			let demoData = Object.assign(data, {
-				'index': React.createClass({
+				'Pattern': React.createClass({
 					'render': function renderSourceTemplate () {
-						return sourceTemplate(this);
+						return sourceTemplate(data);
 					}
 				})
 			});
