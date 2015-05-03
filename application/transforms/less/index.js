@@ -35,24 +35,28 @@ export default function lessTransformFactory (application) {
 			source = source.replace(search, `@import '${dependency.path}';`);
 		}
 
-		if (demo) {
-			let demoSource = demo.buffer.toString('utf-8');
-			source = [source, demoSource].join(`\n`);
-		}
-
-		var results = {'css': ''};
-
 		try {
-			results = await less.render(source, configuration);
+			let results = await less.render(source, configuration);
+			file.buffer = new Buffer(results.css, 'utf-8');
 		} catch (err) {
 			application.log.error(err);
 			throw new Error(err);
 		}
 
-		file.buffer = new Buffer(results.css, 'utf-8');
+		if (demo) {
+			try {
+				let demoResults = await less.render(demo.buffer.toString('utf-8'), configuration);
+				file.demoSource = demo.source;
+				file.demoBuffer = new Buffer(demoResults.css, 'utf-8');
+			} catch (err) {
+				application.log.error(err);
+				throw err;
+			}
+		}
+
 		file.in = config.inFormat;
 		file.out = config.outFormat;
-		
+
 		return file;
 	};
 }

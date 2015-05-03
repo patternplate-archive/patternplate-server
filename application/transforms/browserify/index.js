@@ -1,6 +1,23 @@
 import browserify from 'browserify';
 import {directory} from 'q-io/fs';
 
+async function runBundler(bundler, config) {
+	return new Promise(function bundlerResolver (resolve, reject) {
+		bundler.bundle(function onBundle (err, buffer) {
+
+			if (err) {
+				return reject(err);
+			}
+
+			resolve({
+				'buffer': buffer,
+				'in': config.inFormat,
+				'out': config.outFormat
+			});
+		});
+	});
+}
+
 function browserifyTransformFactory (application) {
 	const config = application.configuration.transforms.browserify || {};
 
@@ -13,7 +30,7 @@ function browserifyTransformFactory (application) {
 		return results;
 	}, {});
 
-	return async function browserifyTransform (file, dependencies, demos) {
+	return async function browserifyTransform (file, dependencies, demo) {
 		const bundler = browserify(Object.assign(config.opts, {
 			'entries': file.path,
 			'basedir': directory(file.path)
@@ -30,20 +47,28 @@ function browserifyTransformFactory (application) {
 			bundler.transform(transformName, transformConfigs[transformName]);
 		}
 
-		return new Promise(function browserifyResolver (resolve, reject) {
-			bundler.bundle(function onBrowserifyBundle (err, buffer) {
+		if (demo) {
+			const demoBundler = browserify(Object.assign(config.opts, {
+				'entries': demo.path,
+				'basedir': directory(demo.path)
+			}));
 
-				if (err) {
-					return reject(err);
-				}
+			for (let transformName of transforms) {
+				demoBundler.transform(transformName, transformConfigs[transformName]);
+			}
 
-				file.buffer = buffer;
-				file.in = config.inFormat;
-				file.out = config.outFormat;
+			let demoTransformed = await runBundler(demoBundler, config);
 
-				resolve(file);
+			Object.assign(file, {
+				'demoSource': demo.source,
+				'demoBuffer': demoTransformed.buffer
 			});
-		});
+		}
+
+		let transformed = await runBundler(bundler, config);
+		Object.assign(file, transformed);
+
+		return file;
 	};
 }
 
