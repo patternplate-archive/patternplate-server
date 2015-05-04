@@ -1,5 +1,5 @@
 const server = {
-	'port': 1338
+	'port': 1337
 };
 
 export default server;

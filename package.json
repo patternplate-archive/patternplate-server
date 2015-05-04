@@ -2,13 +2,13 @@
   "name": "patternplate-server",
   "version": "0.1.0",
   "description": "Programmatically serve patternplate components via a well defined REST API",
-  "main": "application/",
+  "main": "binary/_patternplate-server",
   "scripts": {
-    "start": "boilerplate-server"
+    "start": "node binary/patternplate-server"
   },
   "repository": {
     "type": "git",
-    "url": "git@git.sinnerschrader.com:team-ux/duo-server.git"
+    "url": "git@git.sinnerschrader.com:team-ux/patternplate-server.git"
   },
   "keywords": [
     "duo",
@@ -32,6 +32,7 @@
     "npm": ">= 2.5.1"
   },
   "dependencies": {
+    "babel-core": "^5.1.13",
     "babelify": "^6.0.2",
     "bluebird": "^2.9.25",
     "boilerplate-server": "git+ssh://git@git.sinnerschrader.com:team-ux/boilerplate-server.git",
@@ -43,10 +44,12 @@
     "less-plugin-clean-css": "^1.5.0",
     "lodash": "^3.7.0",
     "marked": "^0.3.3",
+    "minimist": "^1.1.1",
     "normalize.less": "^1.0.0",
     "pascal-case": "^1.1.0",
     "pretty-data": "^0.40.0",
     "q-io": "^1.12.0",
+    "rc": "^1.0.1",
     "react": "^0.13.2",
     "react-jsx": "^0.13.0",
     "require-all": "^1.0.0",
