@@ -2,7 +2,7 @@
   "name": "patternplate-server",
   "version": "0.1.0",
   "description": "Programmatically serve patternplate components via a well defined REST API",
-  "main": "application",
+  "main": "application/",
   "scripts": {
     "start": "boilerplate-server"
   },
