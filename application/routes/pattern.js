@@ -7,11 +7,15 @@ export default function patternRouteFactory (application, configuration) {
 
 	return async function patternRoute () {
 		var id = this.params[0].value;
-		let pattern, response, mtime;
+		let pattern;
+		let response;
+		let mtime;
 
-		let path = resolve(config.path, id);
+		let cwd = application.runtime.patterncwd || application.runtime.cwd;
+		let basePath = resolve(cwd, config.path);
+		let path = resolve(basePath, id);
 
-		if (await contains(config.path, path) === false) {
+		if (await contains(basePath, path) === false) {
 			return;
 		}
 
@@ -20,7 +24,7 @@ export default function patternRouteFactory (application, configuration) {
 		if (await exists(search)) {
 			// Single pattern
 			try {
-				pattern = await application.pattern.factory(id, config.path, config, application.transforms);
+				pattern = await application.pattern.factory(id, basePath, config, application.transforms);
 				await pattern.read();
 				await pattern.transform();
 			} catch (err) {
@@ -52,7 +56,7 @@ export default function patternRouteFactory (application, configuration) {
 			for (let directory of patterns) {
 				let patternID = join(id, directory);
 
-				let pattern = await application.pattern.factory(patternID, config.path, config, application.transforms);
+				let pattern = await application.pattern.factory(patternID, basePath, config, application.transforms);
 
 				await pattern.read();
 				await pattern.transform();
