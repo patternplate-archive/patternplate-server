@@ -23,7 +23,7 @@ export default function indexRouteFactory (application, configuration) {
 		let response = await request(metaRoute.uri);
 		let meta = await response.body.read();
 
-		let readmePath = resolve(application.runtime.cwd, 'patterns', 'README.md');
+		let readmePath = resolve(application.runtime.patterncwd || application.runtime.cwd, 'patterns', 'README.md');
 		var readme = '';
 
 		if (await exists(readmePath)) {

@@ -3,7 +3,7 @@ import {listTree, split, join, directory} from 'q-io/fs';
 
 export default function metaRouteFactory (application, configuration) {
 	const config = application.configuration[configuration.options.key];
-	const path = resolve(application.runtime.cwd, config.path);
+	const path = resolve(application.runtime.patterncwd || application.runtime.cwd, config.path);
 
 	return async function metaRoute () {
 		let list = await listTree(path);
