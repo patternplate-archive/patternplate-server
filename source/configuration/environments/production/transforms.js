@@ -1,9 +1,4 @@
-'use strict';
-
-Object.defineProperty(exports, '__esModule', {
-	value: true
-});
-exports['default'] = {
+export default {
 	'opts': {
 		'debug': false
 	},
@@ -26,4 +21,3 @@ exports['default'] = {
 		}
 	}
 };
-module.exports = exports['default'];

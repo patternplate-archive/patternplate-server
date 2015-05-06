@@ -1,9 +1,4 @@
-'use strict';
-
-Object.defineProperty(exports, '__esModule', {
-	value: true
-});
-var routes = {
+const routes = {
 	'enabled': {
 		'pattern': {
 			'enabled': true,
@@ -25,5 +20,4 @@ var routes = {
 	}
 };
 
-exports['default'] = routes;
-module.exports = exports['default'];
+export default routes;

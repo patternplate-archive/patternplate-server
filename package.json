@@ -4,7 +4,10 @@
   "description": "Programmatically serve patternplate components via a well defined REST API",
   "main": "binary/_patternplate-server",
   "scripts": {
-    "start": "node binary/patternplate-server"
+    "start": "node binary/patternplate-server.js",
+    "build": "npm run babel",
+    "watch": "npm run babel -- --watch",
+    "babel": "babel source --out-dir ./"
   },
   "repository": {
     "type": "git",
@@ -32,12 +35,11 @@
     "npm": ">= 2.5.1"
   },
   "dependencies": {
-    "babel-core": "^5.1.13",
+    "babel": "^5.2.15",
     "babelify": "^6.0.2",
     "bluebird": "^2.9.25",
     "boilerplate-server": "git+ssh://git@git.sinnerschrader.com:team-ux/boilerplate-server.git",
     "browserify": "^10.1.0",
-    "duo": "^0.11.2",
     "jquery": "^2.1.3",
     "jsx-transform": "^2.0.0",
     "less": "^2.5.0",

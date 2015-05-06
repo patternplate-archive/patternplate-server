@@ -1,9 +1,4 @@
-'use strict';
-
-Object.defineProperty(exports, '__esModule', {
-	value: true
-});
-exports['default'] = {
+export default {
 	'path': './patterns',
 	'transformPath': './application/transforms',
 	'formats': {
@@ -28,4 +23,3 @@ exports['default'] = {
 		}
 	}
 };
-module.exports = exports['default'];

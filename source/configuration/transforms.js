@@ -1,9 +1,4 @@
-'use strict';
-
-Object.defineProperty(exports, '__esModule', {
-	value: true
-});
-exports['default'] = {
+export default {
 	'path': './application/transforms',
 	'markdown': {
 		'inFormat': 'md',
@@ -68,4 +63,3 @@ exports['default'] = {
 		}
 	}
 };
-module.exports = exports['default'];
