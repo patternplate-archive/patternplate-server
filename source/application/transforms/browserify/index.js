@@ -1,6 +1,12 @@
 import browserify from 'browserify';
 import {directory} from 'q-io/fs';
 
+// TODO: Fix this properly
+import babelify from 'babelify';
+import uglifyify from 'uglifyify';
+
+const browserifyTransforms = {babelify, uglifyify};
+
 async function runBundler(bundler, config) {
 	return new Promise(function bundlerResolver (resolve, reject) {
 		bundler.bundle(function onBundle (err, buffer) {
@@ -44,7 +50,8 @@ function browserifyTransformFactory (application) {
 		}
 
 		for (let transformName of transforms) {
-			bundler.transform(transformName, transformConfigs[transformName]);
+			let transformFn = browserifyTransforms[transformName];
+			bundler.transform(transformFn.configure(transformConfigs[transformName]));
 		}
 
 		if (demo) {

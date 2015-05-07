@@ -12,6 +12,18 @@ var _browserify2 = _interopRequireDefault(_browserify);
 
 var _qIoFs = require('q-io/fs');
 
+// TODO: Fix this properly
+
+var _babelify = require('babelify');
+
+var _babelify2 = _interopRequireDefault(_babelify);
+
+var _uglifyify = require('uglifyify');
+
+var _uglifyify2 = _interopRequireDefault(_uglifyify);
+
+var browserifyTransforms = { babelify: _babelify2['default'], uglifyify: _uglifyify2['default'] };
+
 function runBundler(bundler, config) {
 	return regeneratorRuntime.async(function runBundler$(context$1$0) {
 		while (1) switch (context$1$0.prev = context$1$0.next) {
@@ -53,7 +65,7 @@ function browserifyTransformFactory(application) {
 	}, {});
 
 	return function browserifyTransform(file, dependencies, demo) {
-		var bundler, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, dependencyName, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, transformName, demoBundler, _iteratorNormalCompletion3, _didIteratorError3, _iteratorError3, _iterator3, _step3, demoTransformed, transformed;
+		var bundler, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, dependencyName, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, transformName, transformFn, demoBundler, _iteratorNormalCompletion3, _didIteratorError3, _iteratorError3, _iterator3, _step3, demoTransformed, transformed;
 
 		return regeneratorRuntime.async(function browserifyTransform$(context$2$0) {
 			while (1) switch (context$2$0.prev = context$2$0.next) {
@@ -116,8 +128,9 @@ function browserifyTransformFactory(application) {
 					context$2$0.prev = 23;
 					for (_iterator2 = transforms[Symbol.iterator](); !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
 						transformName = _step2.value;
+						transformFn = browserifyTransforms[transformName];
 
-						bundler.transform(transformName, transformConfigs[transformName]);
+						bundler.transform(transformFn.configure(transformConfigs[transformName]));
 					}
 
 					context$2$0.next = 31;
