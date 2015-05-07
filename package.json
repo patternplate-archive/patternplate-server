@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@git.sinnerschrader.com:team-ux/patternplate-server.git"
+    "url": "git@git.sinnerschrader.com:patternplate/patternplate-server.git"
   },
   "keywords": [
     "duo",
@@ -38,7 +38,7 @@
     "babel": "^5.2.15",
     "babelify": "^6.0.2",
     "bluebird": "^2.9.25",
-    "boilerplate-server": "git+ssh://git@git.sinnerschrader.com:team-ux/boilerplate-server.git",
+    "boilerplate-server": "git+ssh://git@git.sinnerschrader.com:patternplate/boilerplate-server.git",
     "browserify": "^10.1.0",
     "jquery": "^2.1.3",
     "jsx-transform": "^2.0.0",
