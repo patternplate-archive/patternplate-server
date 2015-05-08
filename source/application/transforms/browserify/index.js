@@ -1,5 +1,4 @@
 import browserify from 'browserify';
-import {directory} from 'q-io/fs';
 
 // TODO: Fix this properly
 import babelify from 'babelify';
@@ -7,7 +6,7 @@ import uglifyify from 'uglifyify';
 
 const browserifyTransforms = {babelify, uglifyify};
 
-async function runBundler(bundler, config) {
+async function runBundler (bundler, config) {
 	return new Promise(function bundlerResolver (resolve, reject) {
 		bundler.bundle(function onBundle (err, buffer) {
 
@@ -24,6 +23,25 @@ async function runBundler(bundler, config) {
 	});
 }
 
+function resolveDependencies (file) {
+	var data = [];
+
+	for (let dependencyName of Object.keys(file.dependencies || {})) {
+		if (file.dependencies[dependencyName]) {
+			data = data
+				.concat(resolveDependencies(file.dependencies[dependencyName]))
+				.concat([{
+					'file': file.dependencies[dependencyName].path,
+					'expose': dependencyName
+				}]);
+
+		}
+	}
+
+	console.log(data);
+	return data;
+}
+
 function browserifyTransformFactory (application) {
 	const config = application.configuration.transforms.browserify || {};
 
@@ -36,18 +54,13 @@ function browserifyTransformFactory (application) {
 		return results;
 	}, {});
 
-	return async function browserifyTransform (file, dependencies, demo) {
+	return async function browserifyTransform (file, demo) {
 		const bundler = browserify(Object.assign(config.opts, {
-			'entries': file.path,
-			'basedir': directory(file.path)
+			'entries': file.path
 		}));
 
-		for (let dependencyName of Object.keys(dependencies)) {
-			bundler.require(dependencies[dependencyName].path, {
-				'expose': dependencyName,
-				'basedir': directory(dependencies[dependencyName].path)
-			});
-		}
+		let dependencies = resolveDependencies(file);
+		bundler.require(dependencies);
 
 		for (let transformName of transforms) {
 			let transformFn = browserifyTransforms[transformName];
@@ -56,8 +69,13 @@ function browserifyTransformFactory (application) {
 
 		if (demo) {
 			const demoBundler = browserify(Object.assign(config.opts, {
-				'entries': demo.path,
-				'basedir': directory(demo.path)
+				'entries': demo.path
+			}));
+
+			demoBundler.require(resolveDependencies({
+				'dependencies': {
+					'Pattern': file
+				}
 			}));
 
 			for (let transformName of transforms) {

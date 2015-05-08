@@ -117,15 +117,15 @@ export class Pattern {
 
 			let transforms = formatConfig.transforms || [];
 
-			let dependencies = {};
+			file.dependencies = {};
 
 			for (let dependencyName in this.dependencies) {
-				dependencies[dependencyName] = this.dependencies[dependencyName].results[formatConfig.name];
+				file.dependencies[dependencyName] = this.dependencies[dependencyName].results[formatConfig.name];
 			}
 
 			for (let transform of transforms) {
 				let fn = this.transforms[transform];
-				file = await fn(file, dependencies, demos[formatConfig.name]);
+				file = await fn(file, demos[formatConfig.name]);
 			}
 
 			this.results[formatConfig.name] = file;

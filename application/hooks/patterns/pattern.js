@@ -157,7 +157,7 @@ var Pattern = (function () {
 	}, {
 		key: 'transform',
 		value: function transform() {
-			var dependency, demos, fileName, file, formatConfig, transforms, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, transform, fn, _dependencies, dependencyName, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2;
+			var dependency, demos, fileName, file, formatConfig, transforms, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, transform, fn, dependencyName, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2;
 
 			return regeneratorRuntime.async(function transform$(context$2$0) {
 				while (1) switch (context$2$0.prev = context$2$0.next) {
@@ -294,10 +294,11 @@ var Pattern = (function () {
 
 					case 50:
 						transforms = formatConfig.transforms || [];
-						_dependencies = {};
+
+						file.dependencies = {};
 
 						for (dependencyName in this.dependencies) {
-							_dependencies[dependencyName] = this.dependencies[dependencyName].results[formatConfig.name];
+							file.dependencies[dependencyName] = this.dependencies[dependencyName].results[formatConfig.name];
 						}
 
 						_iteratorNormalCompletion2 = true;
@@ -315,7 +316,7 @@ var Pattern = (function () {
 						transform = _step2.value;
 						fn = this.transforms[transform];
 						context$2$0.next = 63;
-						return fn(file, _dependencies, demos[formatConfig.name]);
+						return fn(file, demos[formatConfig.name]);
 
 					case 63:
 						file = context$2$0.sent;
