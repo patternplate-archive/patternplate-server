@@ -6,6 +6,8 @@ export default function patternRouteFactory (application, configuration) {
 	const config = application.configuration[configuration.options.key];
 
 	return async function patternRoute () {
+		this.type = 'json';
+
 		var id = this.params[0].value;
 		let pattern;
 		let response;
@@ -16,7 +18,7 @@ export default function patternRouteFactory (application, configuration) {
 		let path = resolve(basePath, id);
 
 		if (await contains(basePath, path) === false) {
-			return;
+			this.throw(404, `Could not find pattern ${id}`, {'error': true, 'message': `Could not find ${id}`});
 		}
 
 		let search = resolve(path, 'pattern.json');
@@ -28,8 +30,8 @@ export default function patternRouteFactory (application, configuration) {
 				await pattern.read();
 				await pattern.transform();
 			} catch (err) {
-				application.log.error(err);
-				return;
+				err.fileName = err.fileName || id;
+				this.throw(500, err);
 			}
 
 			response = pattern;
@@ -56,11 +58,15 @@ export default function patternRouteFactory (application, configuration) {
 			for (let directory of patterns) {
 				let patternID = join(id, directory);
 
-				let pattern = await application.pattern.factory(patternID, basePath, config, application.transforms);
-
-				await pattern.read();
-				await pattern.transform();
-				response.push(pattern);
+				try {
+					let pattern = await application.pattern.factory(patternID, basePath, config, application.transforms);
+					response.push(pattern);
+					await pattern.read();
+					await pattern.transform();
+				} catch (err) {
+					err.fileName = err.fileName || patternID;
+					this.throw(500, err);
+				}
 			}
 
 			mtime = response.map((item) => item.getLastModified()).sort((a, b) => b - a)[0];
@@ -71,7 +77,6 @@ export default function patternRouteFactory (application, configuration) {
 		}
 		this.set('Cache-Control', `maxage=${configuration.options.maxage|0}`);
 
-		this.type = 'json';
 		this.body = response;
 	};
 }

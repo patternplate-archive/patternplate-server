@@ -1,7 +1,30 @@
-import {resolve} from 'path';
-
 import less from 'less';
 import {directory} from 'q-io/fs';
+
+function replaceImports (file, deps = {}) {
+	var transformed = file.source.toString('utf-8');
+	file.dependencies = Object.assign({}, file.dependencies, deps);
+
+	for (let dependencyName of Object.keys(file.dependencies)) {
+		let search = new RegExp(`@import(.*)'${dependencyName}';`);
+		let dependency = file.dependencies[dependencyName];
+
+		if (dependency) {
+			transformed = transformed.replace(search, dependency.source.toString('utf-8'));
+		}
+	}
+
+	file.source = new Buffer(transformed, 'utf-8');
+	return transformed;
+}
+
+async function render(source, config) {
+	try {
+		return await less.render(source, config);
+	} catch (lessError) {
+		throw lessError;
+	}
+}
 
 export default function lessTransformFactory (application) {
 	const config = application.configuration.transforms.less || {};
@@ -16,7 +39,7 @@ export default function lessTransformFactory (application) {
 
 	let configuration = {
 		'plugins': [],
-		'paths': [resolve(application.runtime.cwd, 'node_modules')]
+		'paths': ['node_modules']
 	};
 
 	for (let pluginName of plugins) {
@@ -25,34 +48,34 @@ export default function lessTransformFactory (application) {
 		configuration.plugins.push(new Plugin(pluginConfigs[pluginName]));
 	}
 
-	return async function lessTransform (file, dependencies, demo) {
-		var source = file.buffer.toString('utf-8');
-		configuration.paths.push(directory(file.path));
+	return async function lessTransform (file, demo) {
+		let source = replaceImports(file);
+		let fileConfig = Object.assign({}, configuration);
 
-		for (let dependencyName of Object.keys(dependencies)) {
-			let dependency = dependencies[dependencyName];
-			let search = new RegExp(`@import(.*)'${dependencyName}';`);
-			source = source.replace(search, `@import '${dependency.path}';`);
-		}
+		var results = {};
+		var demoResults = {};
 
 		try {
-			let results = await less.render(source, configuration);
-			file.buffer = new Buffer(results.css, 'utf-8');
+			results = await render(source, fileConfig);
 		} catch (err) {
-			application.log.error(err);
-			throw new Error(err);
+			throw err;
 		}
 
 		if (demo) {
+			let demoSource = replaceImports(demo, {'Pattern': file});
+			let demoConfig = Object.assign({}, configuration);
+
 			try {
-				let demoResults = await less.render(demo.buffer.toString('utf-8'), configuration);
-				file.demoSource = demo.source;
-				file.demoBuffer = new Buffer(demoResults.css, 'utf-8');
+				demoResults = await render(demoSource, demoConfig);
 			} catch (err) {
-				application.log.error(err);
 				throw err;
 			}
+
+			file.demoBuffer = new Buffer(demoResults.css || '', 'utf-8');
+			file.demoSource = demo.source;
 		}
+
+		file.buffer = new Buffer(results.css || '', 'utf-8');
 
 		file.in = config.inFormat;
 		file.out = config.outFormat;

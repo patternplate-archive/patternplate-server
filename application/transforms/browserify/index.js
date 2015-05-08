@@ -10,8 +10,6 @@ var _browserify = require('browserify');
 
 var _browserify2 = _interopRequireDefault(_browserify);
 
-var _qIoFs = require('q-io/fs');
-
 // TODO: Fix this properly
 
 var _babelify = require('babelify');
@@ -50,6 +48,42 @@ function runBundler(bundler, config) {
 	}, null, this);
 }
 
+function resolveDependencies(file) {
+	var data = [];
+
+	var _iteratorNormalCompletion = true;
+	var _didIteratorError = false;
+	var _iteratorError = undefined;
+
+	try {
+		for (var _iterator = Object.keys(file.dependencies || {})[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+			var dependencyName = _step.value;
+
+			if (file.dependencies[dependencyName]) {
+				data = data.concat(resolveDependencies(file.dependencies[dependencyName])).concat([{
+					'file': file.dependencies[dependencyName].path,
+					'expose': dependencyName
+				}]);
+			}
+		}
+	} catch (err) {
+		_didIteratorError = true;
+		_iteratorError = err;
+	} finally {
+		try {
+			if (!_iteratorNormalCompletion && _iterator['return']) {
+				_iterator['return']();
+			}
+		} finally {
+			if (_didIteratorError) {
+				throw _iteratorError;
+			}
+		}
+	}
+
+	return data;
+}
+
 function browserifyTransformFactory(application) {
 	var config = application.configuration.transforms.browserify || {};
 
@@ -64,68 +98,23 @@ function browserifyTransformFactory(application) {
 		return results;
 	}, {});
 
-	return function browserifyTransform(file, dependencies, demo) {
-		var bundler, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, dependencyName, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, transformName, transformFn, demoBundler, _iteratorNormalCompletion3, _didIteratorError3, _iteratorError3, _iterator3, _step3, demoTransformed, transformed;
+	return function browserifyTransform(file, demo) {
+		var bundler, dependencies, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, transformName, transformFn, demoBundler, _iteratorNormalCompletion3, _didIteratorError3, _iteratorError3, _iterator3, _step3, demoTransformed, transformed;
 
 		return regeneratorRuntime.async(function browserifyTransform$(context$2$0) {
 			while (1) switch (context$2$0.prev = context$2$0.next) {
 				case 0:
 					bundler = _browserify2['default'](Object.assign(config.opts, {
-						'entries': file.path,
-						'basedir': _qIoFs.directory(file.path)
+						'entries': file.path
 					}));
-					_iteratorNormalCompletion = true;
-					_didIteratorError = false;
-					_iteratorError = undefined;
-					context$2$0.prev = 4;
+					dependencies = resolveDependencies(file);
 
-					for (_iterator = Object.keys(dependencies)[Symbol.iterator](); !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-						dependencyName = _step.value;
+					bundler.require(dependencies);
 
-						bundler.require(dependencies[dependencyName].path, {
-							'expose': dependencyName,
-							'basedir': _qIoFs.directory(dependencies[dependencyName].path)
-						});
-					}
-
-					context$2$0.next = 12;
-					break;
-
-				case 8:
-					context$2$0.prev = 8;
-					context$2$0.t24 = context$2$0['catch'](4);
-					_didIteratorError = true;
-					_iteratorError = context$2$0.t24;
-
-				case 12:
-					context$2$0.prev = 12;
-					context$2$0.prev = 13;
-
-					if (!_iteratorNormalCompletion && _iterator['return']) {
-						_iterator['return']();
-					}
-
-				case 15:
-					context$2$0.prev = 15;
-
-					if (!_didIteratorError) {
-						context$2$0.next = 18;
-						break;
-					}
-
-					throw _iteratorError;
-
-				case 18:
-					return context$2$0.finish(15);
-
-				case 19:
-					return context$2$0.finish(12);
-
-				case 20:
 					_iteratorNormalCompletion2 = true;
 					_didIteratorError2 = false;
 					_iteratorError2 = undefined;
-					context$2$0.prev = 23;
+					context$2$0.prev = 6;
 					for (_iterator2 = transforms[Symbol.iterator](); !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
 						transformName = _step2.value;
 						transformFn = browserifyTransforms[transformName];
@@ -133,98 +122,103 @@ function browserifyTransformFactory(application) {
 						bundler.transform(transformFn.configure(transformConfigs[transformName]));
 					}
 
-					context$2$0.next = 31;
+					context$2$0.next = 14;
 					break;
 
-				case 27:
-					context$2$0.prev = 27;
-					context$2$0.t25 = context$2$0['catch'](23);
+				case 10:
+					context$2$0.prev = 10;
+					context$2$0.t27 = context$2$0['catch'](6);
 					_didIteratorError2 = true;
-					_iteratorError2 = context$2$0.t25;
+					_iteratorError2 = context$2$0.t27;
 
-				case 31:
-					context$2$0.prev = 31;
-					context$2$0.prev = 32;
+				case 14:
+					context$2$0.prev = 14;
+					context$2$0.prev = 15;
 
 					if (!_iteratorNormalCompletion2 && _iterator2['return']) {
 						_iterator2['return']();
 					}
 
-				case 34:
-					context$2$0.prev = 34;
+				case 17:
+					context$2$0.prev = 17;
 
 					if (!_didIteratorError2) {
-						context$2$0.next = 37;
+						context$2$0.next = 20;
 						break;
 					}
 
 					throw _iteratorError2;
 
-				case 37:
-					return context$2$0.finish(34);
+				case 20:
+					return context$2$0.finish(17);
 
-				case 38:
-					return context$2$0.finish(31);
+				case 21:
+					return context$2$0.finish(14);
 
-				case 39:
+				case 22:
 					if (!demo) {
-						context$2$0.next = 64;
+						context$2$0.next = 48;
 						break;
 					}
 
 					demoBundler = _browserify2['default'](Object.assign(config.opts, {
-						'entries': demo.path,
-						'basedir': _qIoFs.directory(demo.path)
+						'entries': demo.path
 					}));
+
+					demoBundler.require(resolveDependencies({
+						'dependencies': {
+							'Pattern': file
+						}
+					}));
+
 					_iteratorNormalCompletion3 = true;
 					_didIteratorError3 = false;
 					_iteratorError3 = undefined;
-					context$2$0.prev = 44;
-
+					context$2$0.prev = 28;
 					for (_iterator3 = transforms[Symbol.iterator](); !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
 						transformName = _step3.value;
 
 						demoBundler.transform(transformName, transformConfigs[transformName]);
 					}
 
-					context$2$0.next = 52;
+					context$2$0.next = 36;
 					break;
 
-				case 48:
-					context$2$0.prev = 48;
-					context$2$0.t26 = context$2$0['catch'](44);
+				case 32:
+					context$2$0.prev = 32;
+					context$2$0.t28 = context$2$0['catch'](28);
 					_didIteratorError3 = true;
-					_iteratorError3 = context$2$0.t26;
+					_iteratorError3 = context$2$0.t28;
 
-				case 52:
-					context$2$0.prev = 52;
-					context$2$0.prev = 53;
+				case 36:
+					context$2$0.prev = 36;
+					context$2$0.prev = 37;
 
 					if (!_iteratorNormalCompletion3 && _iterator3['return']) {
 						_iterator3['return']();
 					}
 
-				case 55:
-					context$2$0.prev = 55;
+				case 39:
+					context$2$0.prev = 39;
 
 					if (!_didIteratorError3) {
-						context$2$0.next = 58;
+						context$2$0.next = 42;
 						break;
 					}
 
 					throw _iteratorError3;
 
-				case 58:
-					return context$2$0.finish(55);
+				case 42:
+					return context$2$0.finish(39);
 
-				case 59:
-					return context$2$0.finish(52);
+				case 43:
+					return context$2$0.finish(36);
 
-				case 60:
-					context$2$0.next = 62;
+				case 44:
+					context$2$0.next = 46;
 					return runBundler(demoBundler, config);
 
-				case 62:
+				case 46:
 					demoTransformed = context$2$0.sent;
 
 					Object.assign(file, {
@@ -232,22 +226,22 @@ function browserifyTransformFactory(application) {
 						'demoBuffer': demoTransformed.buffer
 					});
 
-				case 64:
-					context$2$0.next = 66;
+				case 48:
+					context$2$0.next = 50;
 					return runBundler(bundler, config);
 
-				case 66:
+				case 50:
 					transformed = context$2$0.sent;
 
 					Object.assign(file, transformed);
 
 					return context$2$0.abrupt('return', file);
 
-				case 69:
+				case 53:
 				case 'end':
 					return context$2$0.stop();
 			}
-		}, null, this, [[4, 8, 12, 20], [13,, 15, 19], [23, 27, 31, 39], [32,, 34, 38], [44, 48, 52, 60], [53,, 55, 59]]);
+		}, null, this, [[6, 10, 14, 22], [15,, 17, 21], [28, 32, 36, 44], [37,, 39, 43]]);
 	};
 }
 
