@@ -17,6 +17,8 @@ var _resolveDependencies = require('./resolve-dependencies');
 
 var _resolveDependencies2 = _interopRequireDefault(_resolveDependencies);
 
+var defaultData = { 'props': {} };
+
 function reactJSXTransformFactory(application) {
 	var config = application.configuration.transforms['react-jsx'] || {};
 
@@ -27,7 +29,7 @@ function reactJSXTransformFactory(application) {
 				case 0:
 					source = file.buffer.toString('utf-8');
 					sourceTemplate = _reactJsx2['default'].server(source, { 'raw': true });
-					data = Object.assign({ 'props': {} }, _resolveDependencies2['default'](file.dependencies));
+					data = Object.assign({}, defaultData, _resolveDependencies2['default'](file.dependencies));
 					result = sourceTemplate(data, { 'html': true });
 
 					file.buffer = new Buffer(result, 'utf-8');
@@ -36,7 +38,7 @@ function reactJSXTransformFactory(application) {
 
 					if (demo) {
 						demoTemplate = _reactJsx2['default'].server(demo.buffer.toString('utf-8'), { 'raw': true });
-						demoData = _resolveDependencies2['default']({ 'Pattern': file });
+						demoData = Object.assign({}, data, _resolveDependencies2['default']({ 'Pattern': file }));
 						demoResult = demoTemplate(demoData, { 'html': true });
 
 						file.demoSource = demo.source;

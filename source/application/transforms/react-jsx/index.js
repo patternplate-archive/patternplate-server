@@ -1,7 +1,8 @@
 /*eslint-disable no-loop-func */
 import jsx from 'react-jsx';
-
 import resolveDependencies from './resolve-dependencies';
+
+const defaultData = {'props': {}};
 
 export default function reactJSXTransformFactory (application) {
 	const config = application.configuration.transforms['react-jsx'] || {};
@@ -10,7 +11,7 @@ export default function reactJSXTransformFactory (application) {
 		let source = file.buffer.toString('utf-8');
 		let sourceTemplate = jsx.server(source, {'raw': true});
 
-		let data = Object.assign({'props': {}}, resolveDependencies(file.dependencies));
+		let data = Object.assign({}, defaultData, resolveDependencies(file.dependencies));
 		let result = sourceTemplate(data, {'html': true});
 
 		file.buffer = new Buffer(result, 'utf-8');
@@ -19,7 +20,7 @@ export default function reactJSXTransformFactory (application) {
 
 		if (demo) {
 			let demoTemplate = jsx.server(demo.buffer.toString('utf-8'), {'raw': true});
-			let demoData = resolveDependencies({'Pattern': file});
+			let demoData = Object.assign({}, data, resolveDependencies({'Pattern': file}));
 			let demoResult = demoTemplate(demoData, {'html': true});
 
 			file.demoSource = demo.source;
