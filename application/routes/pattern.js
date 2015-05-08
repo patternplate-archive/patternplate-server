@@ -18,6 +18,8 @@ function patternRouteFactory(application, configuration) {
 		return regeneratorRuntime.async(function patternRoute$(context$2$0) {
 			while (1) switch (context$2$0.prev = context$2$0.next) {
 				case 0:
+					this.type = 'json';
+
 					id = this.params[0].value;
 					pattern = undefined;
 					response = undefined;
@@ -25,80 +27,80 @@ function patternRouteFactory(application, configuration) {
 					cwd = application.runtime.patterncwd || application.runtime.cwd;
 					basePath = _path.resolve(cwd, config.path);
 					path = _path.resolve(basePath, id);
-					context$2$0.next = 9;
+					context$2$0.next = 10;
 					return _qIoFs.contains(basePath, path);
 
-				case 9:
-					context$2$0.t19 = context$2$0.sent;
+				case 10:
+					context$2$0.t50 = context$2$0.sent;
 
-					if (!(context$2$0.t19 === false)) {
-						context$2$0.next = 12;
+					if (!(context$2$0.t50 === false)) {
+						context$2$0.next = 13;
 						break;
 					}
 
-					return context$2$0.abrupt('return');
+					this['throw'](404, 'Could not find pattern ' + id, { 'error': true, 'message': 'Could not find ' + id });
 
-				case 12:
+				case 13:
 					search = _path.resolve(path, 'pattern.json');
-					context$2$0.next = 15;
+					context$2$0.next = 16;
 					return _qIoFs.exists(search);
 
-				case 15:
+				case 16:
 					if (!context$2$0.sent) {
-						context$2$0.next = 34;
+						context$2$0.next = 35;
 						break;
 					}
 
-					context$2$0.prev = 16;
-					context$2$0.next = 19;
+					context$2$0.prev = 17;
+					context$2$0.next = 20;
 					return application.pattern.factory(id, basePath, config, application.transforms);
 
-				case 19:
+				case 20:
 					pattern = context$2$0.sent;
-					context$2$0.next = 22;
+					context$2$0.next = 23;
 					return pattern.read();
 
-				case 22:
-					context$2$0.next = 24;
+				case 23:
+					context$2$0.next = 25;
 					return pattern.transform();
 
-				case 24:
-					context$2$0.next = 30;
+				case 25:
+					context$2$0.next = 31;
 					break;
 
-				case 26:
-					context$2$0.prev = 26;
-					context$2$0.t20 = context$2$0['catch'](16);
+				case 27:
+					context$2$0.prev = 27;
+					context$2$0.t51 = context$2$0['catch'](17);
 
-					application.log.error(context$2$0.t20);
-					return context$2$0.abrupt('return');
+					context$2$0.t51.fileName = context$2$0.t51.fileName || id;
+					this['throw'](500, context$2$0.t51);
 
-				case 30:
+				case 31:
 
 					response = pattern;
 					mtime = response.getLastModified();
-					context$2$0.next = 107;
+					context$2$0.next = 115;
 					break;
 
-				case 34:
-					context$2$0.next = 36;
+				case 35:
+					context$2$0.next = 37;
 					return _qIoFs.isDirectory(path);
 
-				case 36:
-					context$2$0.t21 = context$2$0.sent;
+				case 37:
+					context$2$0.t52 = context$2$0.sent;
 
-					if (!(context$2$0.t21 === false)) {
-						context$2$0.next = 39;
+					if (!(context$2$0.t52 === false)) {
+						context$2$0.next = 40;
 						break;
 					}
 
 					return context$2$0.abrupt('return');
 
-				case 39:
-					context$2$0.next = 41;
+				case 40:
+					context$2$0.next = 42;
 					return _qIoFs.list(path);
 
-				case 41:
+				case 42:
 					files = context$2$0.sent;
 					patterns = [];
 
@@ -107,137 +109,148 @@ function patternRouteFactory(application, configuration) {
 					_iteratorNormalCompletion = true;
 					_didIteratorError = false;
 					_iteratorError = undefined;
-					context$2$0.prev = 47;
+					context$2$0.prev = 48;
 					_iterator = files[Symbol.iterator]();
 
-				case 49:
+				case 50:
 					if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
-						context$2$0.next = 59;
+						context$2$0.next = 60;
 						break;
 					}
 
 					file = _step.value;
 					_search = _path.resolve(path, file, 'pattern.json');
-					context$2$0.next = 54;
+					context$2$0.next = 55;
 					return _qIoFs.exists(_search);
 
-				case 54:
+				case 55:
 					if (!context$2$0.sent) {
-						context$2$0.next = 56;
+						context$2$0.next = 57;
 						break;
 					}
 
 					patterns.push(file);
 
-				case 56:
+				case 57:
 					_iteratorNormalCompletion = true;
-					context$2$0.next = 49;
+					context$2$0.next = 50;
 					break;
 
-				case 59:
-					context$2$0.next = 65;
+				case 60:
+					context$2$0.next = 66;
 					break;
 
-				case 61:
-					context$2$0.prev = 61;
-					context$2$0.t22 = context$2$0['catch'](47);
+				case 62:
+					context$2$0.prev = 62;
+					context$2$0.t53 = context$2$0['catch'](48);
 					_didIteratorError = true;
-					_iteratorError = context$2$0.t22;
+					_iteratorError = context$2$0.t53;
 
-				case 65:
-					context$2$0.prev = 65;
+				case 66:
 					context$2$0.prev = 66;
+					context$2$0.prev = 67;
 
 					if (!_iteratorNormalCompletion && _iterator['return']) {
 						_iterator['return']();
 					}
 
-				case 68:
-					context$2$0.prev = 68;
+				case 69:
+					context$2$0.prev = 69;
 
 					if (!_didIteratorError) {
-						context$2$0.next = 71;
+						context$2$0.next = 72;
 						break;
 					}
 
 					throw _iteratorError;
 
-				case 71:
-					return context$2$0.finish(68);
-
 				case 72:
-					return context$2$0.finish(65);
+					return context$2$0.finish(69);
 
 				case 73:
+					return context$2$0.finish(66);
+
+				case 74:
 					_iteratorNormalCompletion2 = true;
 					_didIteratorError2 = false;
 					_iteratorError2 = undefined;
-					context$2$0.prev = 76;
+					context$2$0.prev = 77;
 					_iterator2 = patterns[Symbol.iterator]();
 
-				case 78:
+				case 79:
 					if (_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done) {
-						context$2$0.next = 92;
+						context$2$0.next = 100;
 						break;
 					}
 
 					directory = _step2.value;
 					patternID = _path.join(id, directory);
-					context$2$0.next = 83;
+					context$2$0.prev = 82;
+					context$2$0.next = 85;
 					return application.pattern.factory(patternID, basePath, config, application.transforms);
 
-				case 83:
+				case 85:
 					_pattern = context$2$0.sent;
-					context$2$0.next = 86;
+
+					response.push(_pattern);
+					context$2$0.next = 89;
 					return _pattern.read();
 
-				case 86:
-					context$2$0.next = 88;
+				case 89:
+					context$2$0.next = 91;
 					return _pattern.transform();
 
-				case 88:
-					response.push(_pattern);
+				case 91:
+					context$2$0.next = 97;
+					break;
 
-				case 89:
+				case 93:
+					context$2$0.prev = 93;
+					context$2$0.t54 = context$2$0['catch'](82);
+
+					context$2$0.t54.fileName = context$2$0.t54.fileName || patternID;
+					this['throw'](500, context$2$0.t54);
+
+				case 97:
 					_iteratorNormalCompletion2 = true;
-					context$2$0.next = 78;
+					context$2$0.next = 79;
 					break;
 
-				case 92:
-					context$2$0.next = 98;
+				case 100:
+					context$2$0.next = 106;
 					break;
 
-				case 94:
-					context$2$0.prev = 94;
-					context$2$0.t23 = context$2$0['catch'](76);
+				case 102:
+					context$2$0.prev = 102;
+					context$2$0.t55 = context$2$0['catch'](77);
 					_didIteratorError2 = true;
-					_iteratorError2 = context$2$0.t23;
+					_iteratorError2 = context$2$0.t55;
 
-				case 98:
-					context$2$0.prev = 98;
-					context$2$0.prev = 99;
+				case 106:
+					context$2$0.prev = 106;
+					context$2$0.prev = 107;
 
 					if (!_iteratorNormalCompletion2 && _iterator2['return']) {
 						_iterator2['return']();
 					}
 
-				case 101:
-					context$2$0.prev = 101;
+				case 109:
+					context$2$0.prev = 109;
 
 					if (!_didIteratorError2) {
-						context$2$0.next = 104;
+						context$2$0.next = 112;
 						break;
 					}
 
 					throw _iteratorError2;
 
-				case 104:
-					return context$2$0.finish(101);
+				case 112:
+					return context$2$0.finish(109);
 
-				case 105:
-					return context$2$0.finish(98);
+				case 113:
+					return context$2$0.finish(106);
 
-				case 106:
+				case 114:
 
 					mtime = response.map(function (item) {
 						return item.getLastModified();
@@ -245,21 +258,20 @@ function patternRouteFactory(application, configuration) {
 						return b - a;
 					})[0];
 
-				case 107:
+				case 115:
 
 					if (mtime) {
 						this.set('Last-Modified', mtime.toUTCString());
 					}
 					this.set('Cache-Control', 'maxage=' + (configuration.options.maxage | 0));
 
-					this.type = 'json';
 					this.body = response;
 
-				case 111:
+				case 118:
 				case 'end':
 					return context$2$0.stop();
 			}
-		}, null, this, [[16, 26], [47, 61, 65, 73], [66,, 68, 72], [76, 94, 98, 106], [99,, 101, 105]]);
+		}, null, this, [[17, 27], [48, 62, 66, 74], [67,, 69, 73], [77, 102, 106, 114], [82, 93], [107,, 109, 113]]);
 	};
 }
 

@@ -27,9 +27,12 @@ function replaceImports(file) {
 		for (var _iterator = Object.keys(file.dependencies)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
 			var dependencyName = _step.value;
 
-			var dependency = file.dependencies[dependencyName];
 			var search = new RegExp('@import(.*)\'' + dependencyName + '\';');
-			transformed = transformed.replace(search, dependency.source.toString('utf-8'));
+			var dependency = file.dependencies[dependencyName];
+
+			if (dependency) {
+				transformed = transformed.replace(search, dependency.source.toString('utf-8'));
+			}
 		}
 	} catch (err) {
 		_didIteratorError = true;
@@ -48,6 +51,29 @@ function replaceImports(file) {
 
 	file.source = new Buffer(transformed, 'utf-8');
 	return transformed;
+}
+
+function render(source, config) {
+	return regeneratorRuntime.async(function render$(context$1$0) {
+		while (1) switch (context$1$0.prev = context$1$0.next) {
+			case 0:
+				context$1$0.prev = 0;
+				context$1$0.next = 3;
+				return _less2['default'].render(source, config);
+
+			case 3:
+				return context$1$0.abrupt('return', context$1$0.sent);
+
+			case 6:
+				context$1$0.prev = 6;
+				context$1$0.t29 = context$1$0['catch'](0);
+				throw context$1$0.t29;
+
+			case 9:
+			case 'end':
+				return context$1$0.stop();
+		}
+	}, null, this, [[0, 6]]);
 }
 
 function lessTransformFactory(application) {
@@ -96,75 +122,69 @@ function lessTransformFactory(application) {
 	}
 
 	return function lessTransform(file, demo) {
-		var source, fileConfig, results, demoSource, demoConfig, demoResults;
+		var source, fileConfig, results, demoResults, demoSource, demoConfig;
 		return regeneratorRuntime.async(function lessTransform$(context$2$0) {
 			while (1) switch (context$2$0.prev = context$2$0.next) {
 				case 0:
 					source = replaceImports(file);
 					fileConfig = Object.assign({}, configuration);
+					results = {};
+					demoResults = {};
+					context$2$0.prev = 4;
+					context$2$0.next = 7;
+					return render(source, fileConfig);
 
-					fileConfig.paths.push(_qIoFs.directory(file.path));
-
-					context$2$0.prev = 3;
-					context$2$0.next = 6;
-					return _less2['default'].render(source, fileConfig);
-
-				case 6:
+				case 7:
 					results = context$2$0.sent;
-
-					file.buffer = new Buffer(results.css, 'utf-8');
-					context$2$0.next = 14;
+					context$2$0.next = 13;
 					break;
 
 				case 10:
 					context$2$0.prev = 10;
-					context$2$0.t26 = context$2$0['catch'](3);
+					context$2$0.t30 = context$2$0['catch'](4);
+					throw context$2$0.t30;
 
-					application.log.error(context$2$0.t26);
-					throw new Error(context$2$0.t26);
-
-				case 14:
+				case 13:
 					if (!demo) {
-						context$2$0.next = 30;
+						context$2$0.next = 27;
 						break;
 					}
 
-					context$2$0.prev = 15;
 					demoSource = replaceImports(demo, { 'Pattern': file });
 					demoConfig = Object.assign({}, configuration);
+					context$2$0.prev = 16;
+					context$2$0.next = 19;
+					return render(demoSource, demoConfig);
 
-					demoConfig.paths.push(_qIoFs.directory(file.path));
-
-					context$2$0.next = 21;
-					return _less2['default'].render(demoSource, demoConfig);
-
-				case 21:
+				case 19:
 					demoResults = context$2$0.sent;
-
-					file.demoSource = demo.source;
-					file.demoBuffer = new Buffer(demoResults.css, 'utf-8');
-					context$2$0.next = 30;
+					context$2$0.next = 25;
 					break;
 
-				case 26:
-					context$2$0.prev = 26;
-					context$2$0.t27 = context$2$0['catch'](15);
+				case 22:
+					context$2$0.prev = 22;
+					context$2$0.t31 = context$2$0['catch'](16);
+					throw context$2$0.t31;
 
-					application.log.error(context$2$0.t27);
-					throw context$2$0.t27;
+				case 25:
 
-				case 30:
+					file.demoBuffer = new Buffer(demoResults.css || '', 'utf-8');
+					file.demoSource = demo.source;
+
+				case 27:
+
+					file.buffer = new Buffer(results.css || '', 'utf-8');
 
 					file['in'] = config.inFormat;
 					file.out = config.outFormat;
 
 					return context$2$0.abrupt('return', file);
 
-				case 33:
+				case 31:
 				case 'end':
 					return context$2$0.stop();
 			}
-		}, null, this, [[3, 10], [15, 26]]);
+		}, null, this, [[4, 10], [16, 22]]);
 	};
 }
 

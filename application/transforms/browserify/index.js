@@ -81,7 +81,6 @@ function resolveDependencies(file) {
 		}
 	}
 
-	console.log(data);
 	return data;
 }
 
@@ -128,9 +127,9 @@ function browserifyTransformFactory(application) {
 
 				case 10:
 					context$2$0.prev = 10;
-					context$2$0.t24 = context$2$0['catch'](6);
+					context$2$0.t27 = context$2$0['catch'](6);
 					_didIteratorError2 = true;
-					_iteratorError2 = context$2$0.t24;
+					_iteratorError2 = context$2$0.t27;
 
 				case 14:
 					context$2$0.prev = 14;
@@ -187,9 +186,9 @@ function browserifyTransformFactory(application) {
 
 				case 32:
 					context$2$0.prev = 32;
-					context$2$0.t25 = context$2$0['catch'](28);
+					context$2$0.t28 = context$2$0['catch'](28);
 					_didIteratorError3 = true;
-					_iteratorError3 = context$2$0.t25;
+					_iteratorError3 = context$2$0.t28;
 
 				case 36:
 					context$2$0.prev = 36;

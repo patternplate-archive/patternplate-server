@@ -38,7 +38,6 @@ function resolveDependencies (file) {
 		}
 	}
 
-	console.log(data);
 	return data;
 }
 
