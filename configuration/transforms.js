@@ -17,8 +17,7 @@ exports['default'] = {
 		'inFormat': 'js',
 		'outFormat': 'js',
 		'opts': {
-			'debug': true,
-			'noParse': [require.resolve('jquery')]
+			'debug': true
 		},
 		'transforms': {
 			'babelify': {

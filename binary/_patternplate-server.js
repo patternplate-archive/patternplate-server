@@ -7,10 +7,6 @@ Object.defineProperty(exports, '__esModule', {
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-/*eslint-disable no-process-env */
-
-var _path = require('path');
-
 var _application = require('../application');
 
 var _application2 = _interopRequireDefault(_application);
