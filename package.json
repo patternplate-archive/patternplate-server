@@ -4,7 +4,7 @@
   "description": "Programmatically serve patternplate components via a well defined REST API",
   "main": "binary/_patternplate-server",
   "scripts": {
-    "start": "node binary/patternplate-server.js",
+    "start": "node --harmony binary/patternplate-server.js",
     "build": "npm run babel",
     "watch": "npm run babel -- --watch",
     "babel": "babel source --out-dir ./"
