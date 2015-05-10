@@ -2,10 +2,10 @@ import {resolve, relative, basename} from 'path';
 import {listTree, split, join, directory} from 'q-io/fs';
 
 export default function metaRouteFactory (application, configuration) {
-	const config = application.configuration[configuration.options.key];
-	const path = resolve(application.runtime.patterncwd || application.runtime.cwd, config.path);
-
 	return async function metaRoute () {
+		let config = application.configuration[configuration.options.key];
+		let path = resolve(application.runtime.patterncwd || application.runtime.cwd, config.path);
+
 		let list = await listTree(path);
 
 		list = list.map(function normalizePath (item) {

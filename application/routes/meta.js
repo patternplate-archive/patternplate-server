@@ -10,18 +10,17 @@ var _path = require('path');
 var _qIoFs = require('q-io/fs');
 
 function metaRouteFactory(application, configuration) {
-	var config = application.configuration[configuration.options.key];
-	var path = _path.resolve(application.runtime.patterncwd || application.runtime.cwd, config.path);
-
 	return function metaRoute() {
-		var list, patterns;
+		var config, path, list, patterns;
 		return regeneratorRuntime.async(function metaRoute$(context$2$0) {
 			while (1) switch (context$2$0.prev = context$2$0.next) {
 				case 0:
-					context$2$0.next = 2;
+					config = application.configuration[configuration.options.key];
+					path = _path.resolve(application.runtime.patterncwd || application.runtime.cwd, config.path);
+					context$2$0.next = 4;
 					return _qIoFs.listTree(path);
 
-				case 2:
+				case 4:
 					list = context$2$0.sent;
 
 					list = list.map(function normalizePath(item) {
@@ -51,7 +50,7 @@ function metaRouteFactory(application, configuration) {
 						return tree;
 					}, {});
 
-				case 7:
+				case 9:
 				case 'end':
 					return context$2$0.stop();
 			}
