@@ -2,7 +2,7 @@
   "name": "patternplate-server",
   "version": "0.1.0",
   "description": "Programmatically serve patternplate components via a well defined REST API",
-  "main": "binary/_patternplate-server",
+  "main": "library/",
   "scripts": {
     "start": "node --harmony binary/patternplate-server.js",
     "build": "npm run babel",

@@ -1,4 +1,3 @@
-#!/usr/bin/env node --harmony
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -7,19 +6,20 @@ Object.defineProperty(exports, '__esModule', {
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-var _application = require('../application');
+var _boilerplateServer = require('boilerplate-server');
 
-var _application2 = _interopRequireDefault(_application);
+var _boilerplateServer2 = _interopRequireDefault(_boilerplateServer);
 
-function start() {
-	var options = arguments[0] === undefined ? {} : arguments[0];
-	var augmented;
-	return regeneratorRuntime.async(function start$(context$1$0) {
+function server(opts) {
+	var options;
+	return regeneratorRuntime.async(function server$(context$1$0) {
 		while (1) switch (context$1$0.prev = context$1$0.next) {
 			case 0:
-				augmented = Object.assign(options, { 'api': options });
+				options = Object.assign({
+					'name': 'patternplate-server'
+				}, opts);
 				context$1$0.next = 3;
-				return _application2['default'](augmented);
+				return _boilerplateServer2['default'](options);
 
 			case 3:
 				return context$1$0.abrupt('return', context$1$0.sent);
@@ -31,5 +31,5 @@ function start() {
 	}, null, this);
 }
 
-exports['default'] = start;
+exports['default'] = server;
 module.exports = exports['default'];
