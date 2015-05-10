@@ -7,7 +7,11 @@
     "start": "node --harmony binary/patternplate-server.js",
     "build": "npm run babel",
     "watch": "npm run babel -- --watch",
-    "babel": "babel source --out-dir ./"
+    "babel": "npm run clean && babel source --out-dir ./",
+    "clean": "rm -r application binary configuration library"
+  },
+  "bin": {
+    "patternplate-server": "binary/patternplate-server.js"
   },
   "repository": {
     "type": "git",
@@ -40,6 +44,7 @@
     "bluebird": "^2.9.25",
     "boilerplate-server": "git+ssh://git@git.sinnerschrader.com:patternplate/boilerplate-server.git",
     "browserify": "^10.1.0",
+    "isomorphic-fetch": "^2.0.2",
     "jsx-transform": "^2.0.0",
     "less": "^2.5.0",
     "less-plugin-autoprefix": "^1.4.1",

@@ -7,8 +7,7 @@ var routes = {
 	'enabled': {
 		'pattern': {
 			'enabled': true,
-			'method': 'GET',
-			'path': '/pattern/*',
+			'path': '/pattern/:id+',
 			'options': {
 				'key': 'patterns',
 				'maxage': 3600000

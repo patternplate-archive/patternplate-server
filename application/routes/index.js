@@ -7,11 +7,13 @@ exports['default'] = indexRouteFactory;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
+var _isomorphicFetch = require('isomorphic-fetch');
+
+var _isomorphicFetch2 = _interopRequireDefault(_isomorphicFetch);
+
 var _path = require('path');
 
 var _qIoFs = require('q-io/fs');
-
-var _qIoHttp = require('q-io/http');
 
 var _marked = require('marked');
 
@@ -23,58 +25,53 @@ function indexRouteFactory(application, configuration) {
 	var markdown = _bluebird.promisify(_marked2['default']);
 
 	return function indexRoute() {
-		var routeConfig, serverConfig, baseURI, routes, metaRoute, response, meta, readmePath, readme, readMeSource;
+		var routeConfig, serverConfig, base, routes, response, meta, readmePath, readme, readMeSource;
 		return regeneratorRuntime.async(function indexRoute$(context$2$0) {
 			while (1) switch (context$2$0.prev = context$2$0.next) {
 				case 0:
 					routeConfig = application.configuration.routes.enabled;
 					serverConfig = application.configuration.server;
-					baseURI = 'http://' + serverConfig.host + ':' + serverConfig.port;
+					base = 'http://' + serverConfig.host + ':' + serverConfig.port;
 					routes = Object.keys(routeConfig).filter(function (routeName) {
 						return routeConfig[routeName].enabled === true;
-					}).map(function (routeName) {
-						return { 'name': routeName, 'path': routeConfig[routeName].path, 'uri': ('' + baseURI + '' + routeConfig[routeName].path).replace('*', '') };
+					}).map(function getRoutes(routeName) {
+						return { 'name': routeName, 'path': routeConfig[routeName].path, 'uri': '' + base + '' + application.router.url(routeName) };
 					});
-					metaRoute = routes.filter(function (item) {
-						return item.name === 'meta';
-					})[0];
-					context$2$0.next = 7;
-					return _qIoHttp.request(metaRoute.uri);
+					context$2$0.next = 6;
+					return _isomorphicFetch2['default']('' + base + '' + application.router.url('meta'), { 'headers': { 'accepty-type': 'application/json' } });
 
-				case 7:
+				case 6:
 					response = context$2$0.sent;
-					context$2$0.next = 10;
-					return response.body.read();
+					context$2$0.next = 9;
+					return response.json();
 
-				case 10:
+				case 9:
 					meta = context$2$0.sent;
 					readmePath = _path.resolve(application.runtime.patterncwd || application.runtime.cwd, 'patterns', 'README.md');
 					readme = '';
-					context$2$0.next = 15;
+					context$2$0.next = 14;
 					return _qIoFs.exists(readmePath);
 
-				case 15:
+				case 14:
 					if (!context$2$0.sent) {
-						context$2$0.next = 23;
+						context$2$0.next = 22;
 						break;
 					}
 
-					context$2$0.next = 18;
+					context$2$0.next = 17;
 					return _qIoFs.read(readmePath);
 
-				case 18:
+				case 17:
 					readMeSource = context$2$0.sent;
 
 					readMeSource = readMeSource.toString('utf-8');
-					context$2$0.next = 22;
+					context$2$0.next = 21;
 					return markdown(readMeSource);
 
-				case 22:
+				case 21:
 					readme = context$2$0.sent;
 
-				case 23:
-
-					meta = JSON.parse(meta.toString('utf-8'));
+				case 22:
 
 					this.type = 'json';
 					this.body = Object.assign({}, {
@@ -88,7 +85,7 @@ function indexRouteFactory(application, configuration) {
 						'readme': readme
 					});
 
-				case 26:
+				case 24:
 				case 'end':
 					return context$2$0.stop();
 			}
