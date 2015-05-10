@@ -20,7 +20,7 @@ function patternRouteFactory(application, configuration) {
 				case 0:
 					this.type = 'json';
 
-					id = this.params[0].value;
+					id = this.params.id;
 					pattern = undefined;
 					response = undefined;
 					mtime = undefined;

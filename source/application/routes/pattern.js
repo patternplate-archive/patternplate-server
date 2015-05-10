@@ -8,7 +8,7 @@ export default function patternRouteFactory (application, configuration) {
 	return async function patternRoute () {
 		this.type = 'json';
 
-		var id = this.params[0].value;
+		var id = this.params.id;
 		let pattern;
 		let response;
 		let mtime;
