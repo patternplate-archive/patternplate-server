@@ -50,18 +50,21 @@ export default function lessTransformFactory (application) {
 			fileConfig.plugins.push(new PatternImporterPlugin({'root': patternPath, 'patterns': dependencies}));
 			results = await render(source, fileConfig);
 		} catch (err) {
-			throw err;
+			application.log.error('Error while rendering library less: ' + file.path);
+			application.log.error(err.stack);
 		}
 
 		if (demo) {
 			let demoSource = demo.buffer.toString('utf-8');
 			let demoConfig = Object.assign({}, configuration);
+			let demoDepdendencies = Object.assign({}, dependencies, {'Pattern': file.path});
 
 			try {
-				demoConfig.plugins.push(new PatternImporterPlugin({'root': patternPath, 'patterns': {'Pattern': file.path}}));
+				demoConfig.plugins.push(new PatternImporterPlugin({'root': patternPath, 'patterns': demoDepdendencies}));
 				demoResults = await render(demoSource, demoConfig);
 			} catch (err) {
-				throw err;
+				application.log.error('Error while rendering demo less: ' + demo.path);
+				//application.log.error(err.stack);
 			}
 
 			file.demoBuffer = new Buffer(demoResults.css || '', 'utf-8');

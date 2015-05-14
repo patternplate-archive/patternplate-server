@@ -26,17 +26,17 @@ function markdownTransformFactory(application) {
 					return parser(file.buffer.toString('utf-8'));
 
 				case 3:
-					context$2$0.t32 = context$2$0.sent;
-					file.buffer = new Buffer(context$2$0.t32, 'utf-8');
+					context$2$0.t29 = context$2$0.sent;
+					file.buffer = new Buffer(context$2$0.t29, 'utf-8');
 					context$2$0.next = 11;
 					break;
 
 				case 7:
 					context$2$0.prev = 7;
-					context$2$0.t33 = context$2$0['catch'](0);
+					context$2$0.t30 = context$2$0['catch'](0);
 
-					application.log.error(context$2$0.t33);
-					throw new Error(context$2$0.t33);
+					application.log.error(context$2$0.t30);
+					throw new Error(context$2$0.t30);
 
 				case 11:
 

@@ -34,8 +34,8 @@ function render(source, config) {
 
 			case 6:
 				context$1$0.prev = 6;
-				context$1$0.t899 = context$1$0['catch'](0);
-				throw context$1$0.t899;
+				context$1$0.t26 = context$1$0['catch'](0);
+				throw context$1$0.t26;
 
 			case 9:
 			case 'end':
@@ -89,7 +89,7 @@ function lessTransformFactory(application) {
 	}
 
 	return function lessTransform(file, demo) {
-		var source, fileConfig, results, demoResults, dependencies, demoSource, demoConfig;
+		var source, fileConfig, results, demoResults, dependencies, demoSource, demoConfig, demoDepdendencies;
 		return regeneratorRuntime.async(function lessTransform$(context$2$0) {
 			while (1) switch (context$2$0.prev = context$2$0.next) {
 				case 0:
@@ -109,44 +109,49 @@ function lessTransformFactory(application) {
 
 				case 9:
 					results = context$2$0.sent;
-					context$2$0.next = 15;
+					context$2$0.next = 16;
 					break;
 
 				case 12:
 					context$2$0.prev = 12;
-					context$2$0.t900 = context$2$0['catch'](5);
-					throw context$2$0.t900;
+					context$2$0.t27 = context$2$0['catch'](5);
 
-				case 15:
+					application.log.error('Error while rendering library less: ' + file.path);
+					application.log.error(context$2$0.t27.stack);
+
+				case 16:
 					if (!demo) {
-						context$2$0.next = 30;
+						context$2$0.next = 32;
 						break;
 					}
 
 					demoSource = demo.buffer.toString('utf-8');
 					demoConfig = Object.assign({}, configuration);
-					context$2$0.prev = 18;
+					demoDepdendencies = Object.assign({}, dependencies, { 'Pattern': file.path });
+					context$2$0.prev = 20;
 
-					demoConfig.plugins.push(new _lessPluginPatternImport2['default']({ 'root': patternPath, 'patterns': { 'Pattern': file.path } }));
-					context$2$0.next = 22;
+					demoConfig.plugins.push(new _lessPluginPatternImport2['default']({ 'root': patternPath, 'patterns': demoDepdendencies }));
+					context$2$0.next = 24;
 					return render(demoSource, demoConfig);
 
-				case 22:
+				case 24:
 					demoResults = context$2$0.sent;
-					context$2$0.next = 28;
+					context$2$0.next = 30;
 					break;
 
-				case 25:
-					context$2$0.prev = 25;
-					context$2$0.t901 = context$2$0['catch'](18);
-					throw context$2$0.t901;
+				case 27:
+					context$2$0.prev = 27;
+					context$2$0.t28 = context$2$0['catch'](20);
 
-				case 28:
+					application.log.error('Error while rendering demo less: ' + demo.path);
+					//application.log.error(err.stack);
+
+				case 30:
 
 					file.demoBuffer = new Buffer(demoResults.css || '', 'utf-8');
 					file.demoSource = demo.source;
 
-				case 30:
+				case 32:
 
 					file.buffer = new Buffer(results.css || '', 'utf-8');
 
@@ -155,11 +160,11 @@ function lessTransformFactory(application) {
 
 					return context$2$0.abrupt('return', file);
 
-				case 34:
+				case 36:
 				case 'end':
 					return context$2$0.stop();
 			}
-		}, null, this, [[5, 12], [18, 25]]);
+		}, null, this, [[5, 12], [20, 27]]);
 	};
 }
 
