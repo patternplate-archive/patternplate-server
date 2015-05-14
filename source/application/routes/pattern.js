@@ -29,8 +29,6 @@ export default function patternRouteFactory (application, configuration) {
 
 		let search = resolve(path, 'pattern.json');
 
-		console.log(response);
-
 		if (!response) {
 			if (await fs.exists(search)) {
 				// Single pattern
