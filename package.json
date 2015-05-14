@@ -1,6 +1,6 @@
 {
   "name": "patternplate-server",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Programmatically serve patternplate components via a well defined REST API",
   "main": "library/",
   "scripts": {
