@@ -1,21 +1,9 @@
+import {resolve} from 'path';
+
 import less from 'less';
 
-function replaceImports (file, deps = {}) {
-	var transformed = file.source.toString('utf-8');
-	file.dependencies = Object.assign({}, file.dependencies, deps);
-
-	for (let dependencyName of Object.keys(file.dependencies)) {
-		let search = new RegExp(`@import(.*)'${dependencyName}';`);
-		let dependency = file.dependencies[dependencyName];
-
-		if (dependency) {
-			transformed = transformed.replace(search, dependency.source.toString('utf-8'));
-		}
-	}
-
-	file.source = new Buffer(transformed, 'utf-8');
-	return transformed;
-}
+import PatternImporterPlugin from 'less-plugin-pattern-import';
+import NPMImporterPlugin from 'less-plugin-npm-import';
 
 async function render (source, config) {
 	try {
@@ -26,6 +14,7 @@ async function render (source, config) {
 }
 
 export default function lessTransformFactory (application) {
+	const patternPath = resolve(application.runtime.patterncwd || application.runtime.cwd, application.configuration.patterns.path);
 	const config = application.configuration.transforms.less || {};
 	const plugins = Object.keys(config.plugins)
 		.map((pluginName) => config.plugins[pluginName].enabled ? pluginName : false)
@@ -37,34 +26,39 @@ export default function lessTransformFactory (application) {
 	}, {});
 
 	let configuration = {
-		'plugins': [],
-		'paths': ['node_modules']
+		'plugins': [new NPMImporterPlugin()]
 	};
 
 	for (let pluginName of plugins) {
 		let Plugin = require(`less-plugin-${pluginName}`);
-
 		configuration.plugins.push(new Plugin(pluginConfigs[pluginName]));
 	}
 
 	return async function lessTransform (file, demo) {
-		let source = replaceImports(file);
+		let source = file.buffer.toString('utf-8');
 		let fileConfig = Object.assign({}, configuration);
 
 		var results = {};
 		var demoResults = {};
 
+		let dependencies = Object.keys(file.dependencies).reduce(function getDependencyPaths (paths, dependencyName) {
+			paths[dependencyName] = file.dependencies[dependencyName].path;
+			return paths;
+		}, {});
+
 		try {
+			fileConfig.plugins.push(new PatternImporterPlugin({'root': patternPath, 'patterns': dependencies}));
 			results = await render(source, fileConfig);
 		} catch (err) {
 			throw err;
 		}
 
 		if (demo) {
-			let demoSource = replaceImports(demo, {'Pattern': file});
+			let demoSource = demo.buffer.toString('utf-8');
 			let demoConfig = Object.assign({}, configuration);
 
 			try {
+				demoConfig.plugins.push(new PatternImporterPlugin({'root': patternPath, 'patterns': {'Pattern': file.path}}));
 				demoResults = await render(demoSource, demoConfig);
 			} catch (err) {
 				throw err;
