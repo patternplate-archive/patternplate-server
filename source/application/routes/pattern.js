@@ -29,6 +29,8 @@ export default function patternRouteFactory (application, configuration) {
 
 		let search = resolve(path, 'pattern.json');
 
+		console.log(response);
+
 		if (!response) {
 			if (await fs.exists(search)) {
 				// Single pattern
@@ -80,6 +82,14 @@ export default function patternRouteFactory (application, configuration) {
 			}
 		}
 
+		response = Array.isArray(response) ? response : [response];
+
+		response = response.map((resp) => {
+			return typeof resp.toJSON === 'function' ? resp.toJSON() : resp
+		});
+
+		response = response.length === 1 ? response[0] : response;
+
 		if (application.cache) {
 			application.cache.set(uri, response);
 		}
@@ -88,6 +98,6 @@ export default function patternRouteFactory (application, configuration) {
 			this.set('Last-Modified', mtime.toUTCString());
 		}
 		this.set('Cache-Control', `maxage=${configuration.options.maxage|0}`);
-		this.body = response;
+		this.body = JSON.stringify(response);
 	};
 }
