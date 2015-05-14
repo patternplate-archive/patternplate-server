@@ -5,9 +5,13 @@ Object.defineProperty(exports, '__esModule', {
 });
 exports['default'] = patternRouteFactory;
 
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
 var _path = require('path');
 
 var _qIoFs = require('q-io/fs');
+
+var _qIoFs2 = _interopRequireDefault(_qIoFs);
 
 function patternRouteFactory(application, configuration) {
 	var config = application.configuration[configuration.options.key];
@@ -25,10 +29,10 @@ function patternRouteFactory(application, configuration) {
 					response = undefined;
 					mtime = undefined;
 					cwd = application.runtime.patterncwd || application.runtime.cwd;
-					basePath = _path.resolve(cwd, config.path);
-					path = _path.resolve(basePath, id);
+					basePath = (0, _path.resolve)(cwd, config.path);
+					path = (0, _path.resolve)(basePath, id);
 					context$2$0.next = 10;
-					return _qIoFs.contains(basePath, path);
+					return _qIoFs2['default'].contains(basePath, path);
 
 				case 10:
 					context$2$0.t21 = context$2$0.sent;
@@ -41,9 +45,9 @@ function patternRouteFactory(application, configuration) {
 					this['throw'](404, 'Could not find pattern ' + id, { 'error': true, 'message': 'Could not find ' + id });
 
 				case 13:
-					search = _path.resolve(path, 'pattern.json');
+					search = (0, _path.resolve)(path, 'pattern.json');
 					context$2$0.next = 16;
-					return _qIoFs.exists(search);
+					return _qIoFs2['default'].exists(search);
 
 				case 16:
 					if (!context$2$0.sent) {
@@ -84,7 +88,7 @@ function patternRouteFactory(application, configuration) {
 
 				case 35:
 					context$2$0.next = 37;
-					return _qIoFs.isDirectory(path);
+					return _qIoFs2['default'].isDirectory(path);
 
 				case 37:
 					context$2$0.t23 = context$2$0.sent;
@@ -98,7 +102,7 @@ function patternRouteFactory(application, configuration) {
 
 				case 40:
 					context$2$0.next = 42;
-					return _qIoFs.list(path);
+					return _qIoFs2['default'].list(path);
 
 				case 42:
 					files = context$2$0.sent;
@@ -119,9 +123,9 @@ function patternRouteFactory(application, configuration) {
 					}
 
 					file = _step.value;
-					_search = _path.resolve(path, file, 'pattern.json');
+					_search = (0, _path.resolve)(path, file, 'pattern.json');
 					context$2$0.next = 55;
-					return _qIoFs.exists(_search);
+					return _qIoFs2['default'].exists(_search);
 
 				case 55:
 					if (!context$2$0.sent) {
@@ -184,7 +188,7 @@ function patternRouteFactory(application, configuration) {
 					}
 
 					directory = _step2.value;
-					patternID = _path.join(id, directory);
+					patternID = (0, _path.join)(id, directory);
 					context$2$0.prev = 82;
 					context$2$0.next = 85;
 					return application.pattern.factory(patternID, basePath, config, application.transforms);
@@ -279,4 +283,4 @@ module.exports = exports['default'];
 
 // Single pattern
 
-// Check if list view is applicable
+// Check if fs.list view is applicable

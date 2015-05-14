@@ -1,11 +1,5 @@
 import browserify from 'browserify';
 
-// TODO: Fix this properly
-import babelify from 'babelify';
-import uglifyify from 'uglifyify';
-
-const browserifyTransforms = {babelify, uglifyify};
-
 async function runBundler (bundler, config) {
 	return new Promise(function bundlerResolver (resolve, reject) {
 		bundler.bundle(function onBundle (err, buffer) {
@@ -44,12 +38,22 @@ function resolveDependencies (file) {
 function browserifyTransformFactory (application) {
 	const config = application.configuration.transforms.browserify || {};
 
-	const transforms = Object.keys(config.transforms)
+	const transformNames = Object.keys(config.transforms)
 		.map((transformName) => config.transforms[transformName].enabled ? transformName : false)
 		.filter((item) => item);
 
-	const transformConfigs = transforms.reduce(function getTransformConfig (results, transformName) {
-		results[transformName] = config.transforms[transformName].opts || {};
+	const transforms = transformNames.reduce(function getTransformConfig (results, transformName) {
+		let transformFn;
+		let transformConfig = config.transforms[transformName].opts || {};
+
+		try {
+			transformFn = require(transformName);
+		} catch (error) {
+			application.log.warn(`Unable to load browserify transform ${transformName}.`);
+			application.log.error(error.stack);
+		}
+
+		results[transformName] = [transformFn, transformConfig];
 		return results;
 	}, {});
 
@@ -61,9 +65,8 @@ function browserifyTransformFactory (application) {
 		let dependencies = resolveDependencies(file);
 		bundler.require(dependencies);
 
-		for (let transformName of transforms) {
-			let transformFn = browserifyTransforms[transformName];
-			bundler.transform(transformFn.configure(transformConfigs[transformName]));
+		for (let transformName of Object.keys(transforms)) {
+			bundler.transform(transforms[transformName]);
 		}
 
 		if (demo) {
@@ -77,8 +80,8 @@ function browserifyTransformFactory (application) {
 				}
 			}));
 
-			for (let transformName of transforms) {
-				demoBundler.transform(transformName, transformConfigs[transformName]);
+			for (let transformName of Object.keys(transforms)) {
+				demoBundler.transform(transforms[transformName]);
 			}
 
 			let demoTransformed = await runBundler(demoBundler, config);

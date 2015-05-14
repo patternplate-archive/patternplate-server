@@ -1,3 +1,4 @@
+/*eslint-disable no-loop-func */
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -6,8 +7,6 @@ Object.defineProperty(exports, '__esModule', {
 exports['default'] = reactJSXTransformFactory;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-/*eslint-disable no-loop-func */
 
 var _reactJsx = require('react-jsx');
 
@@ -29,7 +28,7 @@ function reactJSXTransformFactory(application) {
 				case 0:
 					source = file.buffer.toString('utf-8');
 					sourceTemplate = _reactJsx2['default'].server(source, { 'raw': true });
-					data = Object.assign({}, defaultData, _resolveDependencies2['default'](file.dependencies));
+					data = Object.assign({}, defaultData, (0, _resolveDependencies2['default'])(file.dependencies));
 					result = sourceTemplate(data, { 'html': true });
 
 					file.buffer = new Buffer(result, 'utf-8');
@@ -38,7 +37,7 @@ function reactJSXTransformFactory(application) {
 
 					if (demo) {
 						demoTemplate = _reactJsx2['default'].server(demo.buffer.toString('utf-8'), { 'raw': true });
-						demoData = Object.assign({}, data, _resolveDependencies2['default']({ 'Pattern': file }));
+						demoData = Object.assign({}, data, (0, _resolveDependencies2['default'])({ 'Pattern': file }));
 						demoResult = demoTemplate(demoData, { 'html': true });
 
 						file.demoSource = demo.source;

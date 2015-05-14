@@ -26,14 +26,23 @@ exports['default'] = {
 				case 0:
 					application.pattern = { 'factory': _pattern2['default'], 'class': _pattern.Pattern };
 
-					transformFactories = _requireAll2['default']({
-						'dirname': _path.resolve(application.runtime.cwd, this.configuration.transformPath),
+					transformFactories = (0, _requireAll2['default'])({
+						'dirname': (0, _path.resolve)(application.runtime.cwd, this.configuration.transformPath),
 						'filter': /^(.*)\.(js|json)/
 					});
 
 					application.transforms = Object.keys(transformFactories).reduce(function getTransform(transforms, transformName) {
-						if (transformFactories[transformName].index) {
-							transforms[transformName] = transformFactories[transformName].index(application);
+						if (typeof transformFactories[transformName].index === 'function') {
+							application.log.info('[application:hook:patterns] Loading transform factory "' + transformName + '"');
+							var fn = transformFactories[transformName].index(application);
+
+							if (typeof fn !== 'function') {
+								application.log.info('[application:hook:patterns] transform factory "' + transformName + '" did not return a valid transform.');
+								return transforms;
+							}
+
+							application.log.info('[application:hook:patterns] transform "' + transformName + '" available.');
+							transforms[transformName] = fn;
 						}
 						return transforms;
 					}, {});

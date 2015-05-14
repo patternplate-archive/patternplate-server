@@ -1,5 +1,4 @@
 import less from 'less';
-import {directory} from 'q-io/fs';
 
 function replaceImports (file, deps = {}) {
 	var transformed = file.source.toString('utf-8');
@@ -18,7 +17,7 @@ function replaceImports (file, deps = {}) {
 	return transformed;
 }
 
-async function render(source, config) {
+async function render (source, config) {
 	try {
 		return await less.render(source, config);
 	} catch (lessError) {

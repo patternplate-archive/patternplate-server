@@ -14,7 +14,7 @@ var _marked2 = _interopRequireDefault(_marked);
 var _bluebird = require('bluebird');
 
 function markdownTransformFactory(application) {
-	var parser = _bluebird.promisify(_marked2['default']);
+	var parser = (0, _bluebird.promisify)(_marked2['default']);
 	var config = application.configuration.transforms.markdown || {};
 
 	return function markdowTransform(file) {

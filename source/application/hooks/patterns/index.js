@@ -17,8 +17,17 @@ export default {
 
 		application.transforms = Object.keys(transformFactories)
 			.reduce(function getTransform (transforms, transformName) {
-				if (transformFactories[transformName].index) {
-					transforms[transformName] = transformFactories[transformName].index(application);
+				if (typeof transformFactories[transformName].index === 'function') {
+					application.log.info(`[application:hook:patterns] Loading transform factory "${transformName}"`);
+					let fn = transformFactories[transformName].index(application);
+
+					if (typeof fn !== 'function') {
+						application.log.info(`[application:hook:patterns] transform factory "${transformName}" did not return a valid transform.`);
+						return transforms;
+					}
+
+					application.log.info(`[application:hook:patterns] transform "${transformName}" available.`);
+					transforms[transformName] = fn;
 				}
 				return transforms;
 			}, {});

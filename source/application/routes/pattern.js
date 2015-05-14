@@ -1,6 +1,6 @@
 import {resolve, join} from 'path';
 
-import {exists, contains, list, isDirectory} from 'q-io/fs';
+import fs from 'q-io/fs';
 
 export default function patternRouteFactory (application, configuration) {
 	const config = application.configuration[configuration.options.key];
@@ -17,13 +17,13 @@ export default function patternRouteFactory (application, configuration) {
 		let basePath = resolve(cwd, config.path);
 		let path = resolve(basePath, id);
 
-		if (await contains(basePath, path) === false) {
+		if (await fs.contains(basePath, path) === false) {
 			this.throw(404, `Could not find pattern ${id}`, {'error': true, 'message': `Could not find ${id}`});
 		}
 
 		let search = resolve(path, 'pattern.json');
 
-		if (await exists(search)) {
+		if (await fs.exists(search)) {
 			// Single pattern
 			try {
 				pattern = await application.pattern.factory(id, basePath, config, application.transforms);
@@ -37,12 +37,12 @@ export default function patternRouteFactory (application, configuration) {
 			response = pattern;
 			mtime = response.getLastModified();
 		} else {
-			// Check if list view is applicable
-			if (await isDirectory(path) === false) {
+			// Check if fs.list view is applicable
+			if (await fs.isDirectory(path) === false) {
 				return;
 			}
 
-			let files = await list(path);
+			let files = await fs.list(path);
 			let patterns = [];
 
 			response = [];
@@ -50,7 +50,7 @@ export default function patternRouteFactory (application, configuration) {
 			for (let file of files) {
 				let search = resolve(path, file, 'pattern.json');
 
-				if (await exists(search)) {
+				if (await fs.exists(search)) {
 					patterns.push(file);
 				}
 			}

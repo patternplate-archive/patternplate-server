@@ -1,7 +1,7 @@
 import fetch from 'isomorphic-fetch';
 
 import {resolve, normalize} from 'path';
-import {exists, read} from 'q-io/fs';
+import fs from 'q-io/fs';
 import marked from 'marked';
 import {promisify} from 'bluebird';
 
@@ -25,8 +25,8 @@ export default function indexRouteFactory (application, configuration) {
 		let readmePath = resolve(application.runtime.patterncwd || application.runtime.cwd, 'patterns', 'README.md');
 		var readme = '';
 
-		if (await exists(readmePath)) {
-			let readMeSource = await read(readmePath);
+		if (await fs.exists(readmePath)) {
+			let readMeSource = await fs.read(readmePath);
 			readMeSource = readMeSource.toString('utf-8');
 			readme = await markdown(readMeSource);
 		}

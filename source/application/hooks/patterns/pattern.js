@@ -1,6 +1,6 @@
 /* eslint ignore */
 import {resolve, basename, extname} from 'path';
-import {exists, stat, toObject} from 'q-io/fs';
+import fs from 'q-io/fs';
 
 export class Pattern {
 	files = {};
@@ -23,11 +23,14 @@ export class Pattern {
 	}
 
 	async read(path = this.path) {
-		if ( await exists(path) !== true ) {
+		// TODO: Replace q-io/fs
+		fs.exists = fs.exists.bind(fs);
+
+		if ( await fs.exists(path) !== true ) {
 			throw new Error(`Can not read pattern from ${this.path}, it does not exist.`);
 		}
 
-		let files = await toObject(path);
+		let files = await fs.toObject(path);
 
 		for (let file in files) {
 			let fileBasename = basename(file);
@@ -41,7 +44,7 @@ export class Pattern {
 				'name': fileBasename,
 				'basename': basename(fileBasename, ext),
 				'format': ext.substr(1, ext.length),
-				'stat': await stat(file)
+				'fs': await fs.stat(file)
 			};
 		}
 
@@ -143,7 +146,7 @@ export class Pattern {
 
 		for (let fileName in this.files) {
 			let file = this.files[fileName];
-			mtimes.push(new Date(file.stat.node.mtime));
+			mtimes.push(new Date(file.fs.node.mtime));
 		}
 
 		this.mtime = mtimes.sort((a, b) => b - a)[0];

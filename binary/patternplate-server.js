@@ -15,7 +15,7 @@ var _2 = _interopRequireDefault(_);
 
 'use strict';
 
-var args = _minimist2['default'](process.argv.slice(1));
+var args = (0, _minimist2['default'])(process.argv.slice(1));
 
 function start() {
 	var options = arguments[0] === undefined ? {} : arguments[0];
@@ -53,7 +53,7 @@ function start() {
 				application = undefined;
 				context$1$0.prev = 2;
 				context$1$0.next = 5;
-				return _2['default'](options);
+				return (0, _2['default'])(options);
 
 			case 5:
 				application = context$1$0.sent;

@@ -15,6 +15,8 @@ var _path = require('path');
 
 var _qIoFs = require('q-io/fs');
 
+var _qIoFs2 = _interopRequireDefault(_qIoFs);
+
 var _marked = require('marked');
 
 var _marked2 = _interopRequireDefault(_marked);
@@ -22,7 +24,7 @@ var _marked2 = _interopRequireDefault(_marked);
 var _bluebird = require('bluebird');
 
 function indexRouteFactory(application, configuration) {
-	var markdown = _bluebird.promisify(_marked2['default']);
+	var markdown = (0, _bluebird.promisify)(_marked2['default']);
 
 	return function indexRoute() {
 		var routeConfig, serverConfig, base, routes, response, meta, readmePath, readme, readMeSource;
@@ -38,7 +40,7 @@ function indexRouteFactory(application, configuration) {
 						return { 'name': routeName, 'path': routeConfig[routeName].path, 'uri': '' + base + '' + application.router.url(routeName) };
 					});
 					context$2$0.next = 6;
-					return _isomorphicFetch2['default']('' + base + '' + application.router.url('meta'), { 'headers': { 'accepty-type': 'application/json' } });
+					return (0, _isomorphicFetch2['default'])('' + base + '' + application.router.url('meta'), { 'headers': { 'accepty-type': 'application/json' } });
 
 				case 6:
 					response = context$2$0.sent;
@@ -47,10 +49,10 @@ function indexRouteFactory(application, configuration) {
 
 				case 9:
 					meta = context$2$0.sent;
-					readmePath = _path.resolve(application.runtime.patterncwd || application.runtime.cwd, 'patterns', 'README.md');
+					readmePath = (0, _path.resolve)(application.runtime.patterncwd || application.runtime.cwd, 'patterns', 'README.md');
 					readme = '';
 					context$2$0.next = 14;
-					return _qIoFs.exists(readmePath);
+					return _qIoFs2['default'].exists(readmePath);
 
 				case 14:
 					if (!context$2$0.sent) {
@@ -59,7 +61,7 @@ function indexRouteFactory(application, configuration) {
 					}
 
 					context$2$0.next = 17;
-					return _qIoFs.read(readmePath);
+					return _qIoFs2['default'].read(readmePath);
 
 				case 17:
 					readMeSource = context$2$0.sent;

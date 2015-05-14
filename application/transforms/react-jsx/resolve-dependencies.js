@@ -34,7 +34,7 @@ function resolveDependencies() {
 			var dependencyBuffer = dependencies[dependencyName].source || dependencies[dependencyName].results.Markup.source;
 			var dependencySource = dependencyBuffer.toString('utf-8');
 			var dependecyTemplate = _reactJsx2['default'].server(dependencySource, { 'raw': true });
-			data[_pascalCase2['default'](dependencyName)] = _createClass2['default'](dependencyName, dependecyTemplate, dependencies[dependencyName]);
+			data[(0, _pascalCase2['default'])(dependencyName)] = (0, _createClass2['default'])(dependencyName, dependecyTemplate, dependencies[dependencyName]);
 		}
 	} catch (err) {
 		_didIteratorError = true;

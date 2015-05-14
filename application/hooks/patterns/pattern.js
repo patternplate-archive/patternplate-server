@@ -1,3 +1,4 @@
+/* eslint ignore */
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -9,13 +10,15 @@ var _createClass = (function () { function defineProperties(target, props) { for
 
 exports['default'] = patternFactory;
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-/* eslint ignore */
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
 var _path = require('path');
 
 var _qIoFs = require('q-io/fs');
+
+var _qIoFs2 = _interopRequireDefault(_qIoFs);
 
 var Pattern = (function () {
 	function Pattern(id, base) {
@@ -41,118 +44,121 @@ var Pattern = (function () {
 			return regeneratorRuntime.async(function read$(context$2$0) {
 				while (1) switch (context$2$0.prev = context$2$0.next) {
 					case 0:
-						context$2$0.next = 2;
-						return _qIoFs.exists(path);
+						// TODO: Replace q-io/fs
+						_qIoFs2['default'].exists = _qIoFs2['default'].exists.bind(_qIoFs2['default']);
 
-					case 2:
-						context$2$0.t0 = context$2$0.sent;
+						context$2$0.next = 3;
+						return _qIoFs2['default'].exists(path);
 
-						if (!(context$2$0.t0 !== true)) {
-							context$2$0.next = 5;
+					case 3:
+						context$2$0.t151 = context$2$0.sent;
+
+						if (!(context$2$0.t151 !== true)) {
+							context$2$0.next = 6;
 							break;
 						}
 
 						throw new Error('Can not read pattern from ' + this.path + ', it does not exist.');
 
-					case 5:
-						context$2$0.next = 7;
-						return _qIoFs.toObject(path);
+					case 6:
+						context$2$0.next = 8;
+						return _qIoFs2['default'].toObject(path);
 
-					case 7:
+					case 8:
 						files = context$2$0.sent;
-						context$2$0.t1 = regeneratorRuntime.keys(files);
+						context$2$0.t152 = regeneratorRuntime.keys(files);
 
-					case 9:
-						if ((context$2$0.t2 = context$2$0.t1()).done) {
-							context$2$0.next = 23;
+					case 10:
+						if ((context$2$0.t153 = context$2$0.t152()).done) {
+							context$2$0.next = 24;
 							break;
 						}
 
-						file = context$2$0.t2.value;
-						fileBasename = _path.basename(file);
-						ext = _path.extname(file);
-						context$2$0.t3 = files[file];
-						context$2$0.t4 = files[file];
-						context$2$0.t5 = _path.basename(fileBasename, ext);
-						context$2$0.t6 = ext.substr(1, ext.length);
-						context$2$0.next = 19;
-						return _qIoFs.stat(file);
+						file = context$2$0.t153.value;
+						fileBasename = (0, _path.basename)(file);
+						ext = (0, _path.extname)(file);
+						context$2$0.t154 = files[file];
+						context$2$0.t155 = files[file];
+						context$2$0.t156 = (0, _path.basename)(fileBasename, ext);
+						context$2$0.t157 = ext.substr(1, ext.length);
+						context$2$0.next = 20;
+						return _qIoFs2['default'].stat(file);
 
-					case 19:
-						context$2$0.t7 = context$2$0.sent;
+					case 20:
+						context$2$0.t158 = context$2$0.sent;
 						this.files[fileBasename] = {
-							'buffer': context$2$0.t3,
-							'source': context$2$0.t4,
+							'buffer': context$2$0.t154,
+							'source': context$2$0.t155,
 							'path': file,
 							'ext': ext,
 							'name': fileBasename,
-							'basename': context$2$0.t5,
-							'format': context$2$0.t6,
-							'stat': context$2$0.t7
+							'basename': context$2$0.t156,
+							'format': context$2$0.t157,
+							'fs': context$2$0.t158
 						};
-						context$2$0.next = 9;
+						context$2$0.next = 10;
 						break;
 
-					case 23:
+					case 24:
 						manifest = this.files['pattern.json'];
 
 						if (!(typeof manifest === 'undefined')) {
-							context$2$0.next = 26;
+							context$2$0.next = 27;
 							break;
 						}
 
 						throw new Error('Can not read pattern.json from ' + this.path + ', it does not exist.');
 
-					case 26:
-						context$2$0.prev = 26;
+					case 27:
+						context$2$0.prev = 27;
 
 						this.manifest = JSON.parse(manifest.source.toString('utf-8'));
 						delete this.files['pattern.json'];
-						context$2$0.next = 34;
+						context$2$0.next = 35;
 						break;
 
-					case 31:
-						context$2$0.prev = 31;
-						context$2$0.t8 = context$2$0['catch'](26);
-						throw new Error('Error while reading pattern.json from ' + this.path + ':', context$2$0.t8);
+					case 32:
+						context$2$0.prev = 32;
+						context$2$0.t159 = context$2$0['catch'](27);
+						throw new Error('Error while reading pattern.json from ' + this.path + ':', context$2$0.t159);
 
-					case 34:
+					case 35:
 						if (!(typeof this.manifest.patterns !== 'object')) {
-							context$2$0.next = 36;
+							context$2$0.next = 37;
 							break;
 						}
 
 						return context$2$0.abrupt('return', this);
 
-					case 36:
-						context$2$0.t9 = regeneratorRuntime.keys(this.manifest.patterns);
-
 					case 37:
-						if ((context$2$0.t10 = context$2$0.t9()).done) {
-							context$2$0.next = 45;
+						context$2$0.t160 = regeneratorRuntime.keys(this.manifest.patterns);
+
+					case 38:
+						if ((context$2$0.t161 = context$2$0.t160()).done) {
+							context$2$0.next = 46;
 							break;
 						}
 
-						patternName = context$2$0.t10.value;
+						patternName = context$2$0.t161.value;
 						pattern = new Pattern(this.manifest.patterns[patternName], this.base, this.config, this.transforms);
-						context$2$0.next = 42;
+						context$2$0.next = 43;
 						return pattern.read();
 
-					case 42:
+					case 43:
 						this.dependencies[patternName] = context$2$0.sent;
-						context$2$0.next = 37;
+						context$2$0.next = 38;
 						break;
 
-					case 45:
+					case 46:
 
 						this.getLastModified();
 						return context$2$0.abrupt('return', this);
 
-					case 47:
+					case 48:
 					case 'end':
 						return context$2$0.stop();
 				}
-			}, null, this, [[26, 31]]);
+			}, null, this, [[27, 32]]);
 		}
 	}, {
 		key: 'transform',
@@ -167,15 +173,15 @@ var Pattern = (function () {
 							break;
 						}
 
-						context$2$0.t11 = regeneratorRuntime.keys(this.dependencies);
+						context$2$0.t162 = regeneratorRuntime.keys(this.dependencies);
 
 					case 2:
-						if ((context$2$0.t12 = context$2$0.t11()).done) {
+						if ((context$2$0.t163 = context$2$0.t162()).done) {
 							context$2$0.next = 8;
 							break;
 						}
 
-						dependency = context$2$0.t12.value;
+						dependency = context$2$0.t163.value;
 						context$2$0.next = 6;
 						return this.dependencies[dependency].transform();
 
@@ -185,15 +191,15 @@ var Pattern = (function () {
 
 					case 8:
 						demos = {};
-						context$2$0.t13 = regeneratorRuntime.keys(this.files);
+						context$2$0.t164 = regeneratorRuntime.keys(this.files);
 
 					case 10:
-						if ((context$2$0.t14 = context$2$0.t13()).done) {
+						if ((context$2$0.t165 = context$2$0.t164()).done) {
 							context$2$0.next = 41;
 							break;
 						}
 
-						fileName = context$2$0.t14.value;
+						fileName = context$2$0.t165.value;
 						file = this.files[fileName];
 
 						if (!(file.basename !== 'demo')) {
@@ -230,9 +236,9 @@ var Pattern = (function () {
 
 					case 26:
 						context$2$0.prev = 26;
-						context$2$0.t15 = context$2$0['catch'](22);
+						context$2$0.t166 = context$2$0['catch'](22);
 						_didIteratorError = true;
-						_iteratorError = context$2$0.t15;
+						_iteratorError = context$2$0.t166;
 
 					case 30:
 						context$2$0.prev = 30;
@@ -264,15 +270,15 @@ var Pattern = (function () {
 						break;
 
 					case 41:
-						context$2$0.t16 = regeneratorRuntime.keys(this.files);
+						context$2$0.t167 = regeneratorRuntime.keys(this.files);
 
 					case 42:
-						if ((context$2$0.t17 = context$2$0.t16()).done) {
+						if ((context$2$0.t168 = context$2$0.t167()).done) {
 							context$2$0.next = 84;
 							break;
 						}
 
-						fileName = context$2$0.t17.value;
+						fileName = context$2$0.t168.value;
 						file = this.files[fileName];
 
 						if (!(file.basename === 'demo')) {
@@ -332,9 +338,9 @@ var Pattern = (function () {
 
 					case 69:
 						context$2$0.prev = 69;
-						context$2$0.t18 = context$2$0['catch'](56);
+						context$2$0.t169 = context$2$0['catch'](56);
 						_didIteratorError2 = true;
-						_iteratorError2 = context$2$0.t18;
+						_iteratorError2 = context$2$0.t169;
 
 					case 73:
 						context$2$0.prev = 73;
@@ -385,7 +391,7 @@ var Pattern = (function () {
 
 			for (var fileName in this.files) {
 				var file = this.files[fileName];
-				mtimes.push(new Date(file.stat.node.mtime));
+				mtimes.push(new Date(file.fs.node.mtime));
 			}
 
 			this.mtime = mtimes.sort(function (a, b) {
@@ -457,8 +463,8 @@ var Pattern = (function () {
 	}], [{
 		key: 'resolve',
 		value: function resolve() {
-			for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-				args[_key] = arguments[_key];
+			for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+				args[_key2] = arguments[_key2];
 			}
 
 			return _path.resolve.apply(undefined, args);
@@ -471,8 +477,8 @@ var Pattern = (function () {
 exports.Pattern = Pattern;
 
 function patternFactory() {
-	for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-		args[_key2] = arguments[_key2];
+	for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+		args[_key] = arguments[_key];
 	}
 
 	return regeneratorRuntime.async(function patternFactory$(context$1$0) {

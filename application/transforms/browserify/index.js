@@ -10,18 +10,6 @@ var _browserify = require('browserify');
 
 var _browserify2 = _interopRequireDefault(_browserify);
 
-// TODO: Fix this properly
-
-var _babelify = require('babelify');
-
-var _babelify2 = _interopRequireDefault(_babelify);
-
-var _uglifyify = require('uglifyify');
-
-var _uglifyify2 = _interopRequireDefault(_uglifyify);
-
-var browserifyTransforms = { babelify: _babelify2['default'], uglifyify: _uglifyify2['default'] };
-
 function runBundler(bundler, config) {
 	return regeneratorRuntime.async(function runBundler$(context$1$0) {
 		while (1) switch (context$1$0.prev = context$1$0.next) {
@@ -87,24 +75,34 @@ function resolveDependencies(file) {
 function browserifyTransformFactory(application) {
 	var config = application.configuration.transforms.browserify || {};
 
-	var transforms = Object.keys(config.transforms).map(function (transformName) {
+	var transformNames = Object.keys(config.transforms).map(function (transformName) {
 		return config.transforms[transformName].enabled ? transformName : false;
 	}).filter(function (item) {
 		return item;
 	});
 
-	var transformConfigs = transforms.reduce(function getTransformConfig(results, transformName) {
-		results[transformName] = config.transforms[transformName].opts || {};
+	var transforms = transformNames.reduce(function getTransformConfig(results, transformName) {
+		var transformFn = undefined;
+		var transformConfig = config.transforms[transformName].opts || {};
+
+		try {
+			transformFn = require(transformName);
+		} catch (error) {
+			application.log.warn('Unable to load browserify transform ' + transformName + '.');
+			application.log.error(error.stack);
+		}
+
+		results[transformName] = [transformFn, transformConfig];
 		return results;
 	}, {});
 
 	return function browserifyTransform(file, demo) {
-		var bundler, dependencies, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, transformName, transformFn, demoBundler, _iteratorNormalCompletion3, _didIteratorError3, _iteratorError3, _iterator3, _step3, demoTransformed, transformed;
+		var bundler, dependencies, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, transformName, demoBundler, _iteratorNormalCompletion3, _didIteratorError3, _iteratorError3, _iterator3, _step3, demoTransformed, transformed;
 
 		return regeneratorRuntime.async(function browserifyTransform$(context$2$0) {
 			while (1) switch (context$2$0.prev = context$2$0.next) {
 				case 0:
-					bundler = _browserify2['default'](Object.assign(config.opts, {
+					bundler = (0, _browserify2['default'])(Object.assign(config.opts, {
 						'entries': file.path
 					}));
 					dependencies = resolveDependencies(file);
@@ -115,11 +113,10 @@ function browserifyTransformFactory(application) {
 					_didIteratorError2 = false;
 					_iteratorError2 = undefined;
 					context$2$0.prev = 6;
-					for (_iterator2 = transforms[Symbol.iterator](); !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+					for (_iterator2 = Object.keys(transforms)[Symbol.iterator](); !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
 						transformName = _step2.value;
-						transformFn = browserifyTransforms[transformName];
 
-						bundler.transform(transformFn.configure(transformConfigs[transformName]));
+						bundler.transform(transforms[transformName]);
 					}
 
 					context$2$0.next = 14;
@@ -161,7 +158,7 @@ function browserifyTransformFactory(application) {
 						break;
 					}
 
-					demoBundler = _browserify2['default'](Object.assign(config.opts, {
+					demoBundler = (0, _browserify2['default'])(Object.assign(config.opts, {
 						'entries': demo.path
 					}));
 
@@ -175,10 +172,10 @@ function browserifyTransformFactory(application) {
 					_didIteratorError3 = false;
 					_iteratorError3 = undefined;
 					context$2$0.prev = 28;
-					for (_iterator3 = transforms[Symbol.iterator](); !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+					for (_iterator3 = Object.keys(transforms)[Symbol.iterator](); !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
 						transformName = _step3.value;
 
-						demoBundler.transform(transformName, transformConfigs[transformName]);
+						demoBundler.transform(transforms[transformName]);
 					}
 
 					context$2$0.next = 36;

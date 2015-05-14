@@ -5,9 +5,13 @@ Object.defineProperty(exports, '__esModule', {
 });
 exports['default'] = metaRouteFactory;
 
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
 var _path = require('path');
 
 var _qIoFs = require('q-io/fs');
+
+var _qIoFs2 = _interopRequireDefault(_qIoFs);
 
 function metaRouteFactory(application, configuration) {
 	return function metaRoute() {
@@ -16,31 +20,31 @@ function metaRouteFactory(application, configuration) {
 			while (1) switch (context$2$0.prev = context$2$0.next) {
 				case 0:
 					config = application.configuration[configuration.options.key];
-					path = _path.resolve(application.runtime.patterncwd || application.runtime.cwd, config.path);
+					path = (0, _path.resolve)(application.runtime.patterncwd || application.runtime.cwd, config.path);
 					context$2$0.next = 4;
-					return _qIoFs.listTree(path);
+					return _qIoFs2['default'].listTree(path);
 
 				case 4:
 					list = context$2$0.sent;
 
 					list = list.map(function normalizePath(item) {
-						var depth = _qIoFs.split(_path.relative(item, path)).length;
+						var depth = _qIoFs2['default'].split((0, _path.relative)(item, path)).length;
 
-						return _qIoFs.join(_qIoFs.split(item).slice(depth * -1));
+						return _qIoFs2['default'].join(_qIoFs2['default'].split(item).slice(depth * -1));
 					});
 
 					patterns = list.filter(function (item) {
-						return _path.basename(item) === 'pattern.json';
+						return (0, _path.basename)(item) === 'pattern.json';
 					}).map(function (item) {
-						return _qIoFs.directory(item);
+						return _qIoFs2['default'].directory(item);
 					});
 
 					this.type = 'json';
-					this.body = patterns.reduce(function (tree, path) {
-						var fragments = _qIoFs.split(path);
+					this.body = patterns.reduce(function reducePatterns(tree, patternPath) {
+						var fragments = _qIoFs2['default'].split(patternPath);
 						var sub = tree;
 
-						fragments.forEach(function (fragment, index) {
+						fragments.forEach(function iterateFragments(fragment, index) {
 							if (!(fragment in sub)) {
 								sub[fragment] = index + 1 === fragments.length ? true : {};
 							}

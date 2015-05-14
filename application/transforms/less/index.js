@@ -11,8 +11,6 @@ var _less = require('less');
 
 var _less2 = _interopRequireDefault(_less);
 
-var _qIoFs = require('q-io/fs');
-
 function replaceImports(file) {
 	var deps = arguments[1] === undefined ? {} : arguments[1];
 

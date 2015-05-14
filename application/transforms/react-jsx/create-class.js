@@ -19,10 +19,10 @@ var _resolveDependencies = require('./resolve-dependencies');
 var _resolveDependencies2 = _interopRequireDefault(_resolveDependencies);
 
 function createClass(name, template, file) {
-	var dependencyData = _resolveDependencies2['default'](file.dependencies);
+	var dependencyData = (0, _resolveDependencies2['default'])(file.dependencies);
 
 	return _react2['default'].createClass({
-		'displayName': _pascalCase2['default'](name),
+		'displayName': (0, _pascalCase2['default'])(name),
 		'render': function renderDependencyTemplate() {
 			return template(Object.assign({}, this, dependencyData));
 		}
