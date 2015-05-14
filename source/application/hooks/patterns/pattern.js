@@ -25,20 +25,25 @@ export class Pattern {
 	async read(path = this.path) {
 		// TODO: Replace q-io/fs
 		fs.exists = fs.exists.bind(fs);
-
+		
 		if ( await fs.exists(path) !== true ) {
 			throw new Error(`Can not read pattern from ${this.path}, it does not exist.`);
 		}
 
-		let files = await fs.toObject(path);
+		let files = await fs.listTree(path);
 
-		for (let file in files) {
+		files = files.filter(function(fileName){
+			let ext = extname(fileName);
+			return ext && ['index', 'demo', 'pattern'].indexOf(basename(fileName, ext)) > -1;
+		});
+
+		for (let file of files) {
 			let fileBasename = basename(file);
 			let ext = extname(file);
+			let buffer = await fs.read(file);
 
 			this.files[fileBasename] = {
-				'buffer': files[file],
-				'source': files[file],
+				'source': buffer,
 				'path': file,
 				'ext': ext,
 				'name': fileBasename,
@@ -46,6 +51,8 @@ export class Pattern {
 				'format': ext.substr(1, ext.length),
 				'fs': await fs.stat(file)
 			};
+
+			this.files[fileBasename].buffer = this.files[fileBasename].source;
 		}
 
 		let manifest = this.files['pattern.json'];
