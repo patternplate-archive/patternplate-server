@@ -1,4 +1,5 @@
 #!/usr/bin/env node --harmony
+
 'use strict';
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
@@ -12,8 +13,6 @@ var _minimist2 = _interopRequireDefault(_minimist);
 var _ = require('../');
 
 var _2 = _interopRequireDefault(_);
-
-'use strict';
 
 var args = (0, _minimist2['default'])(process.argv.slice(1));
 

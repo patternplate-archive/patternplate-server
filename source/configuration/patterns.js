@@ -21,5 +21,6 @@ export default {
 		'json': {
 			'name': 'Data'
 		}
-	}
+	},
+	'cache': true
 };

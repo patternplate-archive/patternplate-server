@@ -10,8 +10,9 @@ export class Pattern {
 	results = {};
 	mtime = null;
 
-	constructor(id, base, config = {}, transforms = {}) {
+	constructor(id, base, config = {}, transforms = {}, cache = null) {
 		this.id = id;
+		this.cache = cache;
 		this.base = base;
 		this.path = Pattern.resolve(this.base, this.id);
 		this.config = config;
@@ -25,7 +26,7 @@ export class Pattern {
 	async read(path = this.path) {
 		// TODO: Replace q-io/fs
 		fs.exists = fs.exists.bind(fs);
-		
+
 		if ( await fs.exists(path) !== true ) {
 			throw new Error(`Can not read pattern from ${this.path}, it does not exist.`);
 		}
@@ -36,23 +37,39 @@ export class Pattern {
 			let ext = extname(fileName);
 			return ext && ['index', 'demo', 'pattern'].indexOf(basename(fileName, ext)) > -1;
 		});
-
+1
 		for (let file of files) {
-			let fileBasename = basename(file);
-			let ext = extname(file);
-			let buffer = await fs.read(file);
+			let stat = await fs.stat(file);
+			let mtime = stat.node.mtime;
+			let name = basename(file);
 
-			this.files[fileBasename] = {
-				'source': buffer,
-				'path': file,
-				'ext': ext,
-				'name': fileBasename,
-				'basename': basename(fileBasename, ext),
-				'format': ext.substr(1, ext.length),
-				'fs': await fs.stat(file)
-			};
+			let data;
 
-			this.files[fileBasename].buffer = this.files[fileBasename].source;
+			if (this.cache) {
+				data = this.cache.get(file, mtime);
+			}
+
+			if (!data) {
+				let ext = extname(file);
+				let buffer = await fs.read(file);
+
+				data = {
+					buffer,
+					name,
+					'basename': basename(name, ext),
+					'ext': ext,
+					'format': ext.replace('.', ''),
+					'fs': stat,
+					'path': file,
+					'source': buffer,
+				}
+
+				if (this.cache) {
+					this.cache.set(file, mtime, data);
+				}
+			}
+
+			this.files[name] = data;
 		}
 
 		let manifest = this.files['pattern.json'];
@@ -73,7 +90,7 @@ export class Pattern {
 		}
 
 		for ( let patternName in this.manifest.patterns ) {
-			let pattern = new Pattern(this.manifest.patterns[patternName], this.base, this.config, this.transforms);
+			let pattern = new Pattern(this.manifest.patterns[patternName], this.base, this.config, this.transforms, this.cache);
 			this.dependencies[patternName] = await pattern.read();
 		}
 

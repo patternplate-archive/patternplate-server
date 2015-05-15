@@ -26,6 +26,7 @@ exports['default'] = {
 		'json': {
 			'name': 'Data'
 		}
-	}
+	},
+	'cache': true
 };
 module.exports = exports['default'];

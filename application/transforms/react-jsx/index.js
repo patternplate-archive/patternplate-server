@@ -1,4 +1,3 @@
-/*eslint-disable no-loop-func */
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -7,6 +6,8 @@ Object.defineProperty(exports, '__esModule', {
 exports['default'] = reactJSXTransformFactory;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+/*eslint-disable no-loop-func */
 
 var _reactJsx = require('react-jsx');
 
