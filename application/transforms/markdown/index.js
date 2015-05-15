@@ -26,26 +26,24 @@ function markdownTransformFactory(application) {
 					return parser(file.buffer.toString('utf-8'));
 
 				case 3:
-					context$2$0.t28 = context$2$0.sent;
-					file.buffer = new Buffer(context$2$0.t28, 'utf-8');
-					context$2$0.next = 11;
+					context$2$0.t448 = context$2$0.sent;
+					file.buffer = new Buffer(context$2$0.t448, 'utf-8');
+					context$2$0.next = 10;
 					break;
 
 				case 7:
 					context$2$0.prev = 7;
-					context$2$0.t29 = context$2$0['catch'](0);
+					context$2$0.t449 = context$2$0['catch'](0);
+					throw new Error(context$2$0.t449);
 
-					application.log.error(context$2$0.t29);
-					throw new Error(context$2$0.t29);
-
-				case 11:
+				case 10:
 
 					file['in'] = config.inFormat;
 					file.out = config.outFormat;
 
 					return context$2$0.abrupt('return', file);
 
-				case 14:
+				case 13:
 				case 'end':
 					return context$2$0.stop();
 			}

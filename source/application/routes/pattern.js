@@ -37,7 +37,6 @@ export default function patternRouteFactory (application, configuration) {
 					await pattern.read();
 					await pattern.transform();
 				} catch (err) {
-					err.fileName = err.fileName || id;
 					this.throw(500, err);
 				}
 
@@ -71,7 +70,6 @@ export default function patternRouteFactory (application, configuration) {
 						await pattern.read();
 						await pattern.transform();
 					} catch (err) {
-						err.fileName = err.fileName || patternID;
 						this.throw(500, err);
 					}
 				}

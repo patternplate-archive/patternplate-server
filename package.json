@@ -1,6 +1,6 @@
 {
   "name": "patternplate-server",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Programmatically serve patternplate components via a well defined REST API",
   "main": "library/",
   "scripts": {
@@ -42,7 +42,7 @@
     "babel-core": "^5.2.17",
     "babelify": "^6.0.2",
     "bluebird": "^2.9.25",
-    "boilerplate-server": "git+ssh://git@git.sinnerschrader.com:patternplate/boilerplate-server.git#v0.5.0",
+    "boilerplate-server": "git+ssh://git@git.sinnerschrader.com:patternplate/boilerplate-server.git#v0.5.1",
     "browserify": "^10.1.0",
     "isomorphic-fetch": "^2.0.2",
     "jsx-transform": "^2.0.0",

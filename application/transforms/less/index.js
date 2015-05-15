@@ -34,8 +34,8 @@ function render(source, config) {
 
 			case 6:
 				context$1$0.prev = 6;
-				context$1$0.t25 = context$1$0['catch'](0);
-				throw context$1$0.t25;
+				context$1$0.t433 = context$1$0['catch'](0);
+				throw context$1$0.t433;
 
 			case 9:
 			case 'end':
@@ -109,17 +109,15 @@ function lessTransformFactory(application) {
 
 				case 9:
 					results = context$2$0.sent;
-					context$2$0.next = 16;
+					context$2$0.next = 15;
 					break;
 
 				case 12:
 					context$2$0.prev = 12;
-					context$2$0.t26 = context$2$0['catch'](5);
+					context$2$0.t434 = context$2$0['catch'](5);
+					throw context$2$0.t434;
 
-					application.log.error('Error while rendering library less: ' + file.path);
-					application.log.error(context$2$0.t26.stack);
-
-				case 16:
+				case 15:
 					if (!demo) {
 						context$2$0.next = 32;
 						break;
@@ -128,23 +126,23 @@ function lessTransformFactory(application) {
 					demoSource = demo.buffer.toString('utf-8');
 					demoConfig = Object.assign({}, configuration);
 					demoDepdendencies = Object.assign({}, dependencies, { 'Pattern': file.path });
-					context$2$0.prev = 20;
+					context$2$0.prev = 19;
 
 					demoConfig.plugins.push(new _lessPluginPatternImport2['default']({ 'root': patternPath, 'patterns': demoDepdendencies }));
-					context$2$0.next = 24;
+					context$2$0.next = 23;
 					return render(demoSource, demoConfig);
 
-				case 24:
+				case 23:
 					demoResults = context$2$0.sent;
 					context$2$0.next = 30;
 					break;
 
-				case 27:
-					context$2$0.prev = 27;
-					context$2$0.t27 = context$2$0['catch'](20);
+				case 26:
+					context$2$0.prev = 26;
+					context$2$0.t435 = context$2$0['catch'](19);
 
-					application.log.error('Error while rendering demo less: ' + demo.path);
-					//application.log.error(err.stack);
+					context$2$0.t435.file = demo.path;
+					throw context$2$0.t435;
 
 				case 30:
 
@@ -164,7 +162,7 @@ function lessTransformFactory(application) {
 				case 'end':
 					return context$2$0.stop();
 			}
-		}, null, this, [[5, 12], [20, 27]]);
+		}, null, this, [[5, 12], [19, 26]]);
 	};
 }
 

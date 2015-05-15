@@ -9,7 +9,6 @@ export default function markdownTransformFactory (application) {
 		try {
 			file.buffer = new Buffer(await parser(file.buffer.toString('utf-8')), 'utf-8');
 		} catch (err) {
-			application.log.error(err);
 			throw new Error(err);
 		}
 

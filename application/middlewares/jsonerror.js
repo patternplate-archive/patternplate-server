@@ -7,6 +7,7 @@ exports['default'] = JSONErrorFactory;
 
 function JSONErrorFactory(application) {
 	return regeneratorRuntime.mark(function jsonErrorMiddlewares(next) {
+		var message, text;
 		return regeneratorRuntime.wrap(function jsonErrorMiddlewares$(context$2$0) {
 			while (1) switch (context$2$0.prev = context$2$0.next) {
 				case 0:
@@ -15,30 +16,45 @@ function JSONErrorFactory(application) {
 					return next;
 
 				case 3:
-					context$2$0.next = 17;
+					context$2$0.next = 21;
 					break;
 
 				case 5:
 					context$2$0.prev = 5;
-					context$2$0.t15 = context$2$0['catch'](0);
+					context$2$0.t540 = context$2$0['catch'](0);
 
-					context$2$0.t15.expose = true;
-					this.response.status = context$2$0.t15.status || 404;
+					context$2$0.t540.expose = true;
+					this.response.status = context$2$0.t540.status || 404;
 
-					context$2$0.t16 = this.accepts('json', 'html', 'text');
-					context$2$0.next = context$2$0.t16 === 'json' ? 12 : 15;
+					message = ['Error', context$2$0.t540.pattern ? 'in "' + context$2$0.t540.pattern + '"' : '', context$2$0.t540.transform ? 'during transform "' + context$2$0.t540.transform + '" of' : '', context$2$0.t540.file ? '"' + context$2$0.t540.file + '":' : 'unknown file:', context$2$0.t540.message ? context$2$0.t540.message : ''].filter(function (item) {
+						return item;
+					}).join(' ');
+
+					application.log.error(message);
+					application.log.debug(context$2$0.t540.stack ? context$2$0.t540.stack : new Error(context$2$0.t540).stack);
+
+					context$2$0.t541 = this.accepts('json', 'html', 'text');
+					context$2$0.next = context$2$0.t541 === 'json' ? 15 : 18;
 					break;
 
-				case 12:
-					this.type = 'json';
-					this.body = { 'message': context$2$0.t15 ? context$2$0.t15.message : 'page not found', 'err': context$2$0.t15 };
-					return context$2$0.abrupt('break', 17);
-
 				case 15:
-					this.body = context$2$0.t15 ? context$2$0.t15.message : 'page not found';
-					return context$2$0.abrupt('break', 17);
+					this.type = 'json';
+					this.body = {
+						'message': message,
+						'pattern': context$2$0.t540.pattern,
+						'transform': context$2$0.t540.transform,
+						'file': context$2$0.t540.file,
+						'stack': context$2$0.t540.stack
+					};
+					return context$2$0.abrupt('break', 21);
 
-				case 17:
+				case 18:
+					text = ['Message: ' + message, 'Pattern: ' + context$2$0.t540.pattern, 'Transform: ' + context$2$0.t540.transform, 'File: ' + context$2$0.t540.file, context$2$0.t540.stack].join('\n');
+
+					this.body = text;
+					return context$2$0.abrupt('break', 21);
+
+				case 21:
 				case 'end':
 					return context$2$0.stop();
 			}

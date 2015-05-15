@@ -19,9 +19,16 @@ export default function reactJSXTransformFactory (application) {
 		file.out = config.outFormat;
 
 		if (demo) {
-			let demoTemplate = jsx.server(demo.buffer.toString('utf-8'), {'raw': true});
-			let demoData = Object.assign({}, data, resolveDependencies({'Pattern': file}));
-			let demoResult = demoTemplate(demoData, {'html': true});
+			let demoResult;
+
+			try {
+				let demoTemplate = jsx.server(demo.buffer.toString('utf-8'), {'raw': true});
+				let demoData = Object.assign({}, data, resolveDependencies({'Pattern': file}));
+				demoResult = demoTemplate(demoData, {'html': true});
+			} catch (error) {
+				error.file = demo.path;
+				throw error;
+			}
 
 			file.demoSource = demo.source;
 			file.demoBuffer = new Buffer(demoResult, 'utf-8');

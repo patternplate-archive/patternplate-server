@@ -75,14 +75,23 @@ export class Pattern {
 		let manifest = this.files['pattern.json'];
 
 		if (typeof manifest === 'undefined') {
-			throw new Error(`Can not read pattern.json from ${this.path}, it does not exist.`)
+			throw new Error({
+				'message': `Can not read pattern.json from ${this.path}, it does not exist.`,
+				'file': this.path,
+				'pattern': this.id
+			});
 		}
 
 		try {
 			this.manifest = JSON.parse(manifest.source.toString('utf-8'));
 			delete this.files['pattern.json'];
-		} catch (e) {
-			throw new Error(`Error while reading pattern.json from ${this.path}:`, e);
+		} catch (error) {
+			throw new Error({
+				'message': `Error while reading pattern.json from ${this.path}`,
+				'file': this.path,
+				'pattern': this.id,
+				'stack': error.stack
+			});
 		}
 
 		if (typeof this.manifest.patterns !== 'object') {
@@ -120,12 +129,6 @@ export class Pattern {
 				continue;
 			}
 
-			let transforms = formatConfig.transforms || [];
-
-			for (let transform of transforms) {
-				let fn = this.transforms[transform];
-			}
-
 			demos[formatConfig.name] = file;
 		}
 
@@ -152,7 +155,14 @@ export class Pattern {
 
 			for (let transform of transforms) {
 				let fn = this.transforms[transform];
-				file = await fn(file, demos[formatConfig.name]);
+				try {
+					file = await fn(file, demos[formatConfig.name]);
+				} catch (error) {
+					error.pattern = this.id;
+					error.file = error.file || file.path;
+					error.transform = transform;
+					throw error;
+				}
 			}
 
 			this.results[formatConfig.name] = file;

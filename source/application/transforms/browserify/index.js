@@ -92,9 +92,16 @@ function browserifyTransformFactory (application) {
 			});
 		}
 
-		let transformed = await runBundler(bundler, config);
-		Object.assign(file, transformed);
+		let transformed;
 
+		try {
+			await runBundler(bundler, config);
+		} catch (err) {
+			err.file = err.fileName;
+			throw err;
+		}
+
+		Object.assign(file, transformed);
 		return file;
 	};
 }

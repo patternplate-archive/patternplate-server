@@ -124,9 +124,9 @@ function browserifyTransformFactory(application) {
 
 				case 10:
 					context$2$0.prev = 10;
-					context$2$0.t23 = context$2$0['catch'](6);
+					context$2$0.t445 = context$2$0['catch'](6);
 					_didIteratorError2 = true;
-					_iteratorError2 = context$2$0.t23;
+					_iteratorError2 = context$2$0.t445;
 
 				case 14:
 					context$2$0.prev = 14;
@@ -183,9 +183,9 @@ function browserifyTransformFactory(application) {
 
 				case 32:
 					context$2$0.prev = 32;
-					context$2$0.t24 = context$2$0['catch'](28);
+					context$2$0.t446 = context$2$0['catch'](28);
 					_didIteratorError3 = true;
-					_iteratorError3 = context$2$0.t24;
+					_iteratorError3 = context$2$0.t446;
 
 				case 36:
 					context$2$0.prev = 36;
@@ -224,21 +224,32 @@ function browserifyTransformFactory(application) {
 					});
 
 				case 48:
-					context$2$0.next = 50;
+					transformed = undefined;
+					context$2$0.prev = 49;
+					context$2$0.next = 52;
 					return runBundler(bundler, config);
 
-				case 50:
-					transformed = context$2$0.sent;
+				case 52:
+					context$2$0.next = 58;
+					break;
+
+				case 54:
+					context$2$0.prev = 54;
+					context$2$0.t447 = context$2$0['catch'](49);
+
+					context$2$0.t447.file = context$2$0.t447.fileName;
+					throw context$2$0.t447;
+
+				case 58:
 
 					Object.assign(file, transformed);
-
 					return context$2$0.abrupt('return', file);
 
-				case 53:
+				case 60:
 				case 'end':
 					return context$2$0.stop();
 			}
-		}, null, this, [[6, 10, 14, 22], [15,, 17, 21], [28, 32, 36, 44], [37,, 39, 43]]);
+		}, null, this, [[6, 10, 14, 22], [15,, 17, 21], [28, 32, 36, 44], [37,, 39, 43], [49, 54]]);
 	};
 }
 

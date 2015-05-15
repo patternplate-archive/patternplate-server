@@ -50,8 +50,7 @@ export default function lessTransformFactory (application) {
 			fileConfig.plugins.push(new PatternImporterPlugin({'root': patternPath, 'patterns': dependencies}));
 			results = await render(source, fileConfig);
 		} catch (err) {
-			application.log.error('Error while rendering library less: ' + file.path);
-			application.log.error(err.stack);
+			throw err;
 		}
 
 		if (demo) {
@@ -63,8 +62,8 @@ export default function lessTransformFactory (application) {
 				demoConfig.plugins.push(new PatternImporterPlugin({'root': patternPath, 'patterns': demoDepdendencies}));
 				demoResults = await render(demoSource, demoConfig);
 			} catch (err) {
-				application.log.error('Error while rendering demo less: ' + demo.path);
-				//application.log.error(err.stack);
+				err.file = demo.path;
+				throw err;
 			}
 
 			file.demoBuffer = new Buffer(demoResults.css || '', 'utf-8');
