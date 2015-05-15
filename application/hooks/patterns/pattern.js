@@ -56,9 +56,9 @@ var Pattern = (function () {
 						return _qIoFs2['default'].exists(path);
 
 					case 3:
-						context$2$0.t1128 = context$2$0.sent;
+						context$2$0.t2 = context$2$0.sent;
 
-						if (!(context$2$0.t1128 !== true)) {
+						if (!(context$2$0.t2 !== true)) {
 							context$2$0.next = 6;
 							break;
 						}
@@ -144,9 +144,9 @@ var Pattern = (function () {
 
 					case 38:
 						context$2$0.prev = 38;
-						context$2$0.t1129 = context$2$0['catch'](14);
+						context$2$0.t3 = context$2$0['catch'](14);
 						_didIteratorError = true;
-						_iteratorError = context$2$0.t1129;
+						_iteratorError = context$2$0.t3;
 
 					case 42:
 						context$2$0.prev = 42;
@@ -192,8 +192,8 @@ var Pattern = (function () {
 
 					case 58:
 						context$2$0.prev = 58;
-						context$2$0.t1130 = context$2$0['catch'](53);
-						throw new Error('Error while reading pattern.json from ' + this.path + ':', context$2$0.t1130);
+						context$2$0.t4 = context$2$0['catch'](53);
+						throw new Error('Error while reading pattern.json from ' + this.path + ':', context$2$0.t4);
 
 					case 61:
 						if (!(typeof this.manifest.patterns !== 'object')) {
@@ -204,15 +204,15 @@ var Pattern = (function () {
 						return context$2$0.abrupt('return', this);
 
 					case 63:
-						context$2$0.t1131 = regeneratorRuntime.keys(this.manifest.patterns);
+						context$2$0.t5 = regeneratorRuntime.keys(this.manifest.patterns);
 
 					case 64:
-						if ((context$2$0.t1132 = context$2$0.t1131()).done) {
+						if ((context$2$0.t6 = context$2$0.t5()).done) {
 							context$2$0.next = 72;
 							break;
 						}
 
-						patternName = context$2$0.t1132.value;
+						patternName = context$2$0.t6.value;
 						pattern = new Pattern(this.manifest.patterns[patternName], this.base, this.config, this.transforms, this.cache);
 						context$2$0.next = 69;
 						return pattern.read();
@@ -246,15 +246,15 @@ var Pattern = (function () {
 							break;
 						}
 
-						context$2$0.t1133 = regeneratorRuntime.keys(this.dependencies);
+						context$2$0.t7 = regeneratorRuntime.keys(this.dependencies);
 
 					case 2:
-						if ((context$2$0.t1134 = context$2$0.t1133()).done) {
+						if ((context$2$0.t8 = context$2$0.t7()).done) {
 							context$2$0.next = 8;
 							break;
 						}
 
-						dependency = context$2$0.t1134.value;
+						dependency = context$2$0.t8.value;
 						context$2$0.next = 6;
 						return this.dependencies[dependency].transform();
 
@@ -264,15 +264,15 @@ var Pattern = (function () {
 
 					case 8:
 						demos = {};
-						context$2$0.t1135 = regeneratorRuntime.keys(this.files);
+						context$2$0.t9 = regeneratorRuntime.keys(this.files);
 
 					case 10:
-						if ((context$2$0.t1136 = context$2$0.t1135()).done) {
+						if ((context$2$0.t10 = context$2$0.t9()).done) {
 							context$2$0.next = 41;
 							break;
 						}
 
-						fileName = context$2$0.t1136.value;
+						fileName = context$2$0.t10.value;
 						file = this.files[fileName];
 
 						if (!(file.basename !== 'demo')) {
@@ -309,9 +309,9 @@ var Pattern = (function () {
 
 					case 26:
 						context$2$0.prev = 26;
-						context$2$0.t1137 = context$2$0['catch'](22);
+						context$2$0.t11 = context$2$0['catch'](22);
 						_didIteratorError2 = true;
-						_iteratorError2 = context$2$0.t1137;
+						_iteratorError2 = context$2$0.t11;
 
 					case 30:
 						context$2$0.prev = 30;
@@ -343,15 +343,15 @@ var Pattern = (function () {
 						break;
 
 					case 41:
-						context$2$0.t1138 = regeneratorRuntime.keys(this.files);
+						context$2$0.t12 = regeneratorRuntime.keys(this.files);
 
 					case 42:
-						if ((context$2$0.t1139 = context$2$0.t1138()).done) {
+						if ((context$2$0.t13 = context$2$0.t12()).done) {
 							context$2$0.next = 84;
 							break;
 						}
 
-						fileName = context$2$0.t1139.value;
+						fileName = context$2$0.t13.value;
 						file = this.files[fileName];
 
 						if (!(file.basename === 'demo')) {
@@ -411,9 +411,9 @@ var Pattern = (function () {
 
 					case 69:
 						context$2$0.prev = 69;
-						context$2$0.t1140 = context$2$0['catch'](56);
+						context$2$0.t14 = context$2$0['catch'](56);
 						_didIteratorError3 = true;
-						_iteratorError3 = context$2$0.t1140;
+						_iteratorError3 = context$2$0.t14;
 
 					case 73:
 						context$2$0.prev = 73;

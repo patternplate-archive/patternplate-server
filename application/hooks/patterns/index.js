@@ -67,10 +67,10 @@ function populate(cache, root, hook) {
 
 			case 20:
 				context$1$0.prev = 20;
-				context$1$0.t1100 = context$1$0['catch'](15);
+				context$1$0.t0 = context$1$0['catch'](15);
 
 				hook.log.warn('Error while populating cache for ' + patternID);
-				hook.log.error(context$1$0.t1100.stack);
+				hook.log.error(context$1$0.t0.stack);
 
 			case 24:
 				_iteratorNormalCompletion = true;
@@ -83,9 +83,9 @@ function populate(cache, root, hook) {
 
 			case 29:
 				context$1$0.prev = 29;
-				context$1$0.t1101 = context$1$0['catch'](7);
+				context$1$0.t1 = context$1$0['catch'](7);
 				_didIteratorError = true;
-				_iteratorError = context$1$0.t1101;
+				_iteratorError = context$1$0.t1;
 
 			case 33:
 				context$1$0.prev = 33;
