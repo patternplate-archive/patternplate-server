@@ -52,10 +52,10 @@ function reactJSXTransformFactory(application) {
 
 				case 15:
 					context$2$0.prev = 15;
-					context$2$0.t456 = context$2$0['catch'](9);
+					context$2$0.t115 = context$2$0['catch'](9);
 
-					context$2$0.t456.file = demo.path;
-					throw context$2$0.t456;
+					context$2$0.t115.file = demo.path;
+					throw context$2$0.t115;
 
 				case 19:
 

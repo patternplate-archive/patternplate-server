@@ -56,9 +56,9 @@ var Pattern = (function () {
 						return _qIoFs2['default'].exists(path);
 
 					case 3:
-						context$2$0.t457 = context$2$0.sent;
+						context$2$0.t100 = context$2$0.sent;
 
-						if (!(context$2$0.t457 !== true)) {
+						if (!(context$2$0.t100 !== true)) {
 							context$2$0.next = 6;
 							break;
 						}
@@ -144,9 +144,9 @@ var Pattern = (function () {
 
 					case 38:
 						context$2$0.prev = 38;
-						context$2$0.t458 = context$2$0['catch'](14);
+						context$2$0.t101 = context$2$0['catch'](14);
 						_didIteratorError = true;
-						_iteratorError = context$2$0.t458;
+						_iteratorError = context$2$0.t101;
 
 					case 42:
 						context$2$0.prev = 42;
@@ -196,12 +196,12 @@ var Pattern = (function () {
 
 					case 58:
 						context$2$0.prev = 58;
-						context$2$0.t459 = context$2$0['catch'](53);
+						context$2$0.t102 = context$2$0['catch'](53);
 						throw new Error({
 							'message': 'Error while reading pattern.json from ' + this.path,
 							'file': this.path,
 							'pattern': this.id,
-							'stack': context$2$0.t459.stack
+							'stack': context$2$0.t102.stack
 						});
 
 					case 61:
@@ -213,15 +213,15 @@ var Pattern = (function () {
 						return context$2$0.abrupt('return', this);
 
 					case 63:
-						context$2$0.t460 = regeneratorRuntime.keys(this.manifest.patterns);
+						context$2$0.t103 = regeneratorRuntime.keys(this.manifest.patterns);
 
 					case 64:
-						if ((context$2$0.t461 = context$2$0.t460()).done) {
+						if ((context$2$0.t104 = context$2$0.t103()).done) {
 							context$2$0.next = 72;
 							break;
 						}
 
-						patternName = context$2$0.t461.value;
+						patternName = context$2$0.t104.value;
 						pattern = new Pattern(this.manifest.patterns[patternName], this.base, this.config, this.transforms, this.cache);
 						context$2$0.next = 69;
 						return pattern.read();
@@ -245,6 +245,8 @@ var Pattern = (function () {
 	}, {
 		key: 'transform',
 		value: function transform() {
+			var withDemos = arguments[0] === undefined ? true : arguments[0];
+
 			var dependency, demos, fileName, file, formatConfig, transforms, dependencyName, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, transform, fn;
 
 			return regeneratorRuntime.async(function transform$(context$2$0) {
@@ -255,17 +257,17 @@ var Pattern = (function () {
 							break;
 						}
 
-						context$2$0.t462 = regeneratorRuntime.keys(this.dependencies);
+						context$2$0.t105 = regeneratorRuntime.keys(this.dependencies);
 
 					case 2:
-						if ((context$2$0.t463 = context$2$0.t462()).done) {
+						if ((context$2$0.t106 = context$2$0.t105()).done) {
 							context$2$0.next = 8;
 							break;
 						}
 
-						dependency = context$2$0.t463.value;
+						dependency = context$2$0.t106.value;
 						context$2$0.next = 6;
-						return this.dependencies[dependency].transform();
+						return this.dependencies[dependency].transform(false);
 
 					case 6:
 						context$2$0.next = 2;
@@ -273,70 +275,76 @@ var Pattern = (function () {
 
 					case 8:
 						demos = {};
-						context$2$0.t464 = regeneratorRuntime.keys(this.files);
 
-					case 10:
-						if ((context$2$0.t465 = context$2$0.t464()).done) {
-							context$2$0.next = 21;
+						if (!withDemos) {
+							context$2$0.next = 22;
 							break;
 						}
 
-						fileName = context$2$0.t465.value;
+						context$2$0.t107 = regeneratorRuntime.keys(this.files);
+
+					case 11:
+						if ((context$2$0.t108 = context$2$0.t107()).done) {
+							context$2$0.next = 22;
+							break;
+						}
+
+						fileName = context$2$0.t108.value;
 						file = this.files[fileName];
 
 						if (!(file.basename !== 'demo')) {
-							context$2$0.next = 15;
+							context$2$0.next = 16;
 							break;
 						}
 
-						return context$2$0.abrupt('continue', 10);
+						return context$2$0.abrupt('continue', 11);
 
-					case 15:
+					case 16:
 						formatConfig = this.config.formats[file.format];
 
 						if (!(typeof formatConfig !== 'object')) {
-							context$2$0.next = 18;
+							context$2$0.next = 19;
 							break;
 						}
 
-						return context$2$0.abrupt('continue', 10);
+						return context$2$0.abrupt('continue', 11);
 
-					case 18:
+					case 19:
 
 						demos[formatConfig.name] = file;
-						context$2$0.next = 10;
+						context$2$0.next = 11;
 						break;
 
-					case 21:
-						context$2$0.t466 = regeneratorRuntime.keys(this.files);
-
 					case 22:
-						if ((context$2$0.t467 = context$2$0.t466()).done) {
-							context$2$0.next = 73;
+						context$2$0.t109 = regeneratorRuntime.keys(this.files);
+
+					case 23:
+						if ((context$2$0.t110 = context$2$0.t109()).done) {
+							context$2$0.next = 74;
 							break;
 						}
 
-						fileName = context$2$0.t467.value;
+						fileName = context$2$0.t110.value;
 						file = this.files[fileName];
 
 						if (!(file.basename === 'demo')) {
-							context$2$0.next = 27;
+							context$2$0.next = 28;
 							break;
 						}
 
-						return context$2$0.abrupt('continue', 22);
+						return context$2$0.abrupt('continue', 23);
 
-					case 27:
+					case 28:
 						formatConfig = this.config.formats[file.format];
 
 						if (!(typeof formatConfig !== 'object')) {
-							context$2$0.next = 30;
+							context$2$0.next = 31;
 							break;
 						}
 
-						return context$2$0.abrupt('continue', 22);
+						return context$2$0.abrupt('continue', 23);
 
-					case 30:
+					case 31:
 						transforms = formatConfig.transforms || [];
 
 						file.dependencies = {};
@@ -348,85 +356,85 @@ var Pattern = (function () {
 						_iteratorNormalCompletion2 = true;
 						_didIteratorError2 = false;
 						_iteratorError2 = undefined;
-						context$2$0.prev = 36;
+						context$2$0.prev = 37;
 						_iterator2 = transforms[Symbol.iterator]();
 
-					case 38:
+					case 39:
 						if (_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done) {
-							context$2$0.next = 56;
+							context$2$0.next = 57;
 							break;
 						}
 
 						transform = _step2.value;
 						fn = this.transforms[transform];
-						context$2$0.prev = 41;
-						context$2$0.next = 44;
+						context$2$0.prev = 42;
+						context$2$0.next = 45;
 						return fn(file, demos[formatConfig.name]);
 
-					case 44:
+					case 45:
 						file = context$2$0.sent;
-						context$2$0.next = 53;
+						context$2$0.next = 54;
 						break;
 
-					case 47:
-						context$2$0.prev = 47;
-						context$2$0.t468 = context$2$0['catch'](41);
+					case 48:
+						context$2$0.prev = 48;
+						context$2$0.t111 = context$2$0['catch'](42);
 
-						context$2$0.t468.pattern = this.id;
-						context$2$0.t468.file = context$2$0.t468.file || file.path;
-						context$2$0.t468.transform = transform;
-						throw context$2$0.t468;
+						context$2$0.t111.pattern = this.id;
+						context$2$0.t111.file = context$2$0.t111.file || file.path;
+						context$2$0.t111.transform = transform;
+						throw context$2$0.t111;
 
-					case 53:
+					case 54:
 						_iteratorNormalCompletion2 = true;
-						context$2$0.next = 38;
+						context$2$0.next = 39;
 						break;
 
-					case 56:
-						context$2$0.next = 62;
+					case 57:
+						context$2$0.next = 63;
 						break;
 
-					case 58:
-						context$2$0.prev = 58;
-						context$2$0.t469 = context$2$0['catch'](36);
+					case 59:
+						context$2$0.prev = 59;
+						context$2$0.t112 = context$2$0['catch'](37);
 						_didIteratorError2 = true;
-						_iteratorError2 = context$2$0.t469;
+						_iteratorError2 = context$2$0.t112;
 
-					case 62:
-						context$2$0.prev = 62;
+					case 63:
 						context$2$0.prev = 63;
+						context$2$0.prev = 64;
 
 						if (!_iteratorNormalCompletion2 && _iterator2['return']) {
 							_iterator2['return']();
 						}
 
-					case 65:
-						context$2$0.prev = 65;
+					case 66:
+						context$2$0.prev = 66;
 
 						if (!_didIteratorError2) {
-							context$2$0.next = 68;
+							context$2$0.next = 69;
 							break;
 						}
 
 						throw _iteratorError2;
 
-					case 68:
-						return context$2$0.finish(65);
-
 					case 69:
-						return context$2$0.finish(62);
+						return context$2$0.finish(66);
 
 					case 70:
+						return context$2$0.finish(63);
+
+					case 71:
 
 						this.results[formatConfig.name] = file;
-						context$2$0.next = 22;
+						context$2$0.next = 23;
 						break;
 
-					case 73:
+					case 74:
 					case 'end':
 						return context$2$0.stop();
 				}
-			}, null, this, [[36, 58, 62, 70], [41, 47], [63,, 65, 69]]);
+			}, null, this, [[37, 59, 63, 71], [42, 48], [64,, 66, 70]]);
 		}
 	}, {
 		key: 'getLastModified',

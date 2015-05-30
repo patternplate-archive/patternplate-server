@@ -107,29 +107,31 @@ export class Pattern {
 		return this;
 	}
 
-	async transform() {
+	async transform( withDemos = true ) {
 		if ( this.dependencies ) {
 			for (let dependency in this.dependencies) {
-				await this.dependencies[dependency].transform();
+				await this.dependencies[dependency].transform(false);
 			}
 		}
 
 		let demos = {};
 
-		for ( let fileName in this.files ) {
-			let file = this.files[fileName];
+		if (withDemos) {
+			for ( let fileName in this.files ) {
+				let file = this.files[fileName];
 
-			if ( file.basename !== 'demo' ) {
-				continue;
+				if ( file.basename !== 'demo' ) {
+					continue;
+				}
+
+				let formatConfig = this.config.formats[file.format];
+
+				if (typeof formatConfig !== 'object') {
+					continue;
+				}
+
+				demos[formatConfig.name] = file;
 			}
-
-			let formatConfig = this.config.formats[file.format];
-
-			if (typeof formatConfig !== 'object') {
-				continue;
-			}
-
-			demos[formatConfig.name] = file;
 		}
 
 		for ( let fileName in this.files ) {
