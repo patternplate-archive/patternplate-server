@@ -21,35 +21,35 @@ function JSONErrorFactory(application) {
 
 				case 5:
 					context$2$0.prev = 5;
-					context$2$0.t540 = context$2$0['catch'](0);
+					context$2$0.t15 = context$2$0['catch'](0);
 
-					context$2$0.t540.expose = true;
-					this.response.status = context$2$0.t540.status || 404;
+					context$2$0.t15.expose = true;
+					this.response.status = context$2$0.t15.status || 404;
 
-					message = ['Error', context$2$0.t540.pattern ? 'in "' + context$2$0.t540.pattern + '"' : '', context$2$0.t540.transform ? 'during transform "' + context$2$0.t540.transform + '" of' : '', context$2$0.t540.file ? '"' + context$2$0.t540.file + '":' : 'unknown file:', context$2$0.t540.message ? context$2$0.t540.message : ''].filter(function (item) {
+					message = ['Error', context$2$0.t15.pattern ? 'in "' + context$2$0.t15.pattern + '"' : '', context$2$0.t15.transform ? 'during transform "' + context$2$0.t15.transform + '" of' : '', context$2$0.t15.file ? '"' + context$2$0.t15.file + '":' : 'unknown file:', context$2$0.t15.message ? context$2$0.t15.message : ''].filter(function (item) {
 						return item;
 					}).join(' ');
 
 					application.log.error(message);
-					application.log.debug(context$2$0.t540.stack ? context$2$0.t540.stack : new Error(context$2$0.t540).stack);
+					application.log.debug(context$2$0.t15.stack ? context$2$0.t15.stack : new Error(context$2$0.t15).stack);
 
-					context$2$0.t541 = this.accepts('json', 'html', 'text');
-					context$2$0.next = context$2$0.t541 === 'json' ? 15 : 18;
+					context$2$0.t16 = this.accepts('json', 'html', 'text');
+					context$2$0.next = context$2$0.t16 === 'json' ? 15 : 18;
 					break;
 
 				case 15:
 					this.type = 'json';
 					this.body = {
 						'message': message,
-						'pattern': context$2$0.t540.pattern,
-						'transform': context$2$0.t540.transform,
-						'file': context$2$0.t540.file,
-						'stack': context$2$0.t540.stack
+						'pattern': context$2$0.t15.pattern,
+						'transform': context$2$0.t15.transform,
+						'file': context$2$0.t15.file,
+						'stack': context$2$0.t15.stack
 					};
 					return context$2$0.abrupt('break', 21);
 
 				case 18:
-					text = ['Message: ' + message, 'Pattern: ' + context$2$0.t540.pattern, 'Transform: ' + context$2$0.t540.transform, 'File: ' + context$2$0.t540.file, context$2$0.t540.stack].join('\n');
+					text = ['Message: ' + message, 'Pattern: ' + context$2$0.t15.pattern, 'Transform: ' + context$2$0.t15.transform, 'File: ' + context$2$0.t15.file, context$2$0.t15.stack].join('\n');
 
 					this.body = text;
 					return context$2$0.abrupt('break', 21);
