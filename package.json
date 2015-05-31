@@ -1,6 +1,6 @@
 {
   "name": "patternplate-server",
-  "version": "0.4.4",
+  "version": "0.4.5",
   "description": "Programmatically serve patternplate components via a well defined REST API",
   "main": "library/",
   "scripts": {
@@ -8,7 +8,7 @@
     "build": "npm run babel",
     "watch": "npm run babel -- --watch",
     "babel": "npm run clean && babel source --out-dir ./",
-    "clean": "rm -r application binary configuration library"
+    "clean": "rm -rf application binary configuration library"
   },
   "bin": {
     "patternplate-server": "binary/patternplate-server.js"

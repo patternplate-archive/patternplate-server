@@ -9,7 +9,7 @@ export default function reactJSXTransformFactory (application) {
 		let scope = resolveDependencies({'Pattern': file});
 
 		try {
-			let result = React.renderToString(React.createElement(scope.Pattern));
+			let result = React.renderToStaticMarkup(React.createElement(scope.Pattern));
 
 			file.buffer = new Buffer(result, 'utf-8');
 			file.in = config.inFormat;
@@ -24,7 +24,7 @@ export default function reactJSXTransformFactory (application) {
 			let scope = resolveDependencies({'Demo': demo});
 
 			try {
-				let result = React.renderToString(React.createElement(scope.Demo));
+				let result = React.renderToStaticMarkup(React.createElement(scope.Demo));
 
 				file.demoSource = demo.source;
 				file.demoBuffer = new Buffer(result, 'utf-8');

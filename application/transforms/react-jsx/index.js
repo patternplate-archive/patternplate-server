@@ -26,7 +26,7 @@ function reactJSXTransformFactory(application) {
 				case 0:
 					scope = (0, _resolveDependencies2['default'])({ 'Pattern': file });
 					context$2$0.prev = 1;
-					result = _react2['default'].renderToString(_react2['default'].createElement(scope.Pattern));
+					result = _react2['default'].renderToStaticMarkup(_react2['default'].createElement(scope.Pattern));
 
 					file.buffer = new Buffer(result, 'utf-8');
 					file['in'] = config.inFormat;
@@ -36,10 +36,10 @@ function reactJSXTransformFactory(application) {
 
 				case 8:
 					context$2$0.prev = 8;
-					context$2$0.t31 = context$2$0['catch'](1);
+					context$2$0.t0 = context$2$0['catch'](1);
 
-					context$2$0.t31.file = file.path;
-					throw context$2$0.t31;
+					context$2$0.t0.file = file.path;
+					throw context$2$0.t0;
 
 				case 12:
 					if (!demo) {
@@ -50,7 +50,7 @@ function reactJSXTransformFactory(application) {
 					demo.dependencies = Object.assign({ 'pattern': file }, file.dependencies);
 					_scope = (0, _resolveDependencies2['default'])({ 'Demo': demo });
 					context$2$0.prev = 15;
-					result = _react2['default'].renderToString(_react2['default'].createElement(_scope.Demo));
+					result = _react2['default'].renderToStaticMarkup(_react2['default'].createElement(_scope.Demo));
 
 					file.demoSource = demo.source;
 					file.demoBuffer = new Buffer(result, 'utf-8');
@@ -59,10 +59,10 @@ function reactJSXTransformFactory(application) {
 
 				case 21:
 					context$2$0.prev = 21;
-					context$2$0.t32 = context$2$0['catch'](15);
+					context$2$0.t1 = context$2$0['catch'](15);
 
-					context$2$0.t32.file = demo.path;
-					throw context$2$0.t32;
+					context$2$0.t1.file = demo.path;
+					throw context$2$0.t1;
 
 				case 25:
 					return context$2$0.abrupt('return', file);

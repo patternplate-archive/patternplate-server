@@ -1,3 +1,4 @@
+/* eslint ignore */
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -12,8 +13,6 @@ exports['default'] = patternFactory;
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-/* eslint ignore */
 
 var _path = require('path');
 
@@ -56,9 +55,9 @@ var Pattern = (function () {
 						return _qIoFs2['default'].exists(path);
 
 					case 3:
-						context$2$0.t2 = context$2$0.sent;
+						context$2$0.t0 = context$2$0.sent;
 
-						if (!(context$2$0.t2 !== true)) {
+						if (!(context$2$0.t0 !== true)) {
 							context$2$0.next = 6;
 							break;
 						}
@@ -144,9 +143,9 @@ var Pattern = (function () {
 
 					case 37:
 						context$2$0.prev = 37;
-						context$2$0.t3 = context$2$0['catch'](13);
+						context$2$0.t1 = context$2$0['catch'](13);
 						_didIteratorError = true;
-						_iteratorError = context$2$0.t3;
+						_iteratorError = context$2$0.t1;
 
 					case 41:
 						context$2$0.prev = 41;
@@ -196,12 +195,12 @@ var Pattern = (function () {
 
 					case 57:
 						context$2$0.prev = 57;
-						context$2$0.t4 = context$2$0['catch'](52);
+						context$2$0.t2 = context$2$0['catch'](52);
 						throw new Error({
 							'message': 'Error while reading pattern.json from ' + this.path,
 							'file': this.path,
 							'pattern': this.id,
-							'stack': context$2$0.t4.stack
+							'stack': context$2$0.t2.stack
 						});
 
 					case 60:
@@ -213,15 +212,15 @@ var Pattern = (function () {
 						return context$2$0.abrupt('return', this);
 
 					case 62:
-						context$2$0.t5 = regeneratorRuntime.keys(this.manifest.patterns);
+						context$2$0.t3 = regeneratorRuntime.keys(this.manifest.patterns);
 
 					case 63:
-						if ((context$2$0.t6 = context$2$0.t5()).done) {
+						if ((context$2$0.t4 = context$2$0.t3()).done) {
 							context$2$0.next = 71;
 							break;
 						}
 
-						patternName = context$2$0.t6.value;
+						patternName = context$2$0.t4.value;
 						pattern = new Pattern(this.manifest.patterns[patternName], this.base, this.config, this.transforms, this.cache);
 						context$2$0.next = 68;
 						return pattern.read();
@@ -232,15 +231,15 @@ var Pattern = (function () {
 						break;
 
 					case 71:
-						context$2$0.t7 = regeneratorRuntime.keys(this.files);
+						context$2$0.t5 = regeneratorRuntime.keys(this.files);
 
 					case 72:
-						if ((context$2$0.t8 = context$2$0.t7()).done) {
+						if ((context$2$0.t6 = context$2$0.t5()).done) {
 							context$2$0.next = 81;
 							break;
 						}
 
-						fileName = context$2$0.t8.value;
+						fileName = context$2$0.t6.value;
 						file = this.files[fileName];
 
 						file.dependencies = {};
@@ -292,15 +291,15 @@ var Pattern = (function () {
 							break;
 						}
 
-						context$2$0.t9 = regeneratorRuntime.keys(this.files);
+						context$2$0.t0 = regeneratorRuntime.keys(this.files);
 
 					case 3:
-						if ((context$2$0.t10 = context$2$0.t9()).done) {
+						if ((context$2$0.t1 = context$2$0.t0()).done) {
 							context$2$0.next = 14;
 							break;
 						}
 
-						fileName = context$2$0.t10.value;
+						fileName = context$2$0.t1.value;
 						file = this.files[fileName];
 
 						if (!(file.basename !== 'demo')) {
@@ -327,15 +326,15 @@ var Pattern = (function () {
 						break;
 
 					case 14:
-						context$2$0.t11 = regeneratorRuntime.keys(this.files);
+						context$2$0.t2 = regeneratorRuntime.keys(this.files);
 
 					case 15:
-						if ((context$2$0.t12 = context$2$0.t11()).done) {
+						if ((context$2$0.t3 = context$2$0.t2()).done) {
 							context$2$0.next = 64;
 							break;
 						}
 
-						fileName = context$2$0.t12.value;
+						fileName = context$2$0.t3.value;
 						file = this.files[fileName];
 
 						if (!(file.basename === 'demo')) {
@@ -382,12 +381,12 @@ var Pattern = (function () {
 
 					case 38:
 						context$2$0.prev = 38;
-						context$2$0.t13 = context$2$0['catch'](32);
+						context$2$0.t4 = context$2$0['catch'](32);
 
-						context$2$0.t13.pattern = this.id;
-						context$2$0.t13.file = context$2$0.t13.file || file.path;
-						context$2$0.t13.transform = transform;
-						throw context$2$0.t13;
+						context$2$0.t4.pattern = this.id;
+						context$2$0.t4.file = context$2$0.t4.file || file.path;
+						context$2$0.t4.transform = transform;
+						throw context$2$0.t4;
 
 					case 44:
 						_iteratorNormalCompletion2 = true;
@@ -400,9 +399,9 @@ var Pattern = (function () {
 
 					case 49:
 						context$2$0.prev = 49;
-						context$2$0.t14 = context$2$0['catch'](27);
+						context$2$0.t5 = context$2$0['catch'](27);
 						_didIteratorError2 = true;
-						_iteratorError2 = context$2$0.t14;
+						_iteratorError2 = context$2$0.t5;
 
 					case 53:
 						context$2$0.prev = 53;
@@ -525,8 +524,8 @@ var Pattern = (function () {
 	}], [{
 		key: 'resolve',
 		value: function resolve() {
-			for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-				args[_key2] = arguments[_key2];
+			for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+				args[_key] = arguments[_key];
 			}
 
 			return _path.resolve.apply(undefined, args);
@@ -539,8 +538,8 @@ var Pattern = (function () {
 exports.Pattern = Pattern;
 
 function patternFactory() {
-	for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-		args[_key] = arguments[_key];
+	for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+		args[_key2] = arguments[_key2];
 	}
 
 	return regeneratorRuntime.async(function patternFactory$(context$1$0) {
