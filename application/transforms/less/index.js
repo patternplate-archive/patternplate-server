@@ -34,8 +34,8 @@ function render(source, config) {
 
 			case 6:
 				context$1$0.prev = 6;
-				context$1$0.t26 = context$1$0['catch'](0);
-				throw context$1$0.t26;
+				context$1$0.t24 = context$1$0['catch'](0);
+				throw context$1$0.t24;
 
 			case 9:
 			case 'end':
@@ -114,8 +114,8 @@ function lessTransformFactory(application) {
 
 				case 12:
 					context$2$0.prev = 12;
-					context$2$0.t27 = context$2$0['catch'](5);
-					throw context$2$0.t27;
+					context$2$0.t25 = context$2$0['catch'](5);
+					throw context$2$0.t25;
 
 				case 15:
 					if (!demo) {
@@ -139,10 +139,10 @@ function lessTransformFactory(application) {
 
 				case 26:
 					context$2$0.prev = 26;
-					context$2$0.t28 = context$2$0['catch'](19);
+					context$2$0.t26 = context$2$0['catch'](19);
 
-					context$2$0.t28.file = demo.path;
-					throw context$2$0.t28;
+					context$2$0.t26.file = demo.path;
+					throw context$2$0.t26;
 
 				case 30:
 

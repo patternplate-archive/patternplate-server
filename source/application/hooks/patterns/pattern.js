@@ -37,7 +37,7 @@ export class Pattern {
 			let ext = extname(fileName);
 			return ext && ['index', 'demo', 'pattern'].indexOf(basename(fileName, ext)) > -1;
 		});
-1
+
 		for (let file of files) {
 			let stat = await fs.stat(file);
 			let mtime = stat.node.mtime;
@@ -103,17 +103,28 @@ export class Pattern {
 			this.dependencies[patternName] = await pattern.read();
 		}
 
+		for ( let fileName in this.files ) {
+			let file = this.files[fileName];
+			file.dependencies = {}
+
+			if ( file.basename === 'demo' ) {
+				continue;
+			}
+
+			for (let dependencyName in this.dependencies) {
+				let dependencyFile = this.dependencies[dependencyName].files[file.name];
+
+				if (dependencyFile) {
+					file.dependencies[dependencyName] = dependencyFile;
+				}
+			}
+		}
+
 		this.getLastModified();
 		return this;
 	}
 
 	async transform( withDemos = true ) {
-		if ( this.dependencies ) {
-			for (let dependency in this.dependencies) {
-				await this.dependencies[dependency].transform(false);
-			}
-		}
-
 		let demos = {};
 
 		if (withDemos) {
@@ -148,12 +159,6 @@ export class Pattern {
 			}
 
 			let transforms = formatConfig.transforms || [];
-
-			file.dependencies = {};
-
-			for (let dependencyName in this.dependencies) {
-				file.dependencies[dependencyName] = this.dependencies[dependencyName].results[formatConfig.name];
-			}
 
 			for (let transform of transforms) {
 				let fn = this.transforms[transform];

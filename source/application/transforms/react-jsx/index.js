@@ -1,37 +1,37 @@
-/*eslint-disable no-loop-func */
-import jsx from 'react-jsx';
-import resolveDependencies from './resolve-dependencies';
+import React from 'react';
 
-const defaultData = {'props': {}};
+import resolveDependencies from './resolve-dependencies';
 
 export default function reactJSXTransformFactory (application) {
 	const config = application.configuration.transforms['react-jsx'] || {};
 
 	return async function reactJSXTransform (file, demo) {
-		let source = file.buffer.toString('utf-8');
-		let sourceTemplate = jsx.server(source, {'raw': true});
+		let scope = resolveDependencies({'Pattern': file});
 
-		let data = Object.assign({}, defaultData, resolveDependencies(file.dependencies));
-		let result = sourceTemplate(data, {'html': true});
+		try {
+			let result = React.renderToString(React.createElement(scope.Pattern));
 
-		file.buffer = new Buffer(result, 'utf-8');
-		file.in = config.inFormat;
-		file.out = config.outFormat;
+			file.buffer = new Buffer(result, 'utf-8');
+			file.in = config.inFormat;
+			file.out = config.outFormat;
+		} catch (error) {
+			error.file = file.path;
+			throw error;
+		}
 
 		if (demo) {
-			let demoResult;
+			demo.dependencies = Object.assign({'pattern': file}, file.dependencies);
+			let scope = resolveDependencies({'Demo': demo});
 
 			try {
-				let demoTemplate = jsx.server(demo.buffer.toString('utf-8'), {'raw': true});
-				let demoData = Object.assign({}, data, resolveDependencies({'Pattern': file}));
-				demoResult = demoTemplate(demoData, {'html': true});
+				let result = React.renderToString(React.createElement(scope.Demo));
+
+				file.demoSource = demo.source;
+				file.demoBuffer = new Buffer(result, 'utf-8');
 			} catch (error) {
 				error.file = demo.path;
 				throw error;
 			}
-
-			file.demoSource = demo.source;
-			file.demoBuffer = new Buffer(demoResult, 'utf-8');
 		}
 
 		return file;

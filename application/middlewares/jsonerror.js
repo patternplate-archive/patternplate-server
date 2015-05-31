@@ -21,35 +21,35 @@ function JSONErrorFactory(application) {
 
 				case 5:
 					context$2$0.prev = 5;
-					context$2$0.t15 = context$2$0['catch'](0);
+					context$2$0.t13 = context$2$0['catch'](0);
 
-					context$2$0.t15.expose = true;
-					this.response.status = context$2$0.t15.status || 404;
+					context$2$0.t13.expose = true;
+					this.response.status = context$2$0.t13.status || 404;
 
-					message = ['Error', context$2$0.t15.pattern ? 'in "' + context$2$0.t15.pattern + '"' : '', context$2$0.t15.transform ? 'during transform "' + context$2$0.t15.transform + '" of' : '', context$2$0.t15.file ? '"' + context$2$0.t15.file + '":' : 'unknown file:', context$2$0.t15.message ? context$2$0.t15.message : ''].filter(function (item) {
+					message = ['Error', context$2$0.t13.pattern ? 'in "' + context$2$0.t13.pattern + '"' : '', context$2$0.t13.transform ? 'during transform "' + context$2$0.t13.transform + '" of' : '', context$2$0.t13.file ? '"' + context$2$0.t13.file + '":' : 'unknown file:', context$2$0.t13.message ? context$2$0.t13.message : ''].filter(function (item) {
 						return item;
 					}).join(' ');
 
 					application.log.error(message);
-					application.log.debug(context$2$0.t15.stack ? context$2$0.t15.stack : new Error(context$2$0.t15).stack);
+					application.log.debug(context$2$0.t13.stack ? context$2$0.t13.stack : new Error(context$2$0.t13).stack);
 
-					context$2$0.t16 = this.accepts('json', 'html', 'text');
-					context$2$0.next = context$2$0.t16 === 'json' ? 15 : 18;
+					context$2$0.t14 = this.accepts('json', 'html', 'text');
+					context$2$0.next = context$2$0.t14 === 'json' ? 15 : 18;
 					break;
 
 				case 15:
 					this.type = 'json';
 					this.body = {
 						'message': message,
-						'pattern': context$2$0.t15.pattern,
-						'transform': context$2$0.t15.transform,
-						'file': context$2$0.t15.file,
-						'stack': context$2$0.t15.stack
+						'pattern': context$2$0.t13.pattern,
+						'transform': context$2$0.t13.transform,
+						'file': context$2$0.t13.file,
+						'stack': context$2$0.t13.stack
 					};
 					return context$2$0.abrupt('break', 21);
 
 				case 18:
-					text = ['Message: ' + message, 'Pattern: ' + context$2$0.t15.pattern, 'Transform: ' + context$2$0.t15.transform, 'File: ' + context$2$0.t15.file, context$2$0.t15.stack].join('\n');
+					text = ['Message: ' + message, 'Pattern: ' + context$2$0.t13.pattern, 'Transform: ' + context$2$0.t13.transform, 'File: ' + context$2$0.t13.file, context$2$0.t13.stack].join('\n');
 
 					this.body = text;
 					return context$2$0.abrupt('break', 21);

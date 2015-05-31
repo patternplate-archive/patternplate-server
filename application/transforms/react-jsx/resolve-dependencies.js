@@ -31,7 +31,7 @@ function resolveDependencies() {
 		for (var _iterator = Object.keys(dependencies)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
 			var dependencyName = _step.value;
 
-			var dependencyBuffer = dependencies[dependencyName].source || dependencies[dependencyName].results.Markup.source;
+			var dependencyBuffer = dependencies[dependencyName].source;
 			var dependencySource = dependencyBuffer.toString('utf-8');
 			var dependecyTemplate = _reactJsx2['default'].server(dependencySource, { 'raw': true });
 			data[(0, _pascalCase2['default'])(dependencyName)] = (0, _createClass2['default'])(dependencyName, dependecyTemplate, dependencies[dependencyName]);
