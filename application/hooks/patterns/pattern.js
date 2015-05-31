@@ -56,9 +56,9 @@ var Pattern = (function () {
 						return _qIoFs2['default'].exists(path);
 
 					case 3:
-						context$2$0.t60 = context$2$0.sent;
+						context$2$0.t2 = context$2$0.sent;
 
-						if (!(context$2$0.t60 !== true)) {
+						if (!(context$2$0.t2 !== true)) {
 							context$2$0.next = 6;
 							break;
 						}
@@ -144,9 +144,9 @@ var Pattern = (function () {
 
 					case 37:
 						context$2$0.prev = 37;
-						context$2$0.t61 = context$2$0['catch'](13);
+						context$2$0.t3 = context$2$0['catch'](13);
 						_didIteratorError = true;
-						_iteratorError = context$2$0.t61;
+						_iteratorError = context$2$0.t3;
 
 					case 41:
 						context$2$0.prev = 41;
@@ -196,12 +196,12 @@ var Pattern = (function () {
 
 					case 57:
 						context$2$0.prev = 57;
-						context$2$0.t62 = context$2$0['catch'](52);
+						context$2$0.t4 = context$2$0['catch'](52);
 						throw new Error({
 							'message': 'Error while reading pattern.json from ' + this.path,
 							'file': this.path,
 							'pattern': this.id,
-							'stack': context$2$0.t62.stack
+							'stack': context$2$0.t4.stack
 						});
 
 					case 60:
@@ -213,15 +213,15 @@ var Pattern = (function () {
 						return context$2$0.abrupt('return', this);
 
 					case 62:
-						context$2$0.t63 = regeneratorRuntime.keys(this.manifest.patterns);
+						context$2$0.t5 = regeneratorRuntime.keys(this.manifest.patterns);
 
 					case 63:
-						if ((context$2$0.t64 = context$2$0.t63()).done) {
+						if ((context$2$0.t6 = context$2$0.t5()).done) {
 							context$2$0.next = 71;
 							break;
 						}
 
-						patternName = context$2$0.t64.value;
+						patternName = context$2$0.t6.value;
 						pattern = new Pattern(this.manifest.patterns[patternName], this.base, this.config, this.transforms, this.cache);
 						context$2$0.next = 68;
 						return pattern.read();
@@ -232,15 +232,15 @@ var Pattern = (function () {
 						break;
 
 					case 71:
-						context$2$0.t65 = regeneratorRuntime.keys(this.files);
+						context$2$0.t7 = regeneratorRuntime.keys(this.files);
 
 					case 72:
-						if ((context$2$0.t66 = context$2$0.t65()).done) {
+						if ((context$2$0.t8 = context$2$0.t7()).done) {
 							context$2$0.next = 81;
 							break;
 						}
 
-						fileName = context$2$0.t66.value;
+						fileName = context$2$0.t8.value;
 						file = this.files[fileName];
 
 						file.dependencies = {};
@@ -292,15 +292,15 @@ var Pattern = (function () {
 							break;
 						}
 
-						context$2$0.t67 = regeneratorRuntime.keys(this.files);
+						context$2$0.t9 = regeneratorRuntime.keys(this.files);
 
 					case 3:
-						if ((context$2$0.t68 = context$2$0.t67()).done) {
+						if ((context$2$0.t10 = context$2$0.t9()).done) {
 							context$2$0.next = 14;
 							break;
 						}
 
-						fileName = context$2$0.t68.value;
+						fileName = context$2$0.t10.value;
 						file = this.files[fileName];
 
 						if (!(file.basename !== 'demo')) {
@@ -327,15 +327,15 @@ var Pattern = (function () {
 						break;
 
 					case 14:
-						context$2$0.t69 = regeneratorRuntime.keys(this.files);
+						context$2$0.t11 = regeneratorRuntime.keys(this.files);
 
 					case 15:
-						if ((context$2$0.t70 = context$2$0.t69()).done) {
+						if ((context$2$0.t12 = context$2$0.t11()).done) {
 							context$2$0.next = 64;
 							break;
 						}
 
-						fileName = context$2$0.t70.value;
+						fileName = context$2$0.t12.value;
 						file = this.files[fileName];
 
 						if (!(file.basename === 'demo')) {
@@ -382,12 +382,12 @@ var Pattern = (function () {
 
 					case 38:
 						context$2$0.prev = 38;
-						context$2$0.t71 = context$2$0['catch'](32);
+						context$2$0.t13 = context$2$0['catch'](32);
 
-						context$2$0.t71.pattern = this.id;
-						context$2$0.t71.file = context$2$0.t71.file || file.path;
-						context$2$0.t71.transform = transform;
-						throw context$2$0.t71;
+						context$2$0.t13.pattern = this.id;
+						context$2$0.t13.file = context$2$0.t13.file || file.path;
+						context$2$0.t13.transform = transform;
+						throw context$2$0.t13;
 
 					case 44:
 						_iteratorNormalCompletion2 = true;
@@ -400,9 +400,9 @@ var Pattern = (function () {
 
 					case 49:
 						context$2$0.prev = 49;
-						context$2$0.t72 = context$2$0['catch'](27);
+						context$2$0.t14 = context$2$0['catch'](27);
 						_didIteratorError2 = true;
-						_iteratorError2 = context$2$0.t72;
+						_iteratorError2 = context$2$0.t14;
 
 					case 53:
 						context$2$0.prev = 53;

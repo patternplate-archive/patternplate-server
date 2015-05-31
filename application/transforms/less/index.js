@@ -34,8 +34,8 @@ function render(source, config) {
 
 			case 6:
 				context$1$0.prev = 6;
-				context$1$0.t24 = context$1$0['catch'](0);
-				throw context$1$0.t24;
+				context$1$0.t36 = context$1$0['catch'](0);
+				throw context$1$0.t36;
 
 			case 9:
 			case 'end':
@@ -97,7 +97,7 @@ function lessTransformFactory(application) {
 					fileConfig = Object.assign({}, configuration);
 					results = {};
 					demoResults = {};
-					dependencies = Object.keys(file.dependencies).reduce(function getDependencyPaths(paths, dependencyName) {
+					dependencies = Object.keys(file.dependencies || {}).reduce(function getDependencyPaths(paths, dependencyName) {
 						paths[dependencyName] = file.dependencies[dependencyName].path;
 						return paths;
 					}, {});
@@ -114,8 +114,8 @@ function lessTransformFactory(application) {
 
 				case 12:
 					context$2$0.prev = 12;
-					context$2$0.t25 = context$2$0['catch'](5);
-					throw context$2$0.t25;
+					context$2$0.t37 = context$2$0['catch'](5);
+					throw context$2$0.t37;
 
 				case 15:
 					if (!demo) {
@@ -139,10 +139,10 @@ function lessTransformFactory(application) {
 
 				case 26:
 					context$2$0.prev = 26;
-					context$2$0.t26 = context$2$0['catch'](19);
+					context$2$0.t38 = context$2$0['catch'](19);
 
-					context$2$0.t26.file = demo.path;
-					throw context$2$0.t26;
+					context$2$0.t38.file = demo.path;
+					throw context$2$0.t38;
 
 				case 30:
 

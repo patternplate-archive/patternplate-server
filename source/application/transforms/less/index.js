@@ -41,7 +41,7 @@ export default function lessTransformFactory (application) {
 		var results = {};
 		var demoResults = {};
 
-		let dependencies = Object.keys(file.dependencies).reduce(function getDependencyPaths (paths, dependencyName) {
+		let dependencies = Object.keys(file.dependencies || {}).reduce(function getDependencyPaths (paths, dependencyName) {
 			paths[dependencyName] = file.dependencies[dependencyName].path;
 			return paths;
 		}, {});

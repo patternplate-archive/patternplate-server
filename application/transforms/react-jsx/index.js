@@ -36,10 +36,10 @@ function reactJSXTransformFactory(application) {
 
 				case 8:
 					context$2$0.prev = 8;
-					context$2$0.t79 = context$2$0['catch'](1);
+					context$2$0.t31 = context$2$0['catch'](1);
 
-					context$2$0.t79.file = file.path;
-					throw context$2$0.t79;
+					context$2$0.t31.file = file.path;
+					throw context$2$0.t31;
 
 				case 12:
 					if (!demo) {
@@ -59,10 +59,10 @@ function reactJSXTransformFactory(application) {
 
 				case 21:
 					context$2$0.prev = 21;
-					context$2$0.t80 = context$2$0['catch'](15);
+					context$2$0.t32 = context$2$0['catch'](15);
 
-					context$2$0.t80.file = demo.path;
-					throw context$2$0.t80;
+					context$2$0.t32.file = demo.path;
+					throw context$2$0.t32;
 
 				case 25:
 					return context$2$0.abrupt('return', file);

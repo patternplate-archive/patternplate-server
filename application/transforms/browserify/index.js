@@ -124,9 +124,9 @@ function browserifyTransformFactory(application) {
 
 				case 10:
 					context$2$0.prev = 10;
-					context$2$0.t21 = context$2$0['catch'](6);
+					context$2$0.t23 = context$2$0['catch'](6);
 					_didIteratorError2 = true;
-					_iteratorError2 = context$2$0.t21;
+					_iteratorError2 = context$2$0.t23;
 
 				case 14:
 					context$2$0.prev = 14;
@@ -183,9 +183,9 @@ function browserifyTransformFactory(application) {
 
 				case 32:
 					context$2$0.prev = 32;
-					context$2$0.t22 = context$2$0['catch'](28);
+					context$2$0.t24 = context$2$0['catch'](28);
 					_didIteratorError3 = true;
-					_iteratorError3 = context$2$0.t22;
+					_iteratorError3 = context$2$0.t24;
 
 				case 36:
 					context$2$0.prev = 36;
@@ -235,10 +235,10 @@ function browserifyTransformFactory(application) {
 
 				case 54:
 					context$2$0.prev = 54;
-					context$2$0.t23 = context$2$0['catch'](49);
+					context$2$0.t25 = context$2$0['catch'](49);
 
-					context$2$0.t23.file = context$2$0.t23.fileName;
-					throw context$2$0.t23;
+					context$2$0.t25.file = context$2$0.t25.fileName;
+					throw context$2$0.t25;
 
 				case 58:
 
