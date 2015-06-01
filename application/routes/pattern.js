@@ -47,8 +47,8 @@ function patternRouteFactory(application, configuration) {
 
 				case 14:
 
-					if (application.cache) {
-						response = application.cache.get(uri);
+					if (application.cache && application.runtime.env === 'production') {
+						response = application.cache.get(id);
 					}
 
 					search = (0, _path.resolve)(path, 'pattern.json');
@@ -280,11 +280,15 @@ function patternRouteFactory(application, configuration) {
 						return typeof resp.toJSON === 'function' ? resp.toJSON() : resp;
 					});
 
-					response = response.length === 1 ? response[0] : response;
+					if (application.cache && application.runtime.env === 'production') {
+						application.cache.set(id, response);
 
-					if (application.cache) {
-						application.cache.set(uri, response);
+						response.forEach(function cacheResponseItems(resp) {
+							application.cache.set(resp.id, resp);
+						});
 					}
+
+					response = response.length === 1 ? response[0] : response;
 
 					if (mtime) {
 						this.set('Last-Modified', mtime.toUTCString());

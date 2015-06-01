@@ -23,8 +23,8 @@ export default function patternRouteFactory (application, configuration) {
 			this.throw(404, `Could not find pattern ${id}`, {'error': true, 'message': `Could not find ${id}`});
 		}
 
-		if (application.cache) {
-			response = application.cache.get(uri);
+		if (application.cache && application.runtime.env === 'production') {
+			response = application.cache.get(id);
 		}
 
 		let search = resolve(path, 'pattern.json');
@@ -81,14 +81,18 @@ export default function patternRouteFactory (application, configuration) {
 		response = Array.isArray(response) ? response : [response];
 
 		response = response.map((resp) => {
-			return typeof resp.toJSON === 'function' ? resp.toJSON() : resp
+			return typeof resp.toJSON === 'function' ? resp.toJSON() : resp;
 		});
 
-		response = response.length === 1 ? response[0] : response;
+		if (application.cache && application.runtime.env === 'production') {
+			application.cache.set(id, response);
 
-		if (application.cache) {
-			application.cache.set(uri, response);
+			response.forEach(function cacheResponseItems (resp) {
+				application.cache.set(resp.id, resp);
+			});
 		}
+
+		response = response.length === 1 ? response[0] : response;
 
 		if (mtime) {
 			this.set('Last-Modified', mtime.toUTCString());
