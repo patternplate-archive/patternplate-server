@@ -1,6 +1,6 @@
 {
   "name": "patternplate-server",
-  "version": "0.4.6",
+  "version": "0.4.7",
   "description": "Programmatically serve patternplate components via a well defined REST API",
   "main": "library/",
   "scripts": {
@@ -44,6 +44,7 @@
     "bluebird": "^2.9.25",
     "boilerplate-server": "git+ssh://git@git.sinnerschrader.com:patternplate/boilerplate-server.git#v0.5.2",
     "browserify": "^10.1.0",
+    "core-util-is": "^1.0.1",
     "isomorphic-fetch": "^2.0.2",
     "jsx-transform": "^2.0.0",
     "less": "^2.5.0",
