@@ -97,7 +97,7 @@ function browserifyTransformFactory(application) {
 	}, {});
 
 	return function browserifyTransform(file, demo) {
-		var bundler, dependencies, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, transformName, demoBundler, _iteratorNormalCompletion3, _didIteratorError3, _iteratorError3, _iterator3, _step3, demoTransformed, transformed;
+		var bundler, dependencies, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, transformName, demoBundler, _iteratorNormalCompletion3, _didIteratorError3, _iteratorError3, _iterator3, _step3, demoTransformed, transformed, _transformed;
 
 		return regeneratorRuntime.async(function browserifyTransform$(context$2$0) {
 			while (1) switch (context$2$0.prev = context$2$0.next) {
@@ -154,7 +154,7 @@ function browserifyTransformFactory(application) {
 
 				case 22:
 					if (!demo) {
-						context$2$0.next = 48;
+						context$2$0.next = 56;
 						break;
 					}
 
@@ -212,44 +212,58 @@ function browserifyTransformFactory(application) {
 					return context$2$0.finish(36);
 
 				case 44:
-					context$2$0.next = 46;
+					demoTransformed = undefined;
+					context$2$0.prev = 45;
+					context$2$0.next = 48;
 					return runBundler(demoBundler, config);
 
-				case 46:
+				case 48:
 					demoTransformed = context$2$0.sent;
+					context$2$0.next = 55;
+					break;
+
+				case 51:
+					context$2$0.prev = 51;
+					context$2$0.t2 = context$2$0['catch'](45);
+
+					context$2$0.t2.file = demo.path || context$2$0.t2.fileName;
+					throw context$2$0.t2;
+
+				case 55:
 
 					Object.assign(file, {
 						'demoSource': demo.source,
 						'demoBuffer': demoTransformed.buffer
 					});
 
-				case 48:
+				case 56:
 					transformed = undefined;
-					context$2$0.prev = 49;
-					context$2$0.next = 52;
+					context$2$0.prev = 57;
+					context$2$0.next = 60;
 					return runBundler(bundler, config);
 
-				case 52:
-					context$2$0.next = 58;
+				case 60:
+					_transformed = context$2$0.sent;
+					context$2$0.next = 67;
 					break;
 
-				case 54:
-					context$2$0.prev = 54;
-					context$2$0.t2 = context$2$0['catch'](49);
+				case 63:
+					context$2$0.prev = 63;
+					context$2$0.t3 = context$2$0['catch'](57);
 
-					context$2$0.t2.file = context$2$0.t2.fileName;
-					throw context$2$0.t2;
+					context$2$0.t3.file = file.path || context$2$0.t3.fileName;
+					throw context$2$0.t3;
 
-				case 58:
+				case 67:
 
 					Object.assign(file, transformed);
 					return context$2$0.abrupt('return', file);
 
-				case 60:
+				case 69:
 				case 'end':
 					return context$2$0.stop();
 			}
-		}, null, this, [[6, 10, 14, 22], [15,, 17, 21], [28, 32, 36, 44], [37,, 39, 43], [49, 54]]);
+		}, null, this, [[6, 10, 14, 22], [15,, 17, 21], [28, 32, 36, 44], [37,, 39, 43], [45, 51], [57, 63]]);
 	};
 }
 

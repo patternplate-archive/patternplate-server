@@ -84,7 +84,14 @@ function browserifyTransformFactory (application) {
 				demoBundler.transform(transforms[transformName]);
 			}
 
-			let demoTransformed = await runBundler(demoBundler, config);
+			let demoTransformed;
+
+			try {
+				demoTransformed = await runBundler(demoBundler, config);
+			} catch (err) {
+				err.file = demo.path || err.fileName;
+				throw err;
+			}
 
 			Object.assign(file, {
 				'demoSource': demo.source,
@@ -95,9 +102,9 @@ function browserifyTransformFactory (application) {
 		let transformed;
 
 		try {
-			await runBundler(bundler, config);
+			transformed = await runBundler(bundler, config);
 		} catch (err) {
-			err.file = err.fileName;
+			err.file = file.path || err.fileName;
 			throw err;
 		}
 
