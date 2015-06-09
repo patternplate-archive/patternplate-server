@@ -97,7 +97,7 @@ function browserifyTransformFactory(application) {
 	}, {});
 
 	return function browserifyTransform(file, demo) {
-		var bundler, dependencies, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, transformName, demoBundler, _iteratorNormalCompletion3, _didIteratorError3, _iteratorError3, _iterator3, _step3, demoTransformed, transformed, _transformed;
+		var bundler, dependencies, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, transformName, demoBundler, _iteratorNormalCompletion3, _didIteratorError3, _iteratorError3, _iterator3, _step3, demoTransformed, transformed;
 
 		return regeneratorRuntime.async(function browserifyTransform$(context$2$0) {
 			while (1) switch (context$2$0.prev = context$2$0.next) {
@@ -243,7 +243,7 @@ function browserifyTransformFactory(application) {
 					return runBundler(bundler, config);
 
 				case 60:
-					_transformed = context$2$0.sent;
+					transformed = context$2$0.sent;
 					context$2$0.next = 67;
 					break;
 
