@@ -32,9 +32,9 @@ function populate(cache, root, hook) {
 			case 0:
 				hook.log.info('Pattern cache is enabled, populating it from ' + root);
 				context$1$0.next = 3;
-				return _qIoFs2['default'].listTree(root, function (path) {
+				return regeneratorRuntime.awrap(_qIoFs2['default'].listTree(root, function (path) {
 					return (0, _path.basename)(path) === 'pattern.json';
-				});
+				}));
 
 			case 3:
 				list = context$1$0.sent;
@@ -52,14 +52,14 @@ function populate(cache, root, hook) {
 
 				manifest = _step.value;
 				context$1$0.next = 13;
-				return _qIoFs2['default'].relative(root, _qIoFs2['default'].directory(manifest));
+				return regeneratorRuntime.awrap(_qIoFs2['default'].relative(root, _qIoFs2['default'].directory(manifest)));
 
 			case 13:
 				patternID = context$1$0.sent;
 				pattern = new _pattern.Pattern(patternID, root, {}, {}, cache);
 				context$1$0.prev = 15;
 				context$1$0.next = 18;
-				return pattern.read();
+				return regeneratorRuntime.awrap(pattern.read());
 
 			case 18:
 				context$1$0.next = 24;

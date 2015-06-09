@@ -22,7 +22,7 @@ function metaRouteFactory(application, configuration) {
 					config = application.configuration[configuration.options.key];
 					path = (0, _path.resolve)(application.runtime.patterncwd || application.runtime.cwd, config.path);
 					context$2$0.next = 4;
-					return _qIoFs2['default'].listTree(path);
+					return regeneratorRuntime.awrap(_qIoFs2['default'].listTree(path));
 
 				case 4:
 					list = context$2$0.sent;

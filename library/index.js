@@ -19,7 +19,7 @@ function server(opts) {
 					'name': 'patternplate-server'
 				}, opts);
 				context$1$0.next = 3;
-				return (0, _boilerplateServer2['default'])(options);
+				return regeneratorRuntime.awrap((0, _boilerplateServer2['default'])(options));
 
 			case 3:
 				return context$1$0.abrupt('return', context$1$0.sent);

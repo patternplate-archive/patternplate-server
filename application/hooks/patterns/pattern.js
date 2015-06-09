@@ -28,7 +28,12 @@ var Pattern = (function () {
 
 		_classCallCheck(this, Pattern);
 
-		this.__initializeProperties();
+		this.files = {};
+		this.config = {};
+		this.manifest = {};
+		this.dependencies = {};
+		this.results = {};
+		this.mtime = null;
 
 		this.id = id;
 		this.cache = cache;
@@ -52,7 +57,7 @@ var Pattern = (function () {
 						_qIoFs2['default'].exists = _qIoFs2['default'].exists.bind(_qIoFs2['default']);
 
 						context$2$0.next = 3;
-						return _qIoFs2['default'].exists(path);
+						return regeneratorRuntime.awrap(_qIoFs2['default'].exists(path));
 
 					case 3:
 						context$2$0.t0 = context$2$0.sent;
@@ -66,7 +71,7 @@ var Pattern = (function () {
 
 					case 6:
 						context$2$0.next = 8;
-						return _qIoFs2['default'].listTree(path);
+						return regeneratorRuntime.awrap(_qIoFs2['default'].listTree(path));
 
 					case 8:
 						files = context$2$0.sent;
@@ -90,7 +95,7 @@ var Pattern = (function () {
 
 						file = _step.value;
 						context$2$0.next = 19;
-						return _qIoFs2['default'].stat(file);
+						return regeneratorRuntime.awrap(_qIoFs2['default'].stat(file));
 
 					case 19:
 						stat = context$2$0.sent;
@@ -109,7 +114,7 @@ var Pattern = (function () {
 
 						ext = (0, _path.extname)(file);
 						context$2$0.next = 28;
-						return _qIoFs2['default'].read(file);
+						return regeneratorRuntime.awrap(_qIoFs2['default'].read(file));
 
 					case 28:
 						buffer = context$2$0.sent;
@@ -122,7 +127,8 @@ var Pattern = (function () {
 							'format': ext.replace('.', ''),
 							'fs': stat,
 							'path': file,
-							'source': buffer };
+							'source': buffer
+						};
 
 						if (this.cache) {
 							this.cache.set(file, _mtime, data);
@@ -223,7 +229,7 @@ var Pattern = (function () {
 						patternName = context$2$0.t4.value;
 						pattern = new Pattern(this.manifest.patterns[patternName], this.base, this.config, this.transforms, this.cache);
 						context$2$0.next = 68;
-						return pattern.read();
+						return regeneratorRuntime.awrap(pattern.read());
 
 					case 68:
 						this.dependencies[patternName] = context$2$0.sent;
@@ -372,7 +378,7 @@ var Pattern = (function () {
 						fn = this.transforms[transform];
 						context$2$0.prev = 32;
 						context$2$0.next = 35;
-						return fn(file, demos[formatConfig.name]);
+						return regeneratorRuntime.awrap(fn(file, demos[formatConfig.name]));
 
 					case 35:
 						file = context$2$0.sent;
@@ -511,16 +517,6 @@ var Pattern = (function () {
 
 			return copy;
 		}
-	}, {
-		key: '__initializeProperties',
-		value: function __initializeProperties() {
-			this.files = {};
-			this.config = {};
-			this.manifest = {};
-			this.dependencies = {};
-			this.results = {};
-			this.mtime = null;
-		}
 	}], [{
 		key: 'resolve',
 		value: function resolve() {
@@ -546,7 +542,7 @@ function patternFactory() {
 		while (1) switch (context$1$0.prev = context$1$0.next) {
 			case 0:
 				context$1$0.next = 2;
-				return new (_bind.apply(Pattern, [null].concat(args)))();
+				return regeneratorRuntime.awrap(new (_bind.apply(Pattern, [null].concat(args)))());
 
 			case 2:
 				return context$1$0.abrupt('return', context$1$0.sent);

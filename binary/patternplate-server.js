@@ -28,7 +28,7 @@ function start() {
 							case 0:
 								context$2$0.prev = 0;
 								context$2$0.next = 3;
-								return application.stop();
+								return regeneratorRuntime.awrap(application.stop());
 
 							case 3:
 								process.exit(0);
@@ -52,7 +52,7 @@ function start() {
 				application = undefined;
 				context$1$0.prev = 2;
 				context$1$0.next = 5;
-				return (0, _2['default'])(options);
+				return regeneratorRuntime.awrap((0, _2['default'])(options));
 
 			case 5:
 				application = context$1$0.sent;
@@ -69,7 +69,7 @@ function start() {
 			case 12:
 				context$1$0.prev = 12;
 				context$1$0.next = 15;
-				return application.start();
+				return regeneratorRuntime.awrap(application.start());
 
 			case 15:
 				context$1$0.next = 21;

@@ -40,19 +40,19 @@ function indexRouteFactory(application, configuration) {
 						return { 'name': routeName, 'path': routeConfig[routeName].path, 'uri': '' + base + '' + application.router.url(routeName) };
 					});
 					context$2$0.next = 6;
-					return (0, _isomorphicFetch2['default'])('' + base + '' + application.router.url('meta'), { 'headers': { 'accepty-type': 'application/json' } });
+					return regeneratorRuntime.awrap((0, _isomorphicFetch2['default'])('' + base + '' + application.router.url('meta'), { 'headers': { 'accepty-type': 'application/json' } }));
 
 				case 6:
 					response = context$2$0.sent;
 					context$2$0.next = 9;
-					return response.json();
+					return regeneratorRuntime.awrap(response.json());
 
 				case 9:
 					meta = context$2$0.sent;
 					readmePath = (0, _path.resolve)(application.runtime.patterncwd || application.runtime.cwd, 'patterns', 'README.md');
 					readme = '';
 					context$2$0.next = 14;
-					return _qIoFs2['default'].exists(readmePath);
+					return regeneratorRuntime.awrap(_qIoFs2['default'].exists(readmePath));
 
 				case 14:
 					if (!context$2$0.sent) {
@@ -61,14 +61,14 @@ function indexRouteFactory(application, configuration) {
 					}
 
 					context$2$0.next = 17;
-					return _qIoFs2['default'].read(readmePath);
+					return regeneratorRuntime.awrap(_qIoFs2['default'].read(readmePath));
 
 				case 17:
 					readMeSource = context$2$0.sent;
 
 					readMeSource = readMeSource.toString('utf-8');
 					context$2$0.next = 21;
-					return markdown(readMeSource);
+					return regeneratorRuntime.awrap(markdown(readMeSource));
 
 				case 21:
 					readme = context$2$0.sent;

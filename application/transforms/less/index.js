@@ -27,7 +27,7 @@ function render(source, config) {
 			case 0:
 				context$1$0.prev = 0;
 				context$1$0.next = 3;
-				return _less2['default'].render(source, config);
+				return regeneratorRuntime.awrap(_less2['default'].render(source, config));
 
 			case 3:
 				return context$1$0.abrupt('return', context$1$0.sent);
@@ -105,7 +105,7 @@ function lessTransformFactory(application) {
 
 					fileConfig.plugins.push(new _lessPluginPatternImport2['default']({ 'root': patternPath, 'patterns': dependencies }));
 					context$2$0.next = 9;
-					return render(source, fileConfig);
+					return regeneratorRuntime.awrap(render(source, fileConfig));
 
 				case 9:
 					results = context$2$0.sent;
@@ -130,7 +130,7 @@ function lessTransformFactory(application) {
 
 					demoConfig.plugins.push(new _lessPluginPatternImport2['default']({ 'root': patternPath, 'patterns': demoDepdendencies }));
 					context$2$0.next = 23;
-					return render(demoSource, demoConfig);
+					return regeneratorRuntime.awrap(render(demoSource, demoConfig));
 
 				case 23:
 					demoResults = context$2$0.sent;

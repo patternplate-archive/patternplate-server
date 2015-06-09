@@ -215,7 +215,7 @@ function browserifyTransformFactory(application) {
 					demoTransformed = undefined;
 					context$2$0.prev = 45;
 					context$2$0.next = 48;
-					return runBundler(demoBundler, config);
+					return regeneratorRuntime.awrap(runBundler(demoBundler, config));
 
 				case 48:
 					demoTransformed = context$2$0.sent;
@@ -240,7 +240,7 @@ function browserifyTransformFactory(application) {
 					transformed = undefined;
 					context$2$0.prev = 57;
 					context$2$0.next = 60;
-					return runBundler(bundler, config);
+					return regeneratorRuntime.awrap(runBundler(bundler, config));
 
 				case 60:
 					transformed = context$2$0.sent;

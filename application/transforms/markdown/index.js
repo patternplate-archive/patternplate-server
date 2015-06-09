@@ -23,7 +23,7 @@ function markdownTransformFactory(application) {
 				case 0:
 					context$2$0.prev = 0;
 					context$2$0.next = 3;
-					return parser(file.buffer.toString('utf-8'));
+					return regeneratorRuntime.awrap(parser(file.buffer.toString('utf-8')));
 
 				case 3:
 					context$2$0.t0 = context$2$0.sent;

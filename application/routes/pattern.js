@@ -33,7 +33,7 @@ function patternRouteFactory(application, configuration) {
 					path = (0, _path.resolve)(basePath, id);
 					uri = 'http://' + this.request.host + '' + this.request.url;
 					context$2$0.next = 11;
-					return _qIoFs2['default'].contains(basePath, path);
+					return regeneratorRuntime.awrap(_qIoFs2['default'].contains(basePath, path));
 
 				case 11:
 					context$2$0.t0 = context$2$0.sent;
@@ -59,7 +59,7 @@ function patternRouteFactory(application, configuration) {
 					}
 
 					context$2$0.next = 19;
-					return _qIoFs2['default'].exists(search);
+					return regeneratorRuntime.awrap(_qIoFs2['default'].exists(search));
 
 				case 19:
 					if (!context$2$0.sent) {
@@ -69,16 +69,16 @@ function patternRouteFactory(application, configuration) {
 
 					context$2$0.prev = 20;
 					context$2$0.next = 23;
-					return application.pattern.factory(id, basePath, config, application.transforms);
+					return regeneratorRuntime.awrap(application.pattern.factory(id, basePath, config, application.transforms));
 
 				case 23:
 					pattern = context$2$0.sent;
 					context$2$0.next = 26;
-					return pattern.read();
+					return regeneratorRuntime.awrap(pattern.read());
 
 				case 26:
 					context$2$0.next = 28;
-					return pattern.transform();
+					return regeneratorRuntime.awrap(pattern.transform());
 
 				case 28:
 					context$2$0.next = 33;
@@ -99,7 +99,7 @@ function patternRouteFactory(application, configuration) {
 
 				case 37:
 					context$2$0.next = 39;
-					return _qIoFs2['default'].isDirectory(path);
+					return regeneratorRuntime.awrap(_qIoFs2['default'].isDirectory(path));
 
 				case 39:
 					context$2$0.t2 = context$2$0.sent;
@@ -113,7 +113,7 @@ function patternRouteFactory(application, configuration) {
 
 				case 42:
 					context$2$0.next = 44;
-					return _qIoFs2['default'].list(path);
+					return regeneratorRuntime.awrap(_qIoFs2['default'].list(path));
 
 				case 44:
 					files = context$2$0.sent;
@@ -136,7 +136,7 @@ function patternRouteFactory(application, configuration) {
 					file = _step.value;
 					_search = (0, _path.resolve)(path, file, 'pattern.json');
 					context$2$0.next = 57;
-					return _qIoFs2['default'].exists(_search);
+					return regeneratorRuntime.awrap(_qIoFs2['default'].exists(_search));
 
 				case 57:
 					if (!context$2$0.sent) {
@@ -202,18 +202,18 @@ function patternRouteFactory(application, configuration) {
 					patternID = (0, _path.join)(id, directory);
 					context$2$0.prev = 84;
 					context$2$0.next = 87;
-					return application.pattern.factory(patternID, basePath, config, application.transforms);
+					return regeneratorRuntime.awrap(application.pattern.factory(patternID, basePath, config, application.transforms));
 
 				case 87:
 					_pattern = context$2$0.sent;
 
 					response.push(_pattern);
 					context$2$0.next = 91;
-					return _pattern.read();
+					return regeneratorRuntime.awrap(_pattern.read());
 
 				case 91:
 					context$2$0.next = 93;
-					return _pattern.transform();
+					return regeneratorRuntime.awrap(_pattern.transform());
 
 				case 93:
 					context$2$0.next = 98;
