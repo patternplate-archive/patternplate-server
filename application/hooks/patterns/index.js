@@ -131,7 +131,7 @@ exports['default'] = {
 			while (1) switch (context$1$0.prev = context$1$0.next) {
 				case 0:
 
-					if (this.configuration.cache) {
+					if (this.configuration.cache && application.configuration.mode === 'server') {
 						application.patternCache = (0, _patternCache2['default'])();
 						patternCwd = application.runtime.patterncwd || application.runtime.cwd;
 						patternRoot = (0, _path.resolve)(patternCwd, this.configuration.path);

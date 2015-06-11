@@ -3,6 +3,9 @@ export default {
 		'debug': false
 	},
 	'browserify': {
+		'opts': {
+			'debug': false
+		},
 		'transforms': {
 			'uglifyify': {
 				'enabled': true

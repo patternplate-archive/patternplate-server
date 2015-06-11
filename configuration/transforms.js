@@ -30,8 +30,36 @@ exports['default'] = {
 				}
 			},
 			'uglifyify': {
-				'enabled': false
+				'enabled': false,
+				'opts': {
+					'global': true
+				}
 			}
+		}
+	},
+	'uglify': {
+		'inFormat': 'js',
+		'outFormat': 'js',
+		'opts': {
+			'sequences': true,
+			'properties': true,
+			'dead_code': true,
+			'drop_debugger': true,
+			'unsafe': true,
+			'conditionals': true,
+			'comparisons': true,
+			'evaluate': true,
+			'booleans': true,
+			'loops': true,
+			'unused': true,
+			'hoist_funs': true,
+			'if_return': true,
+			'join_vars': true,
+			'cascade': true,
+			'warnings': false,
+			'negate_iife': true,
+			'pure_getters': true,
+			'drop_console': true
 		}
 	},
 	'less': {

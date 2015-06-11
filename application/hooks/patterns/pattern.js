@@ -12,6 +12,8 @@ exports['default'] = patternFactory;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
+function _defineProperty(obj, key, value) { return Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
 var _path = require('path');
@@ -19,6 +21,10 @@ var _path = require('path');
 var _qIoFs = require('q-io/fs');
 
 var _qIoFs2 = _interopRequireDefault(_qIoFs);
+
+var _pascalCase = require('pascal-case');
+
+var _pascalCase2 = _interopRequireDefault(_pascalCase);
 
 var Pattern = (function () {
 	function Pattern(id, base) {
@@ -44,16 +50,139 @@ var Pattern = (function () {
 	}
 
 	_createClass(Pattern, [{
+		key: 'virtualize',
+		value: function virtualize() {
+			var fileList, patterns, manifest, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, formatName;
+
+			return regeneratorRuntime.async(function virtualize$(context$2$0) {
+				var _this = this;
+
+				while (1) switch (context$2$0.prev = context$2$0.next) {
+					case 0:
+						this.path = Pattern.resolve(this.base, this.id);
+						this.clean;
+						context$2$0.next = 4;
+						return regeneratorRuntime.awrap(_qIoFs2['default'].makeTree(this.path));
+
+					case 4:
+						context$2$0.next = 6;
+						return regeneratorRuntime.awrap(_qIoFs2['default'].listTree(this.base));
+
+					case 6:
+						fileList = context$2$0.sent;
+						patterns = fileList.filter(function (item) {
+							return (0, _path.basename)(item) === 'pattern.json';
+						}).map(function (item) {
+							return _qIoFs2['default'].relativeFromDirectory(_this.base, (0, _path.dirname)(item));
+						}).filter(function (item) {
+							return item !== _this.id;
+						}).reduce(function (results, item) {
+							return Object.assign(results, _defineProperty({}, (0, _pascalCase2['default'])(_qIoFs2['default'].split(item).join('-')), item));
+						}, {});
+						manifest = {
+							'version': '0.1.0',
+							'name': 'virtual',
+							'patterns': patterns
+						};
+						context$2$0.next = 11;
+						return regeneratorRuntime.awrap(_qIoFs2['default'].write((0, _path.resolve)(this.path, 'pattern.json'), JSON.stringify(manifest)));
+
+					case 11:
+						_iteratorNormalCompletion = true;
+						_didIteratorError = false;
+						_iteratorError = undefined;
+						context$2$0.prev = 14;
+						_iterator = Object.keys(this.config.formats)[Symbol.iterator]();
+
+					case 16:
+						if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
+							context$2$0.next = 25;
+							break;
+						}
+
+						formatName = _step.value;
+
+						if (this.config.formats[formatName].build) {
+							context$2$0.next = 20;
+							break;
+						}
+
+						return context$2$0.abrupt('continue', 22);
+
+					case 20:
+						context$2$0.next = 22;
+						return regeneratorRuntime.awrap(_qIoFs2['default'].write((0, _path.resolve)(this.path, ['index', formatName].join('.')), '\n'));
+
+					case 22:
+						_iteratorNormalCompletion = true;
+						context$2$0.next = 16;
+						break;
+
+					case 25:
+						context$2$0.next = 31;
+						break;
+
+					case 27:
+						context$2$0.prev = 27;
+						context$2$0.t0 = context$2$0['catch'](14);
+						_didIteratorError = true;
+						_iteratorError = context$2$0.t0;
+
+					case 31:
+						context$2$0.prev = 31;
+						context$2$0.prev = 32;
+
+						if (!_iteratorNormalCompletion && _iterator['return']) {
+							_iterator['return']();
+						}
+
+					case 34:
+						context$2$0.prev = 34;
+
+						if (!_didIteratorError) {
+							context$2$0.next = 37;
+							break;
+						}
+
+						throw _iteratorError;
+
+					case 37:
+						return context$2$0.finish(34);
+
+					case 38:
+						return context$2$0.finish(31);
+
+					case 39:
+					case 'end':
+						return context$2$0.stop();
+				}
+			}, null, this, [[14, 27, 31, 39], [32,, 34, 38]]);
+		}
+	}, {
+		key: 'clean',
+		value: function clean() {
+			return regeneratorRuntime.async(function clean$(context$2$0) {
+				while (1) switch (context$2$0.prev = context$2$0.next) {
+					case 0:
+						context$2$0.next = 2;
+						return regeneratorRuntime.awrap(_qIoFs2['default'].removeTree(this.path));
+
+					case 2:
+					case 'end':
+						return context$2$0.stop();
+				}
+			}, null, this);
+		}
+	}, {
 		key: 'read',
 		value: function read() {
 			var path = arguments[0] === undefined ? this.path : arguments[0];
 
-			var files, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, file, stat, _mtime, _name, data, ext, buffer, manifest, patternName, pattern, fileName, dependencyName, dependencyFile;
+			var files, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, file, stat, _mtime, _name, data, ext, buffer, manifest, patternName, pattern, fileName, dependencyName, dependencyFile;
 
 			return regeneratorRuntime.async(function read$(context$2$0) {
 				while (1) switch (context$2$0.prev = context$2$0.next) {
 					case 0:
-						// TODO: Replace q-io/fs
 						_qIoFs2['default'].exists = _qIoFs2['default'].exists.bind(_qIoFs2['default']);
 
 						context$2$0.next = 3;
@@ -81,19 +210,19 @@ var Pattern = (function () {
 							return ext && ['index', 'demo', 'pattern'].indexOf((0, _path.basename)(fileName, ext)) > -1;
 						});
 
-						_iteratorNormalCompletion = true;
-						_didIteratorError = false;
-						_iteratorError = undefined;
+						_iteratorNormalCompletion2 = true;
+						_didIteratorError2 = false;
+						_iteratorError2 = undefined;
 						context$2$0.prev = 13;
-						_iterator = files[Symbol.iterator]();
+						_iterator2 = files[Symbol.iterator]();
 
 					case 15:
-						if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
+						if (_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done) {
 							context$2$0.next = 35;
 							break;
 						}
 
-						file = _step.value;
+						file = _step2.value;
 						context$2$0.next = 19;
 						return regeneratorRuntime.awrap(_qIoFs2['default'].stat(file));
 
@@ -139,7 +268,7 @@ var Pattern = (function () {
 						this.files[_name] = data;
 
 					case 32:
-						_iteratorNormalCompletion = true;
+						_iteratorNormalCompletion2 = true;
 						context$2$0.next = 15;
 						break;
 
@@ -150,26 +279,26 @@ var Pattern = (function () {
 					case 37:
 						context$2$0.prev = 37;
 						context$2$0.t1 = context$2$0['catch'](13);
-						_didIteratorError = true;
-						_iteratorError = context$2$0.t1;
+						_didIteratorError2 = true;
+						_iteratorError2 = context$2$0.t1;
 
 					case 41:
 						context$2$0.prev = 41;
 						context$2$0.prev = 42;
 
-						if (!_iteratorNormalCompletion && _iterator['return']) {
-							_iterator['return']();
+						if (!_iteratorNormalCompletion2 && _iterator2['return']) {
+							_iterator2['return']();
 						}
 
 					case 44:
 						context$2$0.prev = 44;
 
-						if (!_didIteratorError) {
+						if (!_didIteratorError2) {
 							context$2$0.next = 47;
 							break;
 						}
 
-						throw _iteratorError;
+						throw _iteratorError2;
 
 					case 47:
 						return context$2$0.finish(44);
@@ -284,8 +413,9 @@ var Pattern = (function () {
 		key: 'transform',
 		value: function transform() {
 			var withDemos = arguments[0] === undefined ? true : arguments[0];
+			var forced = arguments[1] === undefined ? false : arguments[1];
 
-			var demos, fileName, file, formatConfig, transforms, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, transform, fn;
+			var demos, fileName, file, formatConfig, transforms, _iteratorNormalCompletion3, _didIteratorError3, _iteratorError3, _iterator3, _step3, transform, fn;
 
 			return regeneratorRuntime.async(function transform$(context$2$0) {
 				while (1) switch (context$2$0.prev = context$2$0.next) {
@@ -362,23 +492,23 @@ var Pattern = (function () {
 
 					case 23:
 						transforms = formatConfig.transforms || [];
-						_iteratorNormalCompletion2 = true;
-						_didIteratorError2 = false;
-						_iteratorError2 = undefined;
+						_iteratorNormalCompletion3 = true;
+						_didIteratorError3 = false;
+						_iteratorError3 = undefined;
 						context$2$0.prev = 27;
-						_iterator2 = transforms[Symbol.iterator]();
+						_iterator3 = transforms[Symbol.iterator]();
 
 					case 29:
-						if (_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done) {
+						if (_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done) {
 							context$2$0.next = 47;
 							break;
 						}
 
-						transform = _step2.value;
+						transform = _step3.value;
 						fn = this.transforms[transform];
 						context$2$0.prev = 32;
 						context$2$0.next = 35;
-						return regeneratorRuntime.awrap(fn(file, demos[formatConfig.name]));
+						return regeneratorRuntime.awrap(fn(file, demos[formatConfig.name], forced));
 
 					case 35:
 						file = context$2$0.sent;
@@ -395,7 +525,7 @@ var Pattern = (function () {
 						throw context$2$0.t4;
 
 					case 44:
-						_iteratorNormalCompletion2 = true;
+						_iteratorNormalCompletion3 = true;
 						context$2$0.next = 29;
 						break;
 
@@ -406,26 +536,26 @@ var Pattern = (function () {
 					case 49:
 						context$2$0.prev = 49;
 						context$2$0.t5 = context$2$0['catch'](27);
-						_didIteratorError2 = true;
-						_iteratorError2 = context$2$0.t5;
+						_didIteratorError3 = true;
+						_iteratorError3 = context$2$0.t5;
 
 					case 53:
 						context$2$0.prev = 53;
 						context$2$0.prev = 54;
 
-						if (!_iteratorNormalCompletion2 && _iterator2['return']) {
-							_iterator2['return']();
+						if (!_iteratorNormalCompletion3 && _iterator3['return']) {
+							_iterator3['return']();
 						}
 
 					case 56:
 						context$2$0.prev = 56;
 
-						if (!_didIteratorError2) {
+						if (!_didIteratorError3) {
 							context$2$0.next = 59;
 							break;
 						}
 
-						throw _iteratorError2;
+						throw _iteratorError3;
 
 					case 59:
 						return context$2$0.finish(56);
@@ -477,13 +607,13 @@ var Pattern = (function () {
 				}
 			}
 
-			var _iteratorNormalCompletion3 = true;
-			var _didIteratorError3 = false;
-			var _iteratorError3 = undefined;
+			var _iteratorNormalCompletion4 = true;
+			var _didIteratorError4 = false;
+			var _iteratorError4 = undefined;
 
 			try {
-				for (var _iterator3 = Object.keys(this.results)[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-					var resultName = _step3.value;
+				for (var _iterator4 = Object.keys(this.results)[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+					var resultName = _step4.value;
 
 					this.results[resultName] = {
 						'source': this.results[resultName].source.toString('utf-8'),
@@ -495,16 +625,16 @@ var Pattern = (function () {
 					};
 				}
 			} catch (err) {
-				_didIteratorError3 = true;
-				_iteratorError3 = err;
+				_didIteratorError4 = true;
+				_iteratorError4 = err;
 			} finally {
 				try {
-					if (!_iteratorNormalCompletion3 && _iterator3['return']) {
-						_iterator3['return']();
+					if (!_iteratorNormalCompletion4 && _iterator4['return']) {
+						_iterator4['return']();
 					}
 				} finally {
-					if (_didIteratorError3) {
-						throw _iteratorError3;
+					if (_didIteratorError4) {
+						throw _iteratorError4;
 					}
 				}
 			}

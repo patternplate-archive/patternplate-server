@@ -70,8 +70,14 @@ function lessTransformFactory(application) {
 		for (var _iterator = plugins[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
 			var pluginName = _step.value;
 
+			var pluginConfig = pluginConfigs[pluginName];
+
+			if (!pluginConfig) {
+				continue;
+			}
+
 			var Plugin = require('less-plugin-' + pluginName);
-			configuration.plugins.push(new Plugin(pluginConfigs[pluginName]));
+			configuration.plugins.push(new Plugin(pluginConfig));
 		}
 	} catch (err) {
 		_didIteratorError = true;
@@ -89,7 +95,8 @@ function lessTransformFactory(application) {
 	}
 
 	return function lessTransform(file, demo) {
-		var source, fileConfig, results, demoResults, dependencies, demoSource, demoConfig, demoDepdendencies;
+		var forced = arguments[2] === undefined ? false : arguments[2];
+		var source, fileConfig, results, demoResults, dependencies, injects, demoSource, demoConfig, demoDepdendencies;
 		return regeneratorRuntime.async(function lessTransform$(context$2$0) {
 			while (1) switch (context$2$0.prev = context$2$0.next) {
 				case 0:
@@ -101,55 +108,64 @@ function lessTransformFactory(application) {
 						paths[dependencyName] = file.dependencies[dependencyName].path;
 						return paths;
 					}, {});
-					context$2$0.prev = 5;
+
+					if (forced) {
+						injects = Object.keys(dependencies).map(function (dependency) {
+							return '@import \'' + dependency + '\';';
+						});
+
+						source = '' + injects.join('\n') + '\n' + source;
+					}
+
+					context$2$0.prev = 6;
 
 					fileConfig.plugins.push(new _lessPluginPatternImport2['default']({ 'root': patternPath, 'patterns': dependencies }));
-					context$2$0.next = 9;
+					context$2$0.next = 10;
 					return regeneratorRuntime.awrap(render(source, fileConfig));
 
-				case 9:
+				case 10:
 					results = context$2$0.sent;
-					context$2$0.next = 15;
+					context$2$0.next = 16;
 					break;
 
-				case 12:
-					context$2$0.prev = 12;
-					context$2$0.t0 = context$2$0['catch'](5);
+				case 13:
+					context$2$0.prev = 13;
+					context$2$0.t0 = context$2$0['catch'](6);
 					throw context$2$0.t0;
 
-				case 15:
+				case 16:
 					if (!demo) {
-						context$2$0.next = 32;
+						context$2$0.next = 33;
 						break;
 					}
 
 					demoSource = demo.buffer.toString('utf-8');
-					demoConfig = Object.assign({}, configuration);
+					demoConfig = Object.assign({}, fileConfig);
 					demoDepdendencies = Object.assign({}, dependencies, { 'Pattern': file.path });
-					context$2$0.prev = 19;
+					context$2$0.prev = 20;
 
 					demoConfig.plugins.push(new _lessPluginPatternImport2['default']({ 'root': patternPath, 'patterns': demoDepdendencies }));
-					context$2$0.next = 23;
+					context$2$0.next = 24;
 					return regeneratorRuntime.awrap(render(demoSource, demoConfig));
 
-				case 23:
+				case 24:
 					demoResults = context$2$0.sent;
-					context$2$0.next = 30;
+					context$2$0.next = 31;
 					break;
 
-				case 26:
-					context$2$0.prev = 26;
-					context$2$0.t1 = context$2$0['catch'](19);
+				case 27:
+					context$2$0.prev = 27;
+					context$2$0.t1 = context$2$0['catch'](20);
 
 					context$2$0.t1.file = demo.path;
 					throw context$2$0.t1;
 
-				case 30:
+				case 31:
 
 					file.demoBuffer = new Buffer(demoResults.css || '', 'utf-8');
 					file.demoSource = demo.source;
 
-				case 32:
+				case 33:
 
 					file.buffer = new Buffer(results.css || '', 'utf-8');
 
@@ -158,11 +174,11 @@ function lessTransformFactory(application) {
 
 					return context$2$0.abrupt('return', file);
 
-				case 36:
+				case 37:
 				case 'end':
 					return context$2$0.stop();
 			}
-		}, null, this, [[5, 12], [19, 26]]);
+		}, null, this, [[6, 13], [20, 27]]);
 	};
 }
 
