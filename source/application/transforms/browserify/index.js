@@ -1,3 +1,5 @@
+import Vinyl from 'vinyl';
+import {dirname} from 'path';
 import browserify from 'browserify';
 
 async function runBundler (bundler, config) {
@@ -18,17 +20,19 @@ async function runBundler (bundler, config) {
 }
 
 function resolveDependencies (file) {
-	var data = [];
+	let data = [];
 
-	for (let dependencyName of Object.keys(file.dependencies || {})) {
-		if (file.dependencies[dependencyName]) {
+	for (let expose of Object.keys(file.dependencies || {})) {
+		let dependency = file.dependencies[expose];
+		let basedir = dirname(dependency.path);
+		let opts = {expose, basedir};
+
+		let stream = new Vinyl({'contents': new Buffer(dependency.buffer)});
+
+		if (dependency) {
 			data = data
-				.concat(resolveDependencies(file.dependencies[dependencyName]))
-				.concat([{
-					'file': file.dependencies[dependencyName].path,
-					'expose': dependencyName
-				}]);
-
+				.concat(resolveDependencies(dependency))
+				.concat({stream, opts});
 		}
 	}
 
@@ -58,27 +62,31 @@ function browserifyTransformFactory (application) {
 	}, {});
 
 	return async function browserifyTransform (file, demo) {
-		const bundler = browserify(Object.assign(config.opts, {
-			'entries': file.path
-		}));
+		let stream = new Vinyl({ 'contents': new Buffer(file.buffer) });
+		const bundler = browserify(stream, config.opts);
 
 		let dependencies = resolveDependencies(file);
-		bundler.require(dependencies);
+
+		dependencies.forEach(function requireDependency (dependency) {
+			bundler.exclude(dependency.opts.expose);
+			bundler.require(dependency.stream, dependency.opts);
+		});
 
 		for (let transformName of Object.keys(transforms)) {
-			bundler.transform(transforms[transformName]);
+			bundler.transform(...transforms[transformName]);
 		}
 
 		if (demo) {
-			const demoBundler = browserify(Object.assign(config.opts, {
-				'entries': demo.path
-			}));
+			let demoStream = new Vinyl({ 'contents': new Buffer(demo.buffer) });
+			const demoBundler = browserify(demoStream, config.opts);
 
-			demoBundler.require(resolveDependencies({
-				'dependencies': {
-					'Pattern': file
-				}
-			}));
+			let Pattern = Object.assign({}, file);
+			let demoDependencies = resolveDependencies({'dependencies': {Pattern}});
+
+			demoDependencies.forEach(function requireDependency (dependency) {
+				demoBundler.exclude(dependency.opts.expose);
+				demoBundler.require(dependency.stream, dependency.opts);
+			});
 
 			for (let transformName of Object.keys(transforms)) {
 				demoBundler.transform(transforms[transformName]);

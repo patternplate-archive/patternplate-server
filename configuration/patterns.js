@@ -9,11 +9,13 @@ exports['default'] = {
 	'formats': {
 		'js': {
 			'name': 'Script',
-			'transforms': ['browserify']
+			'transforms': ['browserify'],
+			'build': true
 		},
 		'less': {
 			'name': 'Style',
-			'transforms': ['less']
+			'transforms': ['less'],
+			'build': true
 		},
 		'html': {
 			'name': 'Markup',
@@ -22,9 +24,6 @@ exports['default'] = {
 		'md': {
 			'name': 'Documentation',
 			'transforms': ['markdown']
-		},
-		'json': {
-			'name': 'Data'
 		}
 	},
 	'cache': true

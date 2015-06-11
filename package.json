@@ -1,10 +1,11 @@
 {
   "name": "patternplate-server",
-  "version": "0.5.2",
+  "version": "0.6.0",
   "description": "Programmatically serve patternplate components via a well defined REST API",
   "main": "library/",
   "scripts": {
     "start": "node --harmony binary/patternplate-server.js",
+    "console": "boilerplate-console",
     "build": "npm run babel",
     "watch": "npm run babel -- --watch",
     "babel": "npm run clean && babel source --out-dir ./",
@@ -42,7 +43,7 @@
     "babel-core": "^5.2.17",
     "babelify": "^6.0.2",
     "bluebird": "^2.9.25",
-    "boilerplate-server": "git+ssh://git@git.sinnerschrader.com:patternplate/boilerplate-server.git#v0.5.5",
+    "boilerplate-server": "git+ssh://git@git.sinnerschrader.com:patternplate/boilerplate-server.git#v0.6.0",
     "browserify": "^10.1.0",
     "core-util-is": "^1.0.1",
     "isomorphic-fetch": "^2.0.2",
@@ -52,6 +53,7 @@
     "less-plugin-clean-css": "^1.5.0",
     "less-plugin-npm-import": "^2.0.0",
     "less-plugin-pattern-import": "git+ssh://git@git.sinnerschrader.com:patternplate/less-plugin-pattern-import.git",
+    "lodash": "^3.9.3",
     "lru-cache": "^2.6.3",
     "marked": "^0.3.3",
     "minimist": "^1.1.1",
@@ -63,7 +65,9 @@
     "react": "^0.13.2",
     "react-jsx": "^0.13.0",
     "require-all": "^1.0.0",
-    "uglifyify": "^3.0.1"
+    "uglify-js": "^2.4.23",
+    "uglifyify": "^3.0.1",
+    "vinyl": "^0.5.0"
   },
   "devDependencies": {
     "babel": "^5.2.17",

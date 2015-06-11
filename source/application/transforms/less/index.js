@@ -30,11 +30,18 @@ export default function lessTransformFactory (application) {
 	};
 
 	for (let pluginName of plugins) {
+		let pluginConfig = pluginConfigs[pluginName];
+
+		if ( !pluginConfig ) {
+			continue;
+		}
+
 		let Plugin = require(`less-plugin-${pluginName}`);
-		configuration.plugins.push(new Plugin(pluginConfigs[pluginName]));
+		configuration.plugins.push(new Plugin(pluginConfig));
 	}
 
-	return async function lessTransform (file, demo) {
+
+	return async function lessTransform (file, demo, forced = false) {
 		let source = file.buffer.toString('utf-8');
 		let fileConfig = Object.assign({}, configuration);
 
@@ -46,6 +53,11 @@ export default function lessTransformFactory (application) {
 			return paths;
 		}, {});
 
+		if (forced) {
+			let injects = Object.keys(dependencies).map((dependency) => `@import '${dependency}';`);
+			source = `${injects.join('\n')}\n${source}`;
+		}
+
 		try {
 			fileConfig.plugins.push(new PatternImporterPlugin({'root': patternPath, 'patterns': dependencies}));
 			results = await render(source, fileConfig);
@@ -55,7 +67,7 @@ export default function lessTransformFactory (application) {
 
 		if (demo) {
 			let demoSource = demo.buffer.toString('utf-8');
-			let demoConfig = Object.assign({}, configuration);
+			let demoConfig = Object.assign({}, fileConfig);
 			let demoDepdendencies = Object.assign({}, dependencies, {'Pattern': file.path});
 
 			try {

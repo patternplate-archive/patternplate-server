@@ -30,7 +30,7 @@ export default {
 	'after': ['hooks:log:start:after'],
 	'start': async function startPatternHook (application) {
 
-		if (this.configuration.cache) {
+		if (this.configuration.cache && application.configuration.mode === 'server') {
 			application.patternCache = patternCache();
 			let patternCwd = application.runtime.patterncwd || application.runtime.cwd;
 			let patternRoot = resolve(patternCwd, this.configuration.path);

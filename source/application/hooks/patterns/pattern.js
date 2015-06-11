@@ -1,6 +1,8 @@
 /* eslint ignore */
-import {resolve, basename, extname} from 'path';
-import fs from 'q-io/fs';
+import {resolve, basename, extname, dirname} from 'path';
+
+import qfs from 'q-io/fs';
+import pascalCase from 'pascal-case';
 
 export class Pattern {
 	files = {};
@@ -23,15 +25,49 @@ export class Pattern {
 		return resolve(...args);
 	}
 
-	async read(path = this.path) {
-		// TODO: Replace q-io/fs
-		fs.exists = fs.exists.bind(fs);
+	async virtualize () {
+		this.path = Pattern.resolve(this.base, this.id);
+		this.clean
+		await qfs.makeTree(this.path);
 
-		if ( await fs.exists(path) !== true ) {
+		let fileList = await qfs.listTree(this.base);
+
+		let patterns = fileList
+			.filter((item) => basename(item) === 'pattern.json')
+			.map((item) => qfs.relativeFromDirectory(this.base, dirname(item)))
+			.filter((item) => item !== this.id)
+			.reduce((results, item) => Object.assign(results, { [pascalCase(qfs.split(item).join('-'))]: item }), {});
+
+		let manifest = {
+			'version': '0.1.0',
+			'name': 'virtual',
+			'patterns': patterns
+		};
+
+		await qfs.write(resolve(this.path, 'pattern.json'), JSON.stringify(manifest));
+
+		for (let formatName of Object.keys(this.config.formats)) {
+			if ( !this.config.formats[formatName].build) {
+				continue;
+			}
+
+			await qfs.write(resolve(this.path, ['index', formatName].join('.')), '\n');
+		}
+
+	}
+
+	async clean() {
+		await qfs.removeTree(this.path);
+	}
+
+	async read(path = this.path) {
+		qfs.exists = qfs.exists.bind(qfs);
+
+		if ( await qfs.exists(path) !== true ) {
 			throw new Error(`Can not read pattern from ${this.path}, it does not exist.`);
 		}
 
-		let files = await fs.listTree(path);
+		let files = await qfs.listTree(path);
 
 		files = files.filter(function(fileName){
 			let ext = extname(fileName);
@@ -39,7 +75,7 @@ export class Pattern {
 		});
 
 		for (let file of files) {
-			let stat = await fs.stat(file);
+			let stat = await qfs.stat(file);
 			let mtime = stat.node.mtime;
 			let name = basename(file);
 
@@ -51,7 +87,7 @@ export class Pattern {
 
 			if (!data) {
 				let ext = extname(file);
-				let buffer = await fs.read(file);
+				let buffer = await qfs.read(file);
 
 				data = {
 					buffer,
@@ -124,7 +160,7 @@ export class Pattern {
 		return this;
 	}
 
-	async transform( withDemos = true ) {
+	async transform( withDemos = true, forced = false ) {
 		let demos = {};
 
 		if (withDemos) {
@@ -163,7 +199,7 @@ export class Pattern {
 			for (let transform of transforms) {
 				let fn = this.transforms[transform];
 				try {
-					file = await fn(file, demos[formatConfig.name]);
+					file = await fn(file, demos[formatConfig.name], forced);
 				} catch (error) {
 					error.pattern = this.id;
 					error.file = error.file || file.path;
