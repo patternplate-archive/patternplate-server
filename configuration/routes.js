@@ -20,6 +20,11 @@ var routes = {
 			'options': {
 				'key': 'patterns'
 			}
+		},
+		'build': {
+			'enabled': true,
+			'method': 'GET',
+			'path': '/build/:path'
 		}
 	}
 };

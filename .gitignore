@@ -26,9 +26,4 @@ node_modules
 
 # Users Environment Variables
 .lock-wscript
-
-# Custom Tests Directory
-_test
-
-# Build targets
-dist
+.tmp
