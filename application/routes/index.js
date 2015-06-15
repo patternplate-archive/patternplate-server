@@ -27,7 +27,7 @@ function indexRouteFactory(application, configuration) {
 	var markdown = (0, _bluebird.promisify)(_marked2['default']);
 
 	return function indexRoute() {
-		var routeConfig, serverConfig, base, routes, response, meta, readmePath, readme, readMeSource;
+		var routeConfig, serverConfig, base, routes, response, meta, readmePath, readme, readMeSource, buildPath, buildAvailable, builds, list;
 		return regeneratorRuntime.async(function indexRoute$(context$2$0) {
 			while (1) switch (context$2$0.prev = context$2$0.next) {
 				case 0:
@@ -74,6 +74,40 @@ function indexRouteFactory(application, configuration) {
 					readme = context$2$0.sent;
 
 				case 22:
+					buildPath = (0, _path.resolve)(application.runtime.patterncwd || application.runtime.cwd, 'build');
+					context$2$0.next = 25;
+					return regeneratorRuntime.awrap(_qIoFs2['default'].exists(buildPath));
+
+				case 25:
+					buildAvailable = context$2$0.sent;
+					builds = [];
+
+					if (!buildAvailable) {
+						context$2$0.next = 33;
+						break;
+					}
+
+					context$2$0.next = 30;
+					return regeneratorRuntime.awrap(_qIoFs2['default'].listTree(buildPath));
+
+				case 30:
+					list = context$2$0.sent;
+
+					list = list.filter(function (item) {
+						return item !== buildPath;
+					});
+
+					builds = list.map(function (buildItemPath) {
+						var fragments = (0, _path.basename)(buildItemPath, (0, _path.extname)(buildItemPath)).split('-');
+						return {
+							'path': _qIoFs2['default'].relativeFromDirectory(buildPath, buildItemPath),
+							'environment': fragments[1],
+							'revision': fragments[2],
+							'version': fragments[3]
+						};
+					});
+
+				case 33:
 
 					this.type = 'json';
 					this.body = Object.assign({}, {
@@ -84,10 +118,11 @@ function indexRouteFactory(application, configuration) {
 						'port': serverConfig.port,
 						'routes': routes,
 						'meta': meta,
-						'readme': readme
+						'readme': readme,
+						'builds': builds
 					});
 
-				case 24:
+				case 35:
 				case 'end':
 					return context$2$0.stop();
 			}

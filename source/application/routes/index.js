@@ -1,6 +1,6 @@
 import fetch from 'isomorphic-fetch';
 
-import {resolve, normalize} from 'path';
+import {resolve, normalize, basename, extname} from 'path';
 import fs from 'q-io/fs';
 import marked from 'marked';
 import {promisify} from 'bluebird';
@@ -31,6 +31,25 @@ export default function indexRouteFactory (application, configuration) {
 			readme = await markdown(readMeSource);
 		}
 
+		let buildPath = resolve(application.runtime.patterncwd || application.runtime.cwd, 'build');
+		let buildAvailable = await fs.exists(buildPath);
+		let builds = [];
+
+		if (buildAvailable) {
+			let list = await fs.listTree(buildPath);
+			list = list.filter((item) => item !== buildPath);
+
+			builds = list.map((buildItemPath) => {
+				let fragments = basename(buildItemPath, extname(buildItemPath)).split('-');
+				return {
+					'path': fs.relativeFromDirectory(buildPath, buildItemPath),
+					'environment': fragments[1],
+					'revision': fragments[2],
+					'version': fragments[3]
+				};
+			});
+		}
+
 		this.type = 'json';
 		this.body = Object.assign({}, {
 			'name': application.configuration.pkg.name,
@@ -40,7 +59,8 @@ export default function indexRouteFactory (application, configuration) {
 			'port': serverConfig.port,
 			'routes': routes,
 			'meta': meta,
-			'readme': readme
+			'readme': readme,
+			'builds': builds
 		});
 	};
 }
