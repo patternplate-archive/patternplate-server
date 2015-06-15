@@ -21,7 +21,7 @@ function buildRouteFactory(application, configuration) {
 		return regeneratorRuntime.wrap(function buildRoute$(context$2$0) {
 			while (1) switch (context$2$0.prev = context$2$0.next) {
 				case 0:
-					root = (0, _path.resolve)(application.runtime.cwd, 'build');
+					root = (0, _path.resolve)(application.runtime.patterncwd || application.runtime.cwd, 'build');
 					parsed = (0, _url.parse)(this.req.url, true);
 					path = this.params.path || parsed.query.path;
 

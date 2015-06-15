@@ -5,7 +5,7 @@ import send from 'koa-send';
 
 export default function buildRouteFactory (application, configuration) {
 	return function * buildRoute () {
-		let root = resolve(application.runtime.cwd, 'build');
+		let root = resolve(application.runtime.patterncwd || application.runtime.cwd, 'build');
 		let parsed = parseUrl(this.req.url, true);
 		let path = this.params.path || parsed.query.path;
 		this.assert(path, 404);
