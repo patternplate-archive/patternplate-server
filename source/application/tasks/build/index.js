@@ -41,7 +41,7 @@ async function build (application, config) {
 	let built = new Date();
 	let environment = application.runtime.env;
 	let mode = application.runtime.mode;
-	let version = application.configuration.pkg.version;
+	let version = await git.tag();
 	let revision = await git.short();
 	let branch = await git.branch();
 	let tag = await git.tag();
