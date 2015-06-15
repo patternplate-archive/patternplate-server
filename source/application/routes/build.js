@@ -1,9 +1,15 @@
-import {resolve} from 'path';
+import {resolve, basename} from 'path';
+import {parse as parseUrl} from 'url';
+
 import send from 'koa-send';
 
 export default function buildRouteFactory (application, configuration) {
 	return function * buildRoute () {
-		let result = resolve(application.runtime.cwd, 'build', 'build.zip');
-		yield send(this, result);
+		let root = resolve(application.runtime.cwd, 'build');
+		let parsed = parseUrl(this.req.url, true);
+		let path = this.params.path || parsed.query.path;
+		this.assert(path, 404);
+		yield send(this, path, {root});
+		this.set('Content-Disposition', `attachment; filename=${basename(path)}`);
 	};
 }

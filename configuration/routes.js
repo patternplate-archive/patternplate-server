@@ -24,7 +24,7 @@ var routes = {
 		'build': {
 			'enabled': true,
 			'method': 'GET',
-			'path': '/build/:path'
+			'path': '/build/:path?'
 		}
 	}
 };

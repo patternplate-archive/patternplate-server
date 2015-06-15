@@ -1,6 +1,6 @@
 {
   "name": "patternplate-server",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "Programmatically serve patternplate components via a well defined REST API",
   "main": "library/",
   "scripts": {
@@ -9,7 +9,7 @@
     "build": "npm run babel",
     "watch": "npm run babel -- --watch",
     "babel": "npm run clean && babel source --out-dir ./",
-    "clean": "rm -rf application binary configuration library build"
+    "clean": "rm -rf application binary configuration library"
   },
   "bin": {
     "patternplatgie-server": "binary/patternplate-server.js"
@@ -44,7 +44,7 @@
     "babel-core": "^5.2.17",
     "babelify": "^6.0.2",
     "bluebird": "^2.9.25",
-    "boilerplate-server": "git+ssh://git@git.sinnerschrader.com:patternplate/boilerplate-server.git#v0.6.0",
+    "boilerplate-server": "git+ssh://git@git.sinnerschrader.com:patternplate/boilerplate-server.git#v0.6.1",
     "browserify": "^10.1.0",
     "core-util-is": "^1.0.1",
     "git-rev": "^0.2.1",

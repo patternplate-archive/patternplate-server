@@ -186,7 +186,7 @@ function build(application, config) {
 
 			case 82:
 				archive = (0, _archiver2['default'])('zip');
-				output = (0, _fs.createWriteStream)((0, _path.resolve)(outputBase, 'build-' + version + '.zip'));
+				output = (0, _fs.createWriteStream)((0, _path.resolve)(outputBase, 'build-' + environment + '-' + revision + '-v' + version + '.zip'));
 
 				archive.pipe(output);
 				archive.directory(tmpBase, false);

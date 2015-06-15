@@ -72,7 +72,7 @@ async function build (application, config) {
 	}
 
 	let archive = archiver('zip');
-	let output = createWriteStream(resolve(outputBase, `build-${version}.zip`));
+	let output = createWriteStream(resolve(outputBase, `build-${environment}-${revision}-v${version}.zip`));
 
 	archive.pipe(output);
 	archive.directory(tmpBase, false);
