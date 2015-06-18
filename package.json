@@ -1,6 +1,6 @@
 {
   "name": "patternplate-server",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Programmatically serve patternplate components via a well defined REST API",
   "main": "library/",
   "scripts": {
@@ -12,7 +12,7 @@
     "clean": "rm -rf application binary configuration library"
   },
   "bin": {
-    "patternplatgie-server": "binary/patternplate-server.js"
+    "patternplate-server": "binary/patternplate-server.js"
   },
   "repository": {
     "type": "git",
