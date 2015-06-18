@@ -29,6 +29,12 @@ export default {
 				'opts': {
 					'global': true
 				}
+			},
+			'envify': {
+				'enabled': true,
+				'opts': {
+					'_': 'purge'
+				}
 			}
 		}
 	},
@@ -74,7 +80,7 @@ export default {
 				'opts': {
 					'advanced': true,
 					'aggressiveMerging': true,
-					'compatibility': 'ie8',
+					'compatibility': '*',
 					'mediaMerging': true,
 					'processImport': false,
 					'restructuring': true,
@@ -84,7 +90,7 @@ export default {
 			'autoprefix': {
 				'enabled': true,
 				'opts': {
-					'browsers': ['IE 8', 'last 2 versions']
+					'browsers': ['last 2 versions']
 				}
 			}
 		}

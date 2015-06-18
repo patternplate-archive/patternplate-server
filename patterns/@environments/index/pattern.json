@@ -1,0 +1,15 @@
+{
+	"name": "index",
+	"version": "0.1.0",
+	"conditional-comment": "!IE",
+	"exclude": ["ecospheres/**"],
+	"environment": {
+		"less": {
+			"opts": {
+				"globalVars": {
+					"global-is-legacy": true
+				}
+			}
+		}
+	}
+}

@@ -14,7 +14,7 @@ var _uglifyJs2 = _interopRequireDefault(_uglifyJs);
 function uglifyTransformFactory(application) {
 	var config = application.configuration.transforms.uglify || {};
 
-	return function uglifyTransform(file) {
+	return function uglifyTransform(file, demo, configuration) {
 		var ast, compressor;
 		return regeneratorRuntime.async(function uglifyTransform$(context$2$0) {
 			while (1) switch (context$2$0.prev = context$2$0.next) {

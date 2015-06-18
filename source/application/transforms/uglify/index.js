@@ -3,7 +3,7 @@ import uglify from 'uglify-js';
 export default function uglifyTransformFactory (application) {
 	const config = application.configuration.transforms.uglify || {};
 
-	return async function uglifyTransform (file) {
+	return async function uglifyTransform (file, demo, configuration) {
 		try {
 			let ast = uglify.parse(file.buffer.toString('utf-8'));
 			let compressor = uglify.Compressor(config.opts);

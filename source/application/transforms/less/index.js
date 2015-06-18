@@ -14,44 +14,41 @@ async function render (source, config) {
 }
 
 export default function lessTransformFactory (application) {
-	const patternPath = resolve(application.runtime.patterncwd || application.runtime.cwd, application.configuration.patterns.path);
-	const config = application.configuration.transforms.less || {};
-	const plugins = Object.keys(config.plugins)
-		.map((pluginName) => config.plugins[pluginName].enabled ? pluginName : false)
-		.filter((item) => item);
-
-	const pluginConfigs = plugins.reduce(function getPluginConfig (results, pluginName) {
-		results[pluginName] = config.plugins[pluginName].opts || {};
-		return results;
-	}, {});
-
-	let configuration = {
-		'plugins': [new NPMImporterPlugin()]
-	};
-
-	for (let pluginName of plugins) {
-		let pluginConfig = pluginConfigs[pluginName];
-
-		if ( !pluginConfig ) {
-			continue;
-		}
-
-		let Plugin = require(`less-plugin-${pluginName}`);
-		configuration.plugins.push(new Plugin(pluginConfig));
-	}
-
-
-	return async function lessTransform (file, demo, forced = false) {
-		let source = file.buffer.toString('utf-8');
-		let fileConfig = Object.assign({}, configuration);
-
-		var results = {};
-		var demoResults = {};
-
-		let dependencies = Object.keys(file.dependencies || {}).reduce(function getDependencyPaths (paths, dependencyName) {
+	return async function lessTransform (file, demo, configuration, forced = false) {
+		const patternPath = resolve(application.runtime.patterncwd || application.runtime.cwd, application.configuration.patterns.path);
+		const dependencies = Object.keys(file.dependencies || {}).reduce(function getDependencyPaths (paths, dependencyName) {
 			paths[dependencyName] = file.dependencies[dependencyName].path;
 			return paths;
 		}, {});
+
+		const plugins = Object.keys(configuration.plugins)
+			.map((pluginName) => configuration.plugins[pluginName].enabled ? pluginName : false)
+			.filter((item) => item);
+
+		const pluginConfigs = plugins.reduce(function getPluginConfig (pluginResults, pluginName) {
+			pluginResults[pluginName] = configuration.plugins[pluginName].opts || {};
+			return pluginResults;
+		}, {});
+
+		configuration.plugins = Array.isArray(configuration.plugins) ? configuration.plugins : [];
+		configuration.plugins = configuration.plugins.concat(
+			[
+				new NPMImporterPlugin(),
+				new PatternImporterPlugin({'root': patternPath, 'patterns': dependencies})
+			]);
+
+		for (let pluginName of plugins) {
+			let pluginConfig = pluginConfigs[pluginName];
+
+			if (pluginConfig) {
+				let Plugin = require(`less-plugin-${pluginName}`);
+				configuration.plugins.push(new Plugin(pluginConfig));
+			}
+		}
+
+		let source = file.buffer.toString('utf-8');
+		var results = {};
+		var demoResults = {};
 
 		if (forced) {
 			let injects = Object.keys(dependencies).map((dependency) => `@import '${dependency}';`);
@@ -59,15 +56,14 @@ export default function lessTransformFactory (application) {
 		}
 
 		try {
-			fileConfig.plugins.push(new PatternImporterPlugin({'root': patternPath, 'patterns': dependencies}));
-			results = await render(source, fileConfig);
+			results = await render(source, configuration);
 		} catch (err) {
 			throw err;
 		}
 
 		if (demo) {
 			let demoSource = demo.buffer.toString('utf-8');
-			let demoConfig = Object.assign({}, fileConfig);
+			let demoConfig = Object.assign({}, configuration);
 			let demoDepdendencies = Object.assign({}, dependencies, {'Pattern': file.path});
 
 			try {
@@ -84,8 +80,8 @@ export default function lessTransformFactory (application) {
 
 		file.buffer = new Buffer(results.css || '', 'utf-8');
 
-		file.in = config.inFormat;
-		file.out = config.outFormat;
+		file.in = configuration.inFormat;
+		file.out = configuration.outFormat;
 
 		return file;
 	};

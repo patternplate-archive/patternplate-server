@@ -17,7 +17,7 @@ function markdownTransformFactory(application) {
 	var parser = (0, _bluebird.promisify)(_marked2['default']);
 	var config = application.configuration.transforms.markdown || {};
 
-	return function markdowTransform(file) {
+	return function markdowTransform(file, demo, configuration) {
 		return regeneratorRuntime.async(function markdowTransform$(context$2$0) {
 			while (1) switch (context$2$0.prev = context$2$0.next) {
 				case 0:

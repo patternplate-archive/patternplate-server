@@ -18,7 +18,7 @@ var _resolveDependencies2 = _interopRequireDefault(_resolveDependencies);
 function reactJSXTransformFactory(application) {
 	var config = application.configuration.transforms['react-jsx'] || {};
 
-	return function reactJSXTransform(file, demo) {
+	return function reactJSXTransform(file, demo, configuration) {
 		var scope, result, _scope;
 
 		return regeneratorRuntime.async(function reactJSXTransform$(context$2$0) {

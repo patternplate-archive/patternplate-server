@@ -84,39 +84,36 @@ function resolveDependencies(file) {
 }
 
 function browserifyTransformFactory(application) {
-	var config = application.configuration.transforms.browserify || {};
-
-	var transformNames = Object.keys(config.transforms).map(function (transformName) {
-		return config.transforms[transformName].enabled ? transformName : false;
-	}).filter(function (item) {
-		return item;
-	});
-
-	var transforms = transformNames.reduce(function getTransformConfig(results, transformName) {
-		var transformFn = undefined;
-		var transformConfig = config.transforms[transformName].opts || {};
-
-		try {
-			transformFn = require(transformName);
-		} catch (error) {
-			application.log.warn('Unable to load browserify transform ' + transformName + '.');
-			application.log.error(error.stack);
-		}
-
-		results[transformName] = [transformFn, transformConfig];
-		return results;
-	}, {});
-
-	return function browserifyTransform(file, demo) {
-		var stream, bundler, dependencies, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, transformName, _iteratorNormalCompletion3, _didIteratorError3, _iteratorError3, _iterator3, _step3, transformed;
+	return function browserifyTransform(file, demo, configuration) {
+		var contents, stream, transformNames, transforms, bundler, dependencies, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, transformName, _iteratorNormalCompletion3, _didIteratorError3, _iteratorError3, _iterator3, _step3, transformed;
 
 		return regeneratorRuntime.async(function browserifyTransform$(context$2$0) {
 			var _this = this;
 
 			while (1) switch (context$2$0.prev = context$2$0.next) {
 				case 0:
-					stream = new _vinyl2['default']({ 'contents': new Buffer(file.buffer) });
-					bundler = (0, _browserify2['default'])(stream, config.opts);
+					contents = new Buffer(file.buffer);
+					stream = new _vinyl2['default']({ contents: contents });
+					transformNames = Object.keys(configuration.transforms).map(function (transformName) {
+						return configuration.transforms[transformName].enabled ? transformName : false;
+					}).filter(function (item) {
+						return item;
+					});
+					transforms = transformNames.reduce(function getTransformConfig(results, transformName) {
+						var transformFn = undefined;
+						var transformConfig = configuration.transforms[transformName].opts || {};
+
+						try {
+							transformFn = require(transformName);
+						} catch (error) {
+							application.log.warn('Unable to load browserify transform ' + transformName + '.');
+							application.log.error(error.stack);
+						}
+
+						results[transformName] = [transformFn, transformConfig];
+						return results;
+					}, {});
+					bundler = (0, _browserify2['default'])(stream, configuration.opts);
 					dependencies = resolveDependencies(file);
 
 					dependencies.forEach(function requireDependency(dependency) {
@@ -127,60 +124,60 @@ function browserifyTransformFactory(application) {
 					_iteratorNormalCompletion2 = true;
 					_didIteratorError2 = false;
 					_iteratorError2 = undefined;
-					context$2$0.prev = 7;
+					context$2$0.prev = 10;
 					for (_iterator2 = Object.keys(transforms)[Symbol.iterator](); !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
 						transformName = _step2.value;
 
 						bundler.transform.apply(bundler, _toConsumableArray(transforms[transformName]));
 					}
 
-					context$2$0.next = 15;
+					context$2$0.next = 18;
 					break;
 
-				case 11:
-					context$2$0.prev = 11;
-					context$2$0.t0 = context$2$0['catch'](7);
+				case 14:
+					context$2$0.prev = 14;
+					context$2$0.t0 = context$2$0['catch'](10);
 					_didIteratorError2 = true;
 					_iteratorError2 = context$2$0.t0;
 
-				case 15:
-					context$2$0.prev = 15;
-					context$2$0.prev = 16;
+				case 18:
+					context$2$0.prev = 18;
+					context$2$0.prev = 19;
 
 					if (!_iteratorNormalCompletion2 && _iterator2['return']) {
 						_iterator2['return']();
 					}
 
-				case 18:
-					context$2$0.prev = 18;
+				case 21:
+					context$2$0.prev = 21;
 
 					if (!_didIteratorError2) {
-						context$2$0.next = 21;
+						context$2$0.next = 24;
 						break;
 					}
 
 					throw _iteratorError2;
 
-				case 21:
+				case 24:
+					return context$2$0.finish(21);
+
+				case 25:
 					return context$2$0.finish(18);
 
-				case 22:
-					return context$2$0.finish(15);
-
-				case 23:
+				case 26:
 					if (!demo) {
-						context$2$0.next = 26;
+						context$2$0.next = 29;
 						break;
 					}
 
-					context$2$0.next = 26;
+					context$2$0.next = 29;
 					return regeneratorRuntime.awrap((function callee$2$0() {
 						var demoStream, demoBundler, Pattern, demoDependencies, transformName, demoTransformed;
 						return regeneratorRuntime.async(function callee$2$0$(context$3$0) {
 							while (1) switch (context$3$0.prev = context$3$0.next) {
 								case 0:
 									demoStream = new _vinyl2['default']({ 'contents': new Buffer(demo.buffer) });
-									demoBundler = (0, _browserify2['default'])(demoStream, config.opts);
+									demoBundler = (0, _browserify2['default'])(demoStream, configuration.opts);
 									Pattern = Object.assign({}, file);
 									demoDependencies = resolveDependencies({ 'dependencies': { Pattern: Pattern } });
 
@@ -236,7 +233,7 @@ function browserifyTransformFactory(application) {
 									demoTransformed = undefined;
 									context$3$0.prev = 25;
 									context$3$0.next = 28;
-									return regeneratorRuntime.awrap(runBundler(demoBundler, config));
+									return regeneratorRuntime.awrap(runBundler(demoBundler, configuration));
 
 								case 28:
 									demoTransformed = context$3$0.sent;
@@ -264,34 +261,34 @@ function browserifyTransformFactory(application) {
 						}, null, _this, [[8, 12, 16, 24], [17,, 19, 23], [25, 31]]);
 					})());
 
-				case 26:
+				case 29:
 					transformed = undefined;
-					context$2$0.prev = 27;
-					context$2$0.next = 30;
-					return regeneratorRuntime.awrap(runBundler(bundler, config));
-
-				case 30:
-					transformed = context$2$0.sent;
-					context$2$0.next = 37;
-					break;
+					context$2$0.prev = 30;
+					context$2$0.next = 33;
+					return regeneratorRuntime.awrap(runBundler(bundler, configuration));
 
 				case 33:
-					context$2$0.prev = 33;
-					context$2$0.t1 = context$2$0['catch'](27);
+					transformed = context$2$0.sent;
+					context$2$0.next = 40;
+					break;
+
+				case 36:
+					context$2$0.prev = 36;
+					context$2$0.t1 = context$2$0['catch'](30);
 
 					context$2$0.t1.file = file.path || context$2$0.t1.fileName;
 					throw context$2$0.t1;
 
-				case 37:
+				case 40:
 
 					Object.assign(file, transformed);
 					return context$2$0.abrupt('return', file);
 
-				case 39:
+				case 42:
 				case 'end':
 					return context$2$0.stop();
 			}
-		}, null, this, [[7, 11, 15, 23], [16,, 18, 22], [27, 33]]);
+		}, null, this, [[10, 14, 18, 26], [19,, 21, 25], [30, 36]]);
 	};
 }
 

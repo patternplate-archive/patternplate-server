@@ -40,30 +40,31 @@ function resolveDependencies (file) {
 }
 
 function browserifyTransformFactory (application) {
-	const config = application.configuration.transforms.browserify || {};
+	return async function browserifyTransform (file, demo, configuration) {
+		let contents = new Buffer(file.buffer);
+		let stream = new Vinyl({contents});
 
-	const transformNames = Object.keys(config.transforms)
-		.map((transformName) => config.transforms[transformName].enabled ? transformName : false)
-		.filter((item) => item);
+		const transformNames = Object.keys(configuration.transforms)
+			.map((transformName) => configuration.transforms[transformName].enabled ? transformName : false)
+			.filter((item) => item);
 
-	const transforms = transformNames.reduce(function getTransformConfig (results, transformName) {
-		let transformFn;
-		let transformConfig = config.transforms[transformName].opts || {};
+		const transforms = transformNames.reduce(function getTransformConfig (results, transformName) {
+			let transformFn;
+			let transformConfig = configuration.transforms[transformName].opts || {};
 
-		try {
-			transformFn = require(transformName);
-		} catch (error) {
-			application.log.warn(`Unable to load browserify transform ${transformName}.`);
-			application.log.error(error.stack);
-		}
+			try {
+				transformFn = require(transformName);
+			} catch (error) {
+				application.log.warn(`Unable to load browserify transform ${transformName}.`);
+				application.log.error(error.stack);
+			}
 
-		results[transformName] = [transformFn, transformConfig];
-		return results;
-	}, {});
+			results[transformName] = [transformFn, transformConfig];
+			return results;
+		}, {});
 
-	return async function browserifyTransform (file, demo) {
-		let stream = new Vinyl({ 'contents': new Buffer(file.buffer) });
-		const bundler = browserify(stream, config.opts);
+
+		const bundler = browserify(stream, configuration.opts);
 
 		let dependencies = resolveDependencies(file);
 
@@ -77,8 +78,8 @@ function browserifyTransformFactory (application) {
 		}
 
 		if (demo) {
-			let demoStream = new Vinyl({ 'contents': new Buffer(demo.buffer) });
-			const demoBundler = browserify(demoStream, config.opts);
+			let demoStream = new Vinyl({'contents': new Buffer(demo.buffer)});
+			const demoBundler = browserify(demoStream, configuration.opts);
 
 			let Pattern = Object.assign({}, file);
 			let demoDependencies = resolveDependencies({'dependencies': {Pattern}});
@@ -95,7 +96,7 @@ function browserifyTransformFactory (application) {
 			let demoTransformed;
 
 			try {
-				demoTransformed = await runBundler(demoBundler, config);
+				demoTransformed = await runBundler(demoBundler, configuration);
 			} catch (err) {
 				err.file = demo.path || err.fileName;
 				throw err;
@@ -110,7 +111,7 @@ function browserifyTransformFactory (application) {
 		let transformed;
 
 		try {
-			transformed = await runBundler(bundler, config);
+			transformed = await runBundler(bundler, configuration);
 		} catch (err) {
 			err.file = file.path || err.fileName;
 			throw err;

@@ -3,7 +3,10 @@ import {resolve, join} from 'path';
 import fs from 'q-io/fs';
 
 export default function patternRouteFactory (application, configuration) {
-	const config = application.configuration[configuration.options.key];
+	let patterns = application.configuration[configuration.options.key] || {};
+	let transforms = application.configuration.transforms || {};
+
+	const config = { patterns, transforms };
 
 	return async function patternRoute () {
 		this.type = 'json';
@@ -14,10 +17,8 @@ export default function patternRouteFactory (application, configuration) {
 		let mtime;
 
 		let cwd = application.runtime.patterncwd || application.runtime.cwd;
-		let basePath = resolve(cwd, config.path);
+		let basePath = resolve(cwd, config.patterns.path);
 		let path = resolve(basePath, id);
-
-		let uri = `http://${this.request.host}${this.request.url}`;
 
 		if (await fs.contains(basePath, path) === false) {
 			this.throw(404, `Could not find pattern ${id}`, {'error': true, 'message': `Could not find ${id}`});

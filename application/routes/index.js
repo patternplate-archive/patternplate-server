@@ -94,16 +94,17 @@ function indexRouteFactory(application, configuration) {
 					list = context$2$0.sent;
 
 					list = list.filter(function (item) {
-						return item !== buildPath;
+						return (0, _path.extname)(item) === '.zip';
 					});
 
 					builds = list.map(function (buildItemPath) {
 						var fragments = (0, _path.basename)(buildItemPath, (0, _path.extname)(buildItemPath)).split('-');
+
 						return {
 							'path': _qIoFs2['default'].relativeFromDirectory(buildPath, buildItemPath),
-							'environment': fragments[1],
-							'revision': fragments[2],
-							'version': fragments[3]
+							'environment': fragments[2],
+							'revision': fragments[3],
+							'version': fragments[1]
 						};
 					});
 

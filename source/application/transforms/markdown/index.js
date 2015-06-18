@@ -5,7 +5,7 @@ export default function markdownTransformFactory (application) {
 	const parser = promisify(marked);
 	const config = application.configuration.transforms.markdown || {};
 
-	return async function markdowTransform (file) {
+	return async function markdowTransform (file, demo, configuration) {
 		try {
 			file.buffer = new Buffer(await parser(file.buffer.toString('utf-8')), 'utf-8');
 		} catch (err) {

@@ -5,7 +5,7 @@ import resolveDependencies from './resolve-dependencies';
 export default function reactJSXTransformFactory (application) {
 	const config = application.configuration.transforms['react-jsx'] || {};
 
-	return async function reactJSXTransform (file, demo) {
+	return async function reactJSXTransform (file, demo, configuration) {
 		let scope = resolveDependencies({'Pattern': file});
 
 		try {

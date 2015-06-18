@@ -21,6 +21,10 @@ exports['default'] = {
 			'name': 'Markup',
 			'transforms': ['react-jsx']
 		},
+		'jsx': {
+			'name': 'Markup',
+			'transforms': ['react-jsx']
+		},
 		'md': {
 			'name': 'Documentation',
 			'transforms': ['markdown']

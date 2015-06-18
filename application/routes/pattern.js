@@ -14,10 +14,13 @@ var _qIoFs = require('q-io/fs');
 var _qIoFs2 = _interopRequireDefault(_qIoFs);
 
 function patternRouteFactory(application, configuration) {
-	var config = application.configuration[configuration.options.key];
+	var patterns = application.configuration[configuration.options.key] || {};
+	var transforms = application.configuration.transforms || {};
+
+	var config = { patterns: patterns, transforms: transforms };
 
 	return function patternRoute() {
-		var id, pattern, response, mtime, cwd, basePath, path, uri, search, files, patterns, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, file, _search, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, directory, patternID, _pattern;
+		var id, pattern, response, mtime, cwd, basePath, path, search, files, _patterns, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, file, _search, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, directory, patternID, _pattern;
 
 		return regeneratorRuntime.async(function patternRoute$(context$2$0) {
 			while (1) switch (context$2$0.prev = context$2$0.next) {
@@ -29,23 +32,22 @@ function patternRouteFactory(application, configuration) {
 					response = undefined;
 					mtime = undefined;
 					cwd = application.runtime.patterncwd || application.runtime.cwd;
-					basePath = (0, _path.resolve)(cwd, config.path);
+					basePath = (0, _path.resolve)(cwd, config.patterns.path);
 					path = (0, _path.resolve)(basePath, id);
-					uri = 'http://' + this.request.host + '' + this.request.url;
-					context$2$0.next = 11;
+					context$2$0.next = 10;
 					return regeneratorRuntime.awrap(_qIoFs2['default'].contains(basePath, path));
 
-				case 11:
+				case 10:
 					context$2$0.t0 = context$2$0.sent;
 
 					if (!(context$2$0.t0 === false)) {
-						context$2$0.next = 14;
+						context$2$0.next = 13;
 						break;
 					}
 
 					this['throw'](404, 'Could not find pattern ' + id, { 'error': true, 'message': 'Could not find ' + id });
 
-				case 14:
+				case 13:
 
 					if (application.cache && application.runtime.env === 'production') {
 						response = application.cache.get(id);
@@ -54,217 +56,217 @@ function patternRouteFactory(application, configuration) {
 					search = (0, _path.resolve)(path, 'pattern.json');
 
 					if (response) {
-						context$2$0.next = 116;
+						context$2$0.next = 115;
 						break;
 					}
 
-					context$2$0.next = 19;
+					context$2$0.next = 18;
 					return regeneratorRuntime.awrap(_qIoFs2['default'].exists(search));
 
-				case 19:
+				case 18:
 					if (!context$2$0.sent) {
-						context$2$0.next = 37;
+						context$2$0.next = 36;
 						break;
 					}
 
-					context$2$0.prev = 20;
-					context$2$0.next = 23;
+					context$2$0.prev = 19;
+					context$2$0.next = 22;
 					return regeneratorRuntime.awrap(application.pattern.factory(id, basePath, config, application.transforms));
 
-				case 23:
+				case 22:
 					pattern = context$2$0.sent;
-					context$2$0.next = 26;
+					context$2$0.next = 25;
 					return regeneratorRuntime.awrap(pattern.read());
 
-				case 26:
-					context$2$0.next = 28;
+				case 25:
+					context$2$0.next = 27;
 					return regeneratorRuntime.awrap(pattern.transform());
 
-				case 28:
-					context$2$0.next = 33;
+				case 27:
+					context$2$0.next = 32;
 					break;
 
-				case 30:
-					context$2$0.prev = 30;
-					context$2$0.t1 = context$2$0['catch'](20);
+				case 29:
+					context$2$0.prev = 29;
+					context$2$0.t1 = context$2$0['catch'](19);
 
 					this['throw'](500, context$2$0.t1);
 
-				case 33:
+				case 32:
 
 					response = pattern;
 					mtime = response.getLastModified();
-					context$2$0.next = 116;
+					context$2$0.next = 115;
 					break;
 
-				case 37:
-					context$2$0.next = 39;
+				case 36:
+					context$2$0.next = 38;
 					return regeneratorRuntime.awrap(_qIoFs2['default'].isDirectory(path));
 
-				case 39:
+				case 38:
 					context$2$0.t2 = context$2$0.sent;
 
 					if (!(context$2$0.t2 === false)) {
-						context$2$0.next = 42;
+						context$2$0.next = 41;
 						break;
 					}
 
 					return context$2$0.abrupt('return');
 
-				case 42:
-					context$2$0.next = 44;
+				case 41:
+					context$2$0.next = 43;
 					return regeneratorRuntime.awrap(_qIoFs2['default'].list(path));
 
-				case 44:
+				case 43:
 					files = context$2$0.sent;
-					patterns = [];
+					_patterns = [];
 
 					response = [];
 
 					_iteratorNormalCompletion = true;
 					_didIteratorError = false;
 					_iteratorError = undefined;
-					context$2$0.prev = 50;
+					context$2$0.prev = 49;
 					_iterator = files[Symbol.iterator]();
 
-				case 52:
+				case 51:
 					if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
-						context$2$0.next = 62;
+						context$2$0.next = 61;
 						break;
 					}
 
 					file = _step.value;
 					_search = (0, _path.resolve)(path, file, 'pattern.json');
-					context$2$0.next = 57;
+					context$2$0.next = 56;
 					return regeneratorRuntime.awrap(_qIoFs2['default'].exists(_search));
 
-				case 57:
+				case 56:
 					if (!context$2$0.sent) {
-						context$2$0.next = 59;
+						context$2$0.next = 58;
 						break;
 					}
 
-					patterns.push(file);
+					_patterns.push(file);
 
-				case 59:
+				case 58:
 					_iteratorNormalCompletion = true;
-					context$2$0.next = 52;
+					context$2$0.next = 51;
 					break;
 
-				case 62:
-					context$2$0.next = 68;
+				case 61:
+					context$2$0.next = 67;
 					break;
 
-				case 64:
-					context$2$0.prev = 64;
-					context$2$0.t3 = context$2$0['catch'](50);
+				case 63:
+					context$2$0.prev = 63;
+					context$2$0.t3 = context$2$0['catch'](49);
 					_didIteratorError = true;
 					_iteratorError = context$2$0.t3;
 
-				case 68:
+				case 67:
+					context$2$0.prev = 67;
 					context$2$0.prev = 68;
-					context$2$0.prev = 69;
 
 					if (!_iteratorNormalCompletion && _iterator['return']) {
 						_iterator['return']();
 					}
 
-				case 71:
-					context$2$0.prev = 71;
+				case 70:
+					context$2$0.prev = 70;
 
 					if (!_didIteratorError) {
-						context$2$0.next = 74;
+						context$2$0.next = 73;
 						break;
 					}
 
 					throw _iteratorError;
 
+				case 73:
+					return context$2$0.finish(70);
+
 				case 74:
-					return context$2$0.finish(71);
+					return context$2$0.finish(67);
 
 				case 75:
-					return context$2$0.finish(68);
-
-				case 76:
 					_iteratorNormalCompletion2 = true;
 					_didIteratorError2 = false;
 					_iteratorError2 = undefined;
-					context$2$0.prev = 79;
-					_iterator2 = patterns[Symbol.iterator]();
+					context$2$0.prev = 78;
+					_iterator2 = _patterns[Symbol.iterator]();
 
-				case 81:
+				case 80:
 					if (_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done) {
-						context$2$0.next = 101;
+						context$2$0.next = 100;
 						break;
 					}
 
 					directory = _step2.value;
 					patternID = (0, _path.join)(id, directory);
-					context$2$0.prev = 84;
-					context$2$0.next = 87;
+					context$2$0.prev = 83;
+					context$2$0.next = 86;
 					return regeneratorRuntime.awrap(application.pattern.factory(patternID, basePath, config, application.transforms));
 
-				case 87:
+				case 86:
 					_pattern = context$2$0.sent;
 
 					response.push(_pattern);
-					context$2$0.next = 91;
+					context$2$0.next = 90;
 					return regeneratorRuntime.awrap(_pattern.read());
 
-				case 91:
-					context$2$0.next = 93;
+				case 90:
+					context$2$0.next = 92;
 					return regeneratorRuntime.awrap(_pattern.transform());
 
-				case 93:
-					context$2$0.next = 98;
+				case 92:
+					context$2$0.next = 97;
 					break;
 
-				case 95:
-					context$2$0.prev = 95;
-					context$2$0.t4 = context$2$0['catch'](84);
+				case 94:
+					context$2$0.prev = 94;
+					context$2$0.t4 = context$2$0['catch'](83);
 
 					this['throw'](500, context$2$0.t4);
 
-				case 98:
+				case 97:
 					_iteratorNormalCompletion2 = true;
-					context$2$0.next = 81;
+					context$2$0.next = 80;
 					break;
 
-				case 101:
-					context$2$0.next = 107;
+				case 100:
+					context$2$0.next = 106;
 					break;
 
-				case 103:
-					context$2$0.prev = 103;
-					context$2$0.t5 = context$2$0['catch'](79);
+				case 102:
+					context$2$0.prev = 102;
+					context$2$0.t5 = context$2$0['catch'](78);
 					_didIteratorError2 = true;
 					_iteratorError2 = context$2$0.t5;
 
-				case 107:
+				case 106:
+					context$2$0.prev = 106;
 					context$2$0.prev = 107;
-					context$2$0.prev = 108;
 
 					if (!_iteratorNormalCompletion2 && _iterator2['return']) {
 						_iterator2['return']();
 					}
 
-				case 110:
-					context$2$0.prev = 110;
+				case 109:
+					context$2$0.prev = 109;
 
 					if (!_didIteratorError2) {
-						context$2$0.next = 113;
+						context$2$0.next = 112;
 						break;
 					}
 
 					throw _iteratorError2;
 
+				case 112:
+					return context$2$0.finish(109);
+
 				case 113:
-					return context$2$0.finish(110);
+					return context$2$0.finish(106);
 
 				case 114:
-					return context$2$0.finish(107);
-
-				case 115:
 
 					mtime = response.map(function (item) {
 						return item.getLastModified();
@@ -272,7 +274,7 @@ function patternRouteFactory(application, configuration) {
 						return b - a;
 					})[0];
 
-				case 116:
+				case 115:
 
 					response = Array.isArray(response) ? response : [response];
 
@@ -296,11 +298,11 @@ function patternRouteFactory(application, configuration) {
 					this.set('Cache-Control', 'maxage=' + (configuration.options.maxage | 0));
 					this.body = JSON.stringify(response);
 
-				case 123:
+				case 122:
 				case 'end':
 					return context$2$0.stop();
 			}
-		}, null, this, [[20, 30], [50, 64, 68, 76], [69,, 71, 75], [79, 103, 107, 115], [84, 95], [108,, 110, 114]]);
+		}, null, this, [[19, 29], [49, 63, 67, 75], [68,, 70, 74], [78, 102, 106, 114], [83, 94], [107,, 109, 113]]);
 	};
 }
 

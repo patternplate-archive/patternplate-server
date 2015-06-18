@@ -29,12 +29,13 @@ function metaRouteFactory(application, configuration) {
 
 					list = list.map(function normalizePath(item) {
 						var depth = _qIoFs2['default'].split((0, _path.relative)(item, path)).length;
-
 						return _qIoFs2['default'].join(_qIoFs2['default'].split(item).slice(depth * -1));
 					});
 
 					patterns = list.filter(function (item) {
 						return (0, _path.basename)(item) === 'pattern.json';
+					}).filter(function (item) {
+						return !item.includes('@environments');
 					}).map(function (item) {
 						return _qIoFs2['default'].directory(item);
 					});

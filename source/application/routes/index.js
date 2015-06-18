@@ -37,15 +37,17 @@ export default function indexRouteFactory (application, configuration) {
 
 		if (buildAvailable) {
 			let list = await fs.listTree(buildPath);
-			list = list.filter((item) => item !== buildPath);
+
+			list = list.filter((item) => extname(item) === '.zip');
 
 			builds = list.map((buildItemPath) => {
 				let fragments = basename(buildItemPath, extname(buildItemPath)).split('-');
+
 				return {
 					'path': fs.relativeFromDirectory(buildPath, buildItemPath),
-					'environment': fragments[1],
-					'revision': fragments[2],
-					'version': fragments[3]
+					'environment': fragments[2],
+					'revision': fragments[3],
+					'version': fragments[1]
 				};
 			});
 		}

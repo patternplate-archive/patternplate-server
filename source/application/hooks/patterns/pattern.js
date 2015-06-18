@@ -1,8 +1,11 @@
 /* eslint ignore */
-import {resolve, basename, extname, dirname} from 'path';
+import {resolve, basename, extname, dirname, join} from 'path';
 
 import qfs from 'q-io/fs';
 import pascalCase from 'pascal-case';
+import semver from 'semver';
+import merge from 'lodash.merge';
+import minimatch from 'minimatch';
 
 export class Pattern {
 	files = {};
@@ -19,55 +22,95 @@ export class Pattern {
 		this.path = Pattern.resolve(this.base, this.id);
 		this.config = config;
 		this.transforms = transforms;
+		this.environments = {
+			'index': {
+				'manifest': { 'name': 'index' }
+			}
+		};
+		this.isEnvironment = this.id.includes('@environment');
 	}
 
 	static resolve(...args) {
 		return resolve(...args);
 	}
 
-	async virtualize () {
-		this.path = Pattern.resolve(this.base, this.id);
-		this.clean
-		await qfs.makeTree(this.path);
+	async readEnvironments() {
+		let environmentsPath = resolve(this.base, '@environments');
+		let results = this.environments;
 
-		let fileList = await qfs.listTree(this.base);
+		if ( !await qfs.exists(environmentsPath)) {
+			return results;
+		}
 
-		let patterns = fileList
-			.filter((item) => basename(item) === 'pattern.json')
-			.map((item) => qfs.relativeFromDirectory(this.base, dirname(item)))
-			.filter((item) => item !== this.id)
-			.reduce((results, item) => Object.assign(results, { [pascalCase(qfs.split(item).join('-'))]: item }), {});
+		let environments = await qfs.listTree(environmentsPath);
+		let manifestPaths = environments.filter((environemnt) => basename(environemnt) === 'pattern.json');
 
-		let manifest = {
-			'version': '0.1.0',
-			'name': 'virtual',
-			'patterns': patterns
-		};
+		for (let manifestPath of manifestPaths) {
+			let manifest = JSON.parse(await qfs.read(manifestPath));
+			let environemntName = manifest.name || dirname(manifestPath);
+			results[environemntName] = { manifest };
+		}
 
-		await qfs.write(resolve(this.path, 'pattern.json'), JSON.stringify(manifest));
+		return results;
+	}
 
-		for (let formatName of Object.keys(this.config.formats)) {
-			if ( !this.config.formats[formatName].build) {
-				continue;
+	async read(path = this.path, fs = qfs) {
+		fs.exists = fs.exists.bind(fs);
+
+		if ( await fs.exists(path) !== true ) {
+			throw new Error(`Can not read pattern from ${this.path}, it does not exist.`, {
+				'fileName': this.path,
+				'pattern': this.id
+			});
+		}
+
+		let manifestPath = resolve(this.path, 'pattern.json');
+
+		if (! await fs.exists(manifestPath)) {
+			throw new Error(`Can not read pattern.json from ${this.path}, it does not exist.`, {
+				'fileName': this.path,
+				'pattern': this.id
+			});
+		}
+
+		try {
+			let manifestData = JSON.parse(await fs.read(manifestPath));
+			this.manifest = Object.assign({}, {
+				'version': '0.1.0',
+				'build': true,
+				'display': true
+			}, this.manifest, manifestData);
+		} catch (error) {
+			throw new Error(`Error while reading pattern.json from ${this.path}`, {
+				'file': this.path,
+				'pattern': this.id,
+				'stack': error.stack
+			});
+		}
+
+		if (this.isEnvironment && !this.manifest.patterns) {
+			let list = await qfs.listTree(this.base);
+			let range = this.manifest.range || '*';
+
+			list = list
+				.filter((item) => basename(item) === 'pattern.json')
+				.filter((item) => !item.includes('@environment'))
+				.map((item) => qfs.relativeFromDirectory(this.base, dirname(item)))
+				.filter((item) => item !== this.id);
+
+			if (this.manifest.include) {
+				list = list.filter((item) => minimatch(item, this.manifest.include.join('|')))
 			}
 
-			await qfs.write(resolve(this.path, ['index', formatName].join('.')), '\n');
+			if (this.manifest.exclude) {
+				list = list.filter((item) => !minimatch(item, this.manifest.exclude.join('|')))
+			}
+
+			this.manifest.patterns = list.reduce((results, item) => Object.assign(results, {[item]: `${item}@${range}`}), {});
 		}
 
-	}
-
-	async clean() {
-		await qfs.removeTree(this.path);
-	}
-
-	async read(path = this.path) {
-		qfs.exists = qfs.exists.bind(qfs);
-
-		if ( await qfs.exists(path) !== true ) {
-			throw new Error(`Can not read pattern from ${this.path}, it does not exist.`);
-		}
-
-		let files = await qfs.listTree(path);
+		this.environments = await this.readEnvironments();
+		let files = await fs.listTree(path);
 
 		files = files.filter(function(fileName){
 			let ext = extname(fileName);
@@ -75,7 +118,7 @@ export class Pattern {
 		});
 
 		for (let file of files) {
-			let stat = await qfs.stat(file);
+			let stat = await fs.stat(file);
 			let mtime = stat.node.mtime;
 			let name = basename(file);
 
@@ -87,7 +130,7 @@ export class Pattern {
 
 			if (!data) {
 				let ext = extname(file);
-				let buffer = await qfs.read(file);
+				let buffer = await fs.read(file);
 
 				data = {
 					buffer,
@@ -108,35 +151,38 @@ export class Pattern {
 			this.files[name] = data;
 		}
 
-		let manifest = this.files['pattern.json'];
-
-		if (typeof manifest === 'undefined') {
-			throw new Error({
-				'message': `Can not read pattern.json from ${this.path}, it does not exist.`,
-				'file': this.path,
-				'pattern': this.id
-			});
-		}
-
-		try {
-			this.manifest = JSON.parse(manifest.source.toString('utf-8'));
-			delete this.files['pattern.json'];
-		} catch (error) {
-			throw new Error({
-				'message': `Error while reading pattern.json from ${this.path}`,
-				'file': this.path,
-				'pattern': this.id,
-				'stack': error.stack
-			});
-		}
-
 		if (typeof this.manifest.patterns !== 'object') {
 			return this;
 		}
 
 		for ( let patternName in this.manifest.patterns ) {
-			let pattern = new Pattern(this.manifest.patterns[patternName], this.base, this.config, this.transforms, this.cache);
-			this.dependencies[patternName] = await pattern.read();
+			let patternIDString = this.manifest.patterns[patternName];
+			let patternBaseName = basename(patternIDString);
+			let patternBaseNameFragments = patternBaseName.split('@');
+			let patternRange = semver.validRange(patternBaseNameFragments[1]) || '*';
+
+			if (!patternRange) {
+				throw new Error(`${patternBaseNameFragments[1]} in ${patternIDString} is no valid semver range.`, {
+					'file': this.path,
+					'pattern': this.id
+				});
+			}
+
+			let patternID = join(dirname(patternIDString), patternBaseNameFragments[0]);
+			let pattern = new Pattern(patternID, this.base, this.config, this.transforms, this.cache);
+			this.dependencies[patternName] = await pattern.read(pattern.path);
+
+			if (! semver.satisfies(pattern.manifest.version, patternRange)) {
+				if (! this.isEnvironment ) {
+					throw new Error(`${pattern.id} at version ${pattern.manifest.version} does not satisfy range ${patternRange} specified by ${this.id}.`, {
+						'file': pattern.path,
+						'pattern': this.id
+					});
+				} else {
+					delete this.dependencies[patternName];
+					console.warn(`Omitting ${pattern.id} at version ${pattern.manifest.version} from build. It does not satisfy range ${patternRange} specified by ${this.id}.`);
+				}
+			}
 		}
 
 		for ( let fileName in this.files ) {
@@ -163,6 +209,28 @@ export class Pattern {
 	async transform( withDemos = true, forced = false ) {
 		let demos = {};
 
+		if (forced) {
+			// Add fake/virtual files if forced
+			let fs = await qfs.mock(this.path);
+			await fs.makeTree(this.path);
+
+			let list = await fs.listTree('/');
+
+			for (let listItem of list) {
+				if (await fs.isFile(listItem)) {
+					await fs.rename(listItem, fs.join(this.path, fs.base(listItem)));
+				}
+			}
+
+			for (let formatName of Object.keys(this.config.patterns.formats)) {
+				if ( this.config.patterns.formats[formatName].build) {
+					await fs.write(resolve(this.path, ['index', formatName].join('.')), '\n');
+				}
+			}
+
+			await this.read(this.path, fs);
+		}
+
 		if (withDemos) {
 			for ( let fileName in this.files ) {
 				let file = this.files[fileName];
@@ -171,7 +239,7 @@ export class Pattern {
 					continue;
 				}
 
-				let formatConfig = this.config.formats[file.format];
+				let formatConfig = this.config.patterns.formats[file.format];
 
 				if (typeof formatConfig !== 'object') {
 					continue;
@@ -181,34 +249,48 @@ export class Pattern {
 			}
 		}
 
-		for ( let fileName in this.files ) {
-			let file = this.files[fileName];
+		for (let environmentName of Object.keys(this.environments)) {
+			let environmentData = this.environments[environmentName];
+			let environment = environmentData.manifest.environment || {};
 
-			if ( file.basename === 'demo' ) {
-				continue;
-			}
+			for (let fileName in this.files) {
+				let file = this.files[fileName];
 
-			let formatConfig = this.config.formats[file.format];
-
-			if (typeof formatConfig !== 'object') {
-				continue;
-			}
-
-			let transforms = formatConfig.transforms || [];
-
-			for (let transform of transforms) {
-				let fn = this.transforms[transform];
-				try {
-					file = await fn(file, demos[formatConfig.name], forced);
-				} catch (error) {
-					error.pattern = this.id;
-					error.file = error.file || file.path;
-					error.transform = transform;
-					throw error;
+				if (file.basename === 'demo') {
+					continue;
 				}
-			}
 
-			this.results[formatConfig.name] = file;
+				let formatConfig = this.config.patterns.formats[file.format];
+
+				if (typeof formatConfig !== 'object') {
+					continue;
+				}
+
+				let transforms = formatConfig.transforms || [];
+
+				for (let transform of transforms) {
+					let fn = this.transforms[transform];
+					let environmentConfig = environment[transform] || {};
+					let applicationConfig = this.config.transforms[transform] || {};
+					let configuration = merge({}, applicationConfig, environmentConfig);
+
+					try {
+						file = await fn(file, demos[formatConfig.name], configuration, forced);
+					} catch (error) {
+						error.pattern = this.id;
+						error.file = error.file || file.path;
+						error.transform = transform;
+						console.error(`Error while transforming file "${error.file}" of pattern "${error.pattern}" with transform "${error.transform}".`);
+						throw error;
+					}
+				}
+
+				if (! this.results[environmentName]) {
+					this.results[environmentName] = {};
+				}
+
+				this.results[environmentName][formatConfig.name] = file;
+			}
 		}
 	}
 
@@ -239,17 +321,24 @@ export class Pattern {
 			}
 		}
 
-		for (let resultName of Object.keys(this.results)) {
-			this.results[resultName] = {
-				'source': this.results[resultName].source.toString('utf-8'),
-				'demoSource': this.results[resultName].demoSource ? this.results[resultName].demoSource.toString('utf-8') : '',
-				'buffer': this.results[resultName].buffer.toString('utf-8'),
-				'demoBuffer': this.results[resultName].demoBuffer ? this.results[resultName].demoBuffer.toString('utf-8') : '',
-				'in': this.results[resultName].in,
-				'out': this.results[resultName].out
-			};
+		for (let environmentName of Object.keys(copy.results)) {
+			let environmentResult = copy.results[environmentName];
+				for (let resultName of Object.keys(environmentResult)) {
+					let result = environmentResult[resultName];
+
+					copy.results[environmentName][resultName] = {
+						'name': resultName,
+						'source': result.source.toString('utf-8'),
+						'demoSource': result.demoSource ? result.demoSource.toString('utf-8') : '',
+						'buffer': result.buffer.toString('utf-8'),
+						'demoBuffer': result.demoBuffer ? result.demoBuffer.toString('utf-8') : '',
+						'in': result.in,
+						'out': result.out
+					}
+				}
 		}
 
+		delete copy.cache;
 		delete copy.files;
 		delete copy.config;
 		delete copy.base;

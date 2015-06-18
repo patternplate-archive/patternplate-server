@@ -10,11 +10,12 @@ export default function metaRouteFactory (application, configuration) {
 
 		list = list.map(function normalizePath (item) {
 			let depth = fs.split(relative(item, path)).length;
-
 			return fs.join(fs.split(item).slice(depth * -1));
 		});
 
-		let patterns = list.filter((item) => basename(item) === 'pattern.json')
+		let patterns = list
+			.filter((item) => basename(item) === 'pattern.json')
+			.filter((item) => !item.includes('@environments'))
 			.map((item) => fs.directory(item));
 
 		this.type = 'json';
