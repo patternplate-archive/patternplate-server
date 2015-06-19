@@ -20,6 +20,11 @@ const routes = {
 			'enabled': true,
 			'method': 'GET',
 			'path': '/build/:path?'
+		},
+		'static': {
+			'enabled': true,
+			'method': 'GET',
+			'path': '/static/:path?'
 		}
 	}
 };
