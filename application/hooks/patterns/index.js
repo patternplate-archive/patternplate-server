@@ -130,9 +130,8 @@ exports['default'] = {
 		return regeneratorRuntime.async(function startPatternHook$(context$1$0) {
 			while (1) switch (context$1$0.prev = context$1$0.next) {
 				case 0:
-
-					if (this.configuration.cache && application.configuration.mode === 'server') {
-						application.patternCache = (0, _patternCache2['default'])();
+					if (this.configuration.cache && application.configuration.mode !== 'console') {
+						application.patternCache = (0, _patternCache2['default'])(this.configuration.cache);
 						patternCwd = application.runtime.patterncwd || application.runtime.cwd;
 						patternRoot = (0, _path.resolve)(patternCwd, this.configuration.path);
 

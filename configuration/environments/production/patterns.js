@@ -10,6 +10,8 @@ exports['default'] = {
 			'transforms': ['browserify', 'uglify']
 		}
 	},
-	'cache': true
+	'cache': {
+		'max': 250000
+	}
 };
 module.exports = exports['default'];

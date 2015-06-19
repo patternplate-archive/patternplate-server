@@ -29,12 +29,10 @@ export default {
 	'wait': true,
 	'after': ['hooks:log:start:after'],
 	'start': async function startPatternHook (application) {
-
-		if (this.configuration.cache && application.configuration.mode === 'server') {
-			application.patternCache = patternCache();
+		if (this.configuration.cache && application.configuration.mode !== 'console') {
+			application.patternCache = patternCache(this.configuration.cache);
 			let patternCwd = application.runtime.patterncwd || application.runtime.cwd;
 			let patternRoot = resolve(patternCwd, this.configuration.path);
-
 			populate(application.patternCache, patternRoot, this);
 		}
 

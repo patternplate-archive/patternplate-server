@@ -5,5 +5,7 @@ export default {
 			'transforms': ['browserify', 'uglify']
 		}
 	},
-	'cache': true
+	'cache': {
+		'max': 250000
+	}
 };

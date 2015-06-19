@@ -66,7 +66,6 @@ function browserifyTransformFactory (application) {
 
 
 		const bundler = browserify(stream, configuration.opts);
-
 		let dependencies = resolveDependencies(file);
 
 		dependencies.forEach(function requireDependency (dependency) {
