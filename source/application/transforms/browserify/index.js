@@ -27,12 +27,13 @@ function resolveDependencies (file) {
 		let basedir = dirname(dependency.path);
 		let opts = {expose, basedir};
 
-		let stream = new Vinyl({'contents': new Buffer(dependency.buffer)});
+		let contents = Buffer.isBuffer(dependency.source) ? dependency.source : new Buffer(dependency.source);
+		let stream = new Vinyl({contents});
 
 		if (dependency) {
 			data = data
 				.concat(resolveDependencies(dependency))
-				.concat({stream, opts});
+				.concat({stream, opts, contents });
 		}
 	}
 
@@ -86,7 +87,7 @@ function browserifyTransformFactory (application) {
 
 			demoDependencies.forEach(function requireDependency (dependency) {
 				demoBundler.exclude(dependency.opts.expose);
-				demoBundler.require(dependency.stream, dependency.opts);
+				demoBundler.require(dependency.stream, Object.assign(dependency.opts));
 			});
 
 			for (let transformName of Object.keys(transforms)) {

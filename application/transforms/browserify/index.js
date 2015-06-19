@@ -59,10 +59,11 @@ function resolveDependencies(file) {
 			var basedir = (0, _path.dirname)(dependency.path);
 			var opts = { expose: expose, basedir: basedir };
 
-			var stream = new _vinyl2['default']({ 'contents': new Buffer(dependency.buffer) });
+			var contents = Buffer.isBuffer(dependency.source) ? dependency.source : new Buffer(dependency.source);
+			var stream = new _vinyl2['default']({ contents: contents });
 
 			if (dependency) {
-				data = data.concat(resolveDependencies(dependency)).concat({ stream: stream, opts: opts });
+				data = data.concat(resolveDependencies(dependency)).concat({ stream: stream, opts: opts, contents: contents });
 			}
 		}
 	} catch (err) {
@@ -183,7 +184,7 @@ function browserifyTransformFactory(application) {
 
 									demoDependencies.forEach(function requireDependency(dependency) {
 										demoBundler.exclude(dependency.opts.expose);
-										demoBundler.require(dependency.stream, dependency.opts);
+										demoBundler.require(dependency.stream, Object.assign(dependency.opts));
 									});
 
 									_iteratorNormalCompletion3 = true;
