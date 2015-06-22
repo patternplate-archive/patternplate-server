@@ -283,9 +283,12 @@ function browserifyTransformFactory(application) {
 				case 40:
 
 					Object.assign(file, transformed);
+					file['in'] = configuration.inFormat;
+					file.out = configuration.outFormat;
+
 					return context$2$0.abrupt('return', file);
 
-				case 42:
+				case 44:
 				case 'end':
 					return context$2$0.stop();
 			}

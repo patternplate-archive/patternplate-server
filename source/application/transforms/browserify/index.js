@@ -117,6 +117,9 @@ function browserifyTransformFactory (application) {
 		}
 
 		Object.assign(file, transformed);
+		file.in = configuration.inFormat;
+		file.out = configuration.outFormat;
+
 		return file;
 	};
 }
