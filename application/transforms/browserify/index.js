@@ -93,7 +93,7 @@ function browserifyTransformFactory(application) {
 
 			while (1) switch (context$2$0.prev = context$2$0.next) {
 				case 0:
-					contents = new Buffer(file.buffer);
+					contents = new Buffer(file.source);
 					stream = new _vinyl2['default']({ contents: contents });
 					transformNames = Object.keys(configuration.transforms).map(function (transformName) {
 						return configuration.transforms[transformName].enabled ? transformName : false;
@@ -177,7 +177,7 @@ function browserifyTransformFactory(application) {
 						return regeneratorRuntime.async(function callee$2$0$(context$3$0) {
 							while (1) switch (context$3$0.prev = context$3$0.next) {
 								case 0:
-									demoStream = new _vinyl2['default']({ 'contents': new Buffer(demo.buffer) });
+									demoStream = new _vinyl2['default']({ 'contents': new Buffer(demo.source) });
 									demoBundler = (0, _browserify2['default'])(demoStream, configuration.opts);
 									Pattern = Object.assign({}, file);
 									demoDependencies = resolveDependencies({ 'dependencies': { Pattern: Pattern } });
@@ -194,7 +194,7 @@ function browserifyTransformFactory(application) {
 									for (_iterator3 = Object.keys(transforms)[Symbol.iterator](); !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
 										transformName = _step3.value;
 
-										demoBundler.transform(transforms[transformName]);
+										demoBundler.transform.apply(demoBundler, _toConsumableArray(transforms[transformName]));
 									}
 
 									context$3$0.next = 16;

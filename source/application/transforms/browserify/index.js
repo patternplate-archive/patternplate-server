@@ -42,7 +42,7 @@ function resolveDependencies (file) {
 
 function browserifyTransformFactory (application) {
 	return async function browserifyTransform (file, demo, configuration) {
-		let contents = new Buffer(file.buffer);
+		let contents = new Buffer(file.source);
 		let stream = new Vinyl({contents});
 
 		const transformNames = Object.keys(configuration.transforms)
@@ -64,7 +64,6 @@ function browserifyTransformFactory (application) {
 			return results;
 		}, {});
 
-
 		const bundler = browserify(stream, configuration.opts);
 		let dependencies = resolveDependencies(file);
 
@@ -78,7 +77,7 @@ function browserifyTransformFactory (application) {
 		}
 
 		if (demo) {
-			let demoStream = new Vinyl({'contents': new Buffer(demo.buffer)});
+			let demoStream = new Vinyl({'contents': new Buffer(demo.source)});
 			const demoBundler = browserify(demoStream, configuration.opts);
 
 			let Pattern = Object.assign({}, file);
@@ -90,7 +89,7 @@ function browserifyTransformFactory (application) {
 			});
 
 			for (let transformName of Object.keys(transforms)) {
-				demoBundler.transform(transforms[transformName]);
+				demoBundler.transform(...transforms[transformName]);
 			}
 
 			let demoTransformed;

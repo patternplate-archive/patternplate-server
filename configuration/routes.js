@@ -5,6 +5,17 @@ Object.defineProperty(exports, '__esModule', {
 });
 var routes = {
 	'enabled': {
+		'index': {
+			'enabled': true,
+			'path': '/'
+		},
+		'meta': {
+			'enabled': true,
+			'path': '/meta/',
+			'options': {
+				'key': 'patterns'
+			}
+		},
 		'pattern': {
 			'enabled': true,
 			'path': '/pattern/:id+',
@@ -13,23 +24,17 @@ var routes = {
 				'maxage': 3600000
 			}
 		},
-		'meta': {
+		'demo': {
 			'enabled': true,
-			'method': 'GET',
-			'path': '/meta/',
-			'options': {
-				'key': 'patterns'
-			}
+			'path': '/demo/:id+'
 		},
 		'build': {
 			'enabled': true,
-			'method': 'GET',
-			'path': '/build/:path?'
+			'path': '/build/:path+'
 		},
 		'static': {
 			'enabled': true,
-			'method': 'GET',
-			'path': '/static/:path?'
+			'path': '/static/:path+'
 		}
 	}
 };

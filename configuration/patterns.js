@@ -17,6 +17,11 @@ exports['default'] = {
 			'transforms': ['less'],
 			'build': true
 		},
+		'css': {
+			'name': 'Style',
+			'transforms': ['less'],
+			'build': true
+		},
 		'html': {
 			'name': 'Markup',
 			'transforms': ['react-jsx']

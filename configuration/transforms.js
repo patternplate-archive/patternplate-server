@@ -38,7 +38,14 @@ exports['default'] = {
 			'envify': {
 				'enabled': true,
 				'opts': {
+					'global': true,
 					'_': 'purge'
+				}
+			},
+			'unreachable-branch-transform': {
+				'enabled': true,
+				'opts': {
+					'global': true
 				}
 			}
 		}

@@ -784,7 +784,7 @@ var Pattern = (function () {
 						configuration = (0, _lodashMerge2['default'])({}, applicationConfig, environmentConfig);
 						context$2$0.prev = 111;
 						context$2$0.next = 114;
-						return regeneratorRuntime.awrap(fn(file, demos[formatConfig.name], configuration, forced));
+						return regeneratorRuntime.awrap(fn(Object.assign({}, file), demos[formatConfig.name], configuration, forced));
 
 					case 114:
 						file = context$2$0.sent;

@@ -1,104 +1,126 @@
-import {resolve, join} from 'path';
+import {resolve, dirname, basename, extname} from 'path';
 
-import fs from 'q-io/fs';
+import getPatterns from '../../library/utilities/get-patterns';
+import getWrapper from '../../library/utilities/get-wrapper';
+
+import layout from '../layouts';
 
 export default function patternRouteFactory (application, configuration) {
 	let patterns = application.configuration[configuration.options.key] || {};
 	let transforms = application.configuration.transforms || {};
-
 	const config = { patterns, transforms };
 
 	return async function patternRoute () {
-		this.type = 'json';
-
-		var id = this.params.id;
-		let pattern;
-		let response;
-		let mtime;
-
 		let cwd = application.runtime.patterncwd || application.runtime.cwd;
 		let basePath = resolve(cwd, config.patterns.path);
-		let path = resolve(basePath, id);
+		let id = this.params.id;
 
-		if (await fs.contains(basePath, path) === false) {
-			this.throw(404, `Could not find pattern ${id}`, {'error': true, 'message': `Could not find ${id}`});
+		let patternResults;
+
+		let base;
+		let resultName;
+		let type = this.accepts('text', 'json', 'html');
+		let extension = extname(this.path);
+
+		if (extension) {
+			type = extension.slice(1);
+		}
+
+		if (extension) {
+			base = basename(this.path, extension);
+			let format = config.patterns.formats[type] || {};
+			resultName = format.name || '';
+
+			if (!resultName) {
+				this.throw(404);
+			}
+
+			id = dirname(id);
 		}
 
 		if (application.cache && application.runtime.env === 'production') {
-			response = application.cache.get(id);
+			patternResults = application.cache.get(id);
 		}
 
-		let search = resolve(path, 'pattern.json');
-
-		if (!response) {
-			if (await fs.exists(search)) {
-				// Single pattern
-				try {
-					pattern = await application.pattern.factory(id, basePath, config, application.transforms);
-					await pattern.read();
-					await pattern.transform();
-				} catch (err) {
-					this.throw(500, err);
-				}
-
-				response = pattern;
-				mtime = response.getLastModified();
-			} else {
-				// Check if fs.list view is applicable
-				if (await fs.isDirectory(path) === false) {
-					return;
-				}
-
-				let files = await fs.list(path);
-				let patterns = [];
-
-				response = [];
-
-				for (let file of files) {
-					let search = resolve(path, file, 'pattern.json');
-
-					if (await fs.exists(search)) {
-						patterns.push(file);
-					}
-				}
-
-				for (let directory of patterns) {
-					let patternID = join(id, directory);
-
-					try {
-						let pattern = await application.pattern.factory(patternID, basePath, config, application.transforms);
-						response.push(pattern);
-						await pattern.read();
-						await pattern.transform();
-					} catch (err) {
-						this.throw(500, err);
-					}
-				}
-
-				mtime = response.map((item) => item.getLastModified()).sort((a, b) => b - a)[0];
+		if (!patternResults) {
+			try {
+				patternResults = await getPatterns(id, basePath, config, application.pattern.factory, application.transforms);
+			} catch (err) {
+				this.throw(500, err);
 			}
 		}
 
-		response = Array.isArray(response) ? response : [response];
-
-		response = response.map((resp) => {
-			return typeof resp.toJSON === 'function' ? resp.toJSON() : resp;
-		});
-
 		if (application.cache && application.runtime.env === 'production') {
-			application.cache.set(id, response);
+			application.cache.set(id, patternResults.results);
 
-			response.forEach(function cacheResponseItems (resp) {
+			patternResults.results.forEach(function cacheResponseItems (resp) {
 				application.cache.set(resp.id, resp);
 			});
 		}
 
-		response = response.length === 1 ? response[0] : response;
+		this.set('Last-Modified', patternResults.mtime.toUTCString());
+		this.set('Cache-Control', `maxage=${configuration.options.maxage | 0}`);
+		let result = patternResults.results.length <= 1 ? patternResults.results[0] : patternResults.results;
 
-		if (mtime) {
-			this.set('Last-Modified', mtime.toUTCString());
+		switch (type) {
+			case 'json':
+				break;
+			default:
+				if (Array.isArray(result)) {
+					this.throw(404);
+				}
+				this.type = type;
 		}
-		this.set('Cache-Control', `maxage=${configuration.options.maxage|0}`);
-		this.body = JSON.stringify(response);
+
+		switch(type) {
+			case 'json':
+				this.body = result;
+				break;
+			case 'css':
+			case 'js':
+				let environment = result.results[base];
+
+				if (!environment) {
+					this.throw(404);
+				}
+
+				let file = environment[resultName];
+
+				if (!file) {
+					this.throw(404);
+				}
+
+				this.body = file.demoBuffer || file.buffer;
+				break;
+			default:
+				let templateData = {
+					'title': id,
+					'style': [],
+					'script': [],
+					'markup': []
+				};
+
+				for (let environmentName of Object.keys(result.results)) {
+					let environment = result.results[environmentName];
+					let envConfig = result.environments[environmentName].manifest || {};
+					let wrapper = getWrapper(envConfig['conditional-comment']);
+					let blueprint = {'environment': environmentName, 'content': '', wrapper};
+
+					for (let resultType of Object.keys(environment)) {
+						let result = environment[resultType];
+						let templateKey = resultType.toLowerCase();
+						let content = result.demoBuffer || result.buffer;
+						let uri = `${this.path}/${environmentName}.${result.out}`;
+						let templateSectionData = Object.assign({}, blueprint, {content, uri});
+
+						templateData[templateKey] = Array.isArray(templateData[templateKey]) ?
+							templateData[templateKey].concat([templateSectionData]) :
+							[templateSectionData];
+					}
+				}
+
+				this.body = layout(templateData);
+				break;
+		}
 	};
 }

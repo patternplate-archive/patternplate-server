@@ -140,8 +140,8 @@ export class Pattern {
 					'format': ext.replace('.', ''),
 					'fs': stat,
 					'path': file,
-					'source': buffer,
-				}
+					'source': buffer
+				};
 
 				if (this.cache) {
 					this.cache.set(file, mtime, data);
@@ -275,7 +275,7 @@ export class Pattern {
 					let configuration = merge({}, applicationConfig, environmentConfig);
 
 					try {
-						file = await fn(file, demos[formatConfig.name], configuration, forced);
+						file = await fn(Object.assign({}, file), demos[formatConfig.name], configuration, forced);
 					} catch (error) {
 						error.pattern = this.id;
 						error.file = error.file || file.path;
@@ -285,7 +285,7 @@ export class Pattern {
 					}
 				}
 
-				if (! this.results[environmentName]) {
+				if (!this.results[environmentName]) {
 					this.results[environmentName] = {};
 				}
 
