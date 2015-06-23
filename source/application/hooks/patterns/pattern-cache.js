@@ -31,14 +31,14 @@ function patternCacheFactory (...args) {
 			let stored = cache.get(key);
 
 			if (typeof stored === 'undefined') {
-				return;
+				return null;
 			}
 
 			let {'mtime': storedMtime, value} = stored;
 
 			if (new Date(storedMtime) < new Date(mtime)) {
 				cache.del(key);
-				return;
+				return null;
 			}
 
 			return value;

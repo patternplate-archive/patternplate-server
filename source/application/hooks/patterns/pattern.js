@@ -1,8 +1,6 @@
-/* eslint ignore */
 import {resolve, basename, extname, dirname, join} from 'path';
 
 import qfs from 'q-io/fs';
-import pascalCase from 'pascal-case';
 import semver from 'semver';
 import merge from 'lodash.merge';
 import minimatch from 'minimatch';
@@ -15,13 +13,14 @@ export class Pattern {
 	results = {};
 	mtime = null;
 
-	constructor(id, base, config = {}, transforms = {}, cache = null) {
+	constructor(id, base, config = {}, transforms = {}, filters = {}, cache = null) {
 		this.id = id;
 		this.cache = cache;
 		this.base = base;
 		this.path = Pattern.resolve(this.base, this.id);
 		this.config = config;
 		this.transforms = transforms;
+		this.filters = filters;
 		this.environments = {
 			'index': {
 				'manifest': { 'name': 'index' }
@@ -43,14 +42,21 @@ export class Pattern {
 		}
 
 		let environments = await qfs.listTree(environmentsPath);
-		let manifestPaths = environments.filter((environemnt) => basename(environemnt) === 'pattern.json');
+		let manifestPaths = environments
+			.filter((environment) => basename(environment) === 'pattern.json');
 
 		for (let manifestPath of manifestPaths) {
 			let manifest = JSON.parse(await qfs.read(manifestPath));
-			let environemntName = manifest.name || dirname(manifestPath);
-			results[environemntName] = { manifest };
-		}
+			let environmentName = manifest.name || dirname(manifestPath);
 
+			if (this.filters.environments && this.filters.environments.length > 0) {
+				if (this.filters.environments.includes(environmentName)) {
+					results[environmentName] = { manifest };
+				}
+			} else {
+				results[environmentName] = { manifest };
+			}
+		}
 		return results;
 	}
 
@@ -66,7 +72,7 @@ export class Pattern {
 
 		let manifestPath = resolve(this.path, 'pattern.json');
 
-		if (! await fs.exists(manifestPath)) {
+		if (!await fs.exists(manifestPath)) {
 			throw new Error(`Can not read pattern.json from ${this.path}, it does not exist.`, {
 				'fileName': this.path,
 				'pattern': this.id
@@ -99,11 +105,11 @@ export class Pattern {
 				.filter((item) => item !== this.id);
 
 			if (this.manifest.include) {
-				list = list.filter((item) => minimatch(item, this.manifest.include.join('|')))
+				list = list.filter((item) => minimatch(item, this.manifest.include.join('|')));
 			}
 
 			if (this.manifest.exclude) {
-				list = list.filter((item) => !minimatch(item, this.manifest.exclude.join('|')))
+				list = list.filter((item) => !minimatch(item, this.manifest.exclude.join('|')));
 			}
 
 			this.manifest.patterns = list.reduce((results, item) => Object.assign(results, {[item]: `${item}@${range}`}), {});
@@ -169,11 +175,11 @@ export class Pattern {
 			}
 
 			let patternID = join(dirname(patternIDString), patternBaseNameFragments[0]);
-			let pattern = new Pattern(patternID, this.base, this.config, this.transforms, this.cache);
+			let pattern = new Pattern(patternID, this.base, this.config, this.transforms, this.filters, this.cache);
 			this.dependencies[patternName] = await pattern.read(pattern.path);
 
-			if (! semver.satisfies(pattern.manifest.version, patternRange)) {
-				if (! this.isEnvironment ) {
+			if (!semver.satisfies(pattern.manifest.version, patternRange)) {
+				if (!this.isEnvironment) {
 					throw new Error(`${pattern.id} at version ${pattern.manifest.version} does not satisfy range ${patternRange} specified by ${this.id}.`, {
 						'file': pattern.path,
 						'pattern': this.id
@@ -187,7 +193,7 @@ export class Pattern {
 
 		for ( let fileName in this.files ) {
 			let file = this.files[fileName];
-			file.dependencies = {}
+			file.dependencies = {};
 
 			if ( file.basename === 'demo' ) {
 				continue;
@@ -267,21 +273,25 @@ export class Pattern {
 				}
 
 				let transforms = formatConfig.transforms || [];
+				let lastTransform = this.config.transforms[transforms[transforms.length - 1]] || {};
 
-				for (let transform of transforms) {
-					let fn = this.transforms[transform];
-					let environmentConfig = environment[transform] || {};
-					let applicationConfig = this.config.transforms[transform] || {};
-					let configuration = merge({}, applicationConfig, environmentConfig);
+				// Skip file transform if format filters present and not matching
+				if (!this.filters.formats || !this.filters.formats.length || this.filters.formats.includes(lastTransform.outFormat)) {
+					for (let transform of transforms) {
+						let fn = this.transforms[transform];
+						let environmentConfig = environment[transform] || {};
+						let applicationConfig = this.config.transforms[transform] || {};
+						let configuration = merge({}, applicationConfig, environmentConfig);
 
-					try {
-						file = await fn(Object.assign({}, file), demos[formatConfig.name], configuration, forced);
-					} catch (error) {
-						error.pattern = this.id;
-						error.file = error.file || file.path;
-						error.transform = transform;
-						console.error(`Error while transforming file "${error.file}" of pattern "${error.pattern}" with transform "${error.transform}".`);
-						throw error;
+						try {
+							file = await fn(Object.assign({}, file), demos[formatConfig.name], configuration, forced);
+						} catch (error) {
+							error.pattern = this.id;
+							error.file = error.file || file.path;
+							error.transform = transform;
+							console.error(`Error while transforming file "${error.file}" of pattern "${error.pattern}" with transform "${error.transform}".`);
+							throw error;
+						}
 					}
 				}
 
@@ -289,6 +299,7 @@ export class Pattern {
 					this.results[environmentName] = {};
 				}
 
+				file.out = file.out || lastTransform.outFormat || file.format;
 				this.results[environmentName][formatConfig.name] = file;
 			}
 		}
@@ -334,7 +345,7 @@ export class Pattern {
 						'demoBuffer': result.demoBuffer ? result.demoBuffer.toString('utf-8') : '',
 						'in': result.in,
 						'out': result.out
-					}
+					};
 				}
 		}
 

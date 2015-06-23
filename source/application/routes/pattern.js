@@ -38,13 +38,34 @@ export default function patternRouteFactory (application, configuration) {
 			id = dirname(id);
 		}
 
+		let filters = {
+			'environments': [],
+			'formats': []
+		};
+
+		switch(type) {
+			case 'json':
+				filters.environments.push('index');
+				break;
+			case 'css':
+				filters.environments.push(base);
+				filters.formats.push(type);
+				break;
+			case 'js':
+				filters.environments.push(base);
+				filters.formats.push(type);
+				break;
+			default: // html/text
+				filters.formats.push('html');
+		}
+
 		if (application.cache && application.runtime.env === 'production') {
 			patternResults = application.cache.get(id);
 		}
 
 		if (!patternResults) {
 			try {
-				patternResults = await getPatterns(id, basePath, config, application.pattern.factory, application.transforms);
+				patternResults = await getPatterns(id, basePath, config, application.pattern.factory, application.transforms, filters);
 			} catch (err) {
 				this.throw(500, err);
 			}
@@ -92,7 +113,7 @@ export default function patternRouteFactory (application, configuration) {
 
 				this.body = file.demoBuffer || file.buffer;
 				break;
-			default:
+			default: // html/text
 				let templateData = {
 					'title': id,
 					'style': [],

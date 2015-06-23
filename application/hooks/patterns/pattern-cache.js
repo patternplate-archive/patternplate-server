@@ -55,7 +55,7 @@ function patternCacheFactory() {
 				var stored = cache.get(key);
 
 				if (typeof stored === 'undefined') {
-					return;
+					return null;
 				}
 
 				var storedMtime = stored['mtime'];
@@ -63,7 +63,7 @@ function patternCacheFactory() {
 
 				if (new Date(storedMtime) < new Date(mtime)) {
 					cache.del(key);
-					return;
+					return null;
 				}
 
 				return value;

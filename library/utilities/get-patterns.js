@@ -12,7 +12,7 @@ var _qIoFs = require('q-io/fs');
 
 var _qIoFs2 = _interopRequireDefault(_qIoFs);
 
-function getPatterns(id, base, config, factory, transforms) {
+function getPatterns(id, base, config, factory, transforms, filters) {
 	var patterns, response, path, search, pattern, files, matches, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, file, _search, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, directory, patternID, mtime;
 
 	return regeneratorRuntime.async(function getPatterns$(context$1$0) {
@@ -33,7 +33,7 @@ function getPatterns(id, base, config, factory, transforms) {
 
 				context$1$0.prev = 7;
 				context$1$0.next = 10;
-				return regeneratorRuntime.awrap(factory(id, base, config, transforms));
+				return regeneratorRuntime.awrap(factory(id, base, config, transforms, filters));
 
 			case 10:
 				pattern = context$1$0.sent;
@@ -160,7 +160,7 @@ function getPatterns(id, base, config, factory, transforms) {
 				patternID = (0, _path.join)(id, directory);
 				context$1$0.prev = 69;
 				context$1$0.next = 72;
-				return regeneratorRuntime.awrap(factory(patternID, base, config, transforms));
+				return regeneratorRuntime.awrap(factory(patternID, base, config, transforms, filters));
 
 			case 72:
 				pattern = context$1$0.sent;

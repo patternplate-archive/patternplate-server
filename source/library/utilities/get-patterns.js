@@ -1,7 +1,7 @@
 import {resolve, join} from 'path';
 import fs from 'q-io/fs';
 
-async function getPatterns(id, base, config, factory, transforms) {
+async function getPatterns(id, base, config, factory, transforms, filters) {
 	let patterns = [];
 	let response;
 	let path = resolve(base, id);
@@ -9,7 +9,7 @@ async function getPatterns(id, base, config, factory, transforms) {
 
 	if (await fs.exists(search)) {
 		try {
-			let pattern = await factory(id, base, config, transforms);
+			let pattern = await factory(id, base, config, transforms, filters);
 			await pattern.read();
 			await pattern.transform();
 			patterns.push(pattern);
@@ -35,7 +35,7 @@ async function getPatterns(id, base, config, factory, transforms) {
 			let patternID = join(id, directory);
 
 			try {
-				let pattern = await factory(patternID, base, config, transforms);
+				let pattern = await factory(patternID, base, config, transforms, filters);
 				patterns.push(pattern);
 				await pattern.read();
 				await pattern.transform();
