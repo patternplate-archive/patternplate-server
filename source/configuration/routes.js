@@ -27,7 +27,7 @@ const routes = {
 		},
 		'build': {
 			'enabled': true,
-			'path': '/build/:path+'
+			'path': '/build/:path*'
 		},
 		'static': {
 			'options': {
