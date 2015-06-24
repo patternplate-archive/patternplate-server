@@ -113,7 +113,7 @@ function populate(patternCache, root, hook) {
 
 			case 41:
 
-				hook.log.info('Populated pattern cache from ' + root + '. Size ' + Math.round(patternCache.length / 1024) + ' MB at ' + cache.itemCount + ' items.');
+				hook.log.info('Populated pattern cache from ' + root + '. Size ' + Math.round(patternCache.length / 1024) + ' MB at ' + patternCache.itemCount + ' items.');
 
 			case 42:
 			case 'end':
