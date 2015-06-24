@@ -3,6 +3,9 @@
 Object.defineProperty(exports, '__esModule', {
 	value: true
 });
+
+var _path = require('path');
+
 var routes = {
 	'enabled': {
 		'index': {
@@ -30,11 +33,12 @@ var routes = {
 		},
 		'build': {
 			'enabled': true,
-			'path': '/build/:path?'
+			'path': '/build/:path+'
 		},
 		'static': {
-			'enabled': true,
-			'path': '/static/:path'
+			'options': {
+				'root': [(0, _path.resolve)(__dirname, '../', 'static'), (0, _path.resolve)(process.cwd(), 'static')]
+			}
 		}
 	}
 };

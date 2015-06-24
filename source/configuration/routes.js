@@ -1,3 +1,5 @@
+import {resolve} from 'path';
+
 const routes = {
 	'enabled': {
 		'index': {
@@ -25,11 +27,15 @@ const routes = {
 		},
 		'build': {
 			'enabled': true,
-			'path': '/build/:path?'
+			'path': '/build/:path+'
 		},
 		'static': {
-			'enabled': true,
-			'path': '/static/:path'
+			'options': {
+				'root': [
+					resolve(__dirname, '../', 'static'),
+					resolve(process.cwd(), 'static')
+				]
+			}
 		}
 	}
 };
