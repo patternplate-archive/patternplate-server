@@ -7,13 +7,13 @@ import patternCache from './pattern-cache';
 import patternFactory from './pattern';
 import {Pattern} from './pattern';
 
-async function populate (cache, root, hook) {
+async function populate (patternCache, root, hook) {
 	hook.log.info(`Pattern cache is enabled, populating it from ${root}`);
-	/*let list = await fs.listTree(root, (path) => basename(path) === 'pattern.json');
+	let list = await fs.listTree(root, (path) => basename(path) === 'pattern.json');
 
 	for (let manifest of list) {
 		let patternID = await fs.relative(root, fs.directory(manifest));
-		let pattern = new Pattern(patternID, root, {}, {}, {}, cache);
+		let pattern = new Pattern(patternID, root, {}, {}, {}, patternCache);
 		try {
 			await pattern.read();
 		} catch (err) {
@@ -22,7 +22,7 @@ async function populate (cache, root, hook) {
 		}
 	}
 
-	hook.log.info(`Populated pattern cache from ${root}. Size ${Math.round(cache.length / 1024)} MB at ${cache.itemCount} items.`); */
+	hook.log.info(`Populated pattern cache from ${root}. Size ${Math.round(patternCache.length / 1024)} MB at ${cache.itemCount} items.`);
 }
 
 export default {

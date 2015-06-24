@@ -60,7 +60,7 @@ export default function patternRouteFactory (application, configuration) {
 		}
 
 		if (application.cache && application.runtime.env === 'production') {
-			patternResults = application.cache.get(id);
+			patternResults = application.cache.get(`${id}@${filters.environments.join(',')}`);
 		}
 
 		if (!patternResults) {
@@ -71,11 +71,15 @@ export default function patternRouteFactory (application, configuration) {
 			}
 		}
 
-		if (application.cache && application.runtime.env === 'production') {
-			application.cache.set(id, patternResults.results);
+		if (application.cache && application.runtime.env === 'production' && !patternResults.cached) {
+			application.cache.set(`${id}@${filters.environments.join(',')}`, Object.assign({}, patternResults, { 'cached': true }));
 
 			patternResults.results.forEach(function cacheResponseItems (resp) {
-				application.cache.set(resp.id, resp);
+				application.cache.set(`${id}@${filters.environments.join(',')}`, {
+					'mtime': patternResults.mtime,
+					'results': [resp],
+					'cached': true
+				});
 			});
 		}
 
