@@ -21,6 +21,10 @@ const routes = {
 				'maxage': 3600000
 			}
 		},
+		'script': {
+			'enabled': true,
+			'path': '/script/:path+'
+		},
 		'demo': {
 			'enabled': true,
 			'path': '/demo/:id+'

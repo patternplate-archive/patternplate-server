@@ -6,10 +6,14 @@
   "scripts": {
     "start": "node --harmony binary/patternplate-server.js",
     "console": "boilerplate-console",
-    "build": "npm run babel",
-    "watch": "npm run babel -- --watch",
+    "build": "npm run clean && npm run build-server && npm run build-assets",
+    "build-server": "npm run babel",
+    "build-assets": "browserify assets/script/content.js | uglifyjs > assets/script/content.bundle.js",
+    "watch": "npm run watch-assets & npm run watch-server",
+    "watch-server": "npm run babel -- --watch",
+    "watch-assets": "chokidar 'assets/script/**/*' --ignore '**.bundle.js' -c 'npm run build-assets'",
     "babel": "npm run clean && babel source --out-dir ./",
-    "clean": "rm -rf application binary configuration library"
+    "clean": "rm -rf application binary configuration library assets"
   },
   "bin": {
     "patternplate-server": "binary/patternplate-server.js"
@@ -72,6 +76,7 @@
     "react": "^0.13.2",
     "react-jsx": "^0.13.0",
     "require-all": "^1.0.0",
+    "rubber-band": "git+ssh://git@git.sinnerschrader.com:frontend/rubber-band#v0.1.1",
     "semver": "^4.3.6",
     "through": "^2.3.7",
     "uglify-js": "^2.4.23",
@@ -82,6 +87,7 @@
   "devDependencies": {
     "babel": "^5.2.17",
     "babel-eslint": "^3.0.1",
+    "chokidar-cli": "^0.3.0",
     "eslint": "^0.20.0"
   }
 }

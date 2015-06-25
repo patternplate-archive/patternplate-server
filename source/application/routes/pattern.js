@@ -14,8 +14,7 @@ export default function patternRouteFactory (application, configuration) {
 		let cwd = application.runtime.patterncwd || application.runtime.cwd;
 		let basePath = resolve(cwd, config.patterns.path);
 		let id = this.params.id;
-		let host = application.configuration.server.host;
-		let port = application.configuration.server.port;
+
 
 		let patternResults;
 
@@ -120,11 +119,23 @@ export default function patternRouteFactory (application, configuration) {
 				this.body = file.demoBuffer || file.buffer;
 				break;
 			default: // html/text
+				let hostName = application.configuration.server.host;
+				let port = application.configuration.server.port;
+				let host = `${hostName}:${port}`;
+
 				let templateData = {
 					'title': id,
 					'style': [],
 					'script': [],
-					'markup': []
+					'markup': [],
+					'route': function(name, params) {
+						name = name || 'pattern';
+						
+						return encodeURI(
+							decodeURI(`//${host}${application.router.url(name, params)}`)
+							.replace(/\*|\%2B|\?/g, '')
+						);
+					}
 				};
 
 				for (let environmentName of Object.keys(result.results)) {
@@ -137,7 +148,7 @@ export default function patternRouteFactory (application, configuration) {
 						let result = environment[resultType];
 						let templateKey = resultType.toLowerCase();
 						let content = result.demoBuffer || result.buffer;
-						let uri = `//${host}:${port}${this.path}/${environmentName}.${result.out}`;
+						let uri = `${this.params.id}/${environmentName}.${result.out}`;
 						let templateSectionData = Object.assign({}, blueprint, {content, uri});
 
 						templateData[templateKey] = Array.isArray(templateData[templateKey]) ?

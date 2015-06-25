@@ -2,6 +2,7 @@
 	"name": "legacy",
 	"version": "0.1.0",
 	"exclude": ["ecospheres/**"],
+	"conditional-comment": "lte IE 8",
 	"environment": {
 		"browserify": {
 			"transforms": {
