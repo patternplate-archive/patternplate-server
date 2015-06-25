@@ -27,7 +27,7 @@ function patternRouteFactory(application, configuration) {
 	var config = { patterns: patterns, transforms: transforms };
 
 	return function patternRoute() {
-		var cwd, basePath, id, patternResults, base, resultName, type, extension, format, filters, result, environment, file, templateData, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, environmentName, _environment, envConfig, wrapper, blueprint, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, resultType, _result, templateKey, content, uri, templateSectionData;
+		var cwd, basePath, id, host, port, patternResults, base, resultName, type, extension, format, filters, result, environment, file, templateData, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, environmentName, _environment, envConfig, wrapper, blueprint, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, resultType, _result, templateKey, content, uri, templateSectionData;
 
 		return regeneratorRuntime.async(function patternRoute$(context$2$0) {
 			while (1) switch (context$2$0.prev = context$2$0.next) {
@@ -35,6 +35,8 @@ function patternRouteFactory(application, configuration) {
 					cwd = application.runtime.patterncwd || application.runtime.cwd;
 					basePath = (0, _path.resolve)(cwd, config.patterns.path);
 					id = this.params.id;
+					host = application.configuration.server.host;
+					port = application.configuration.server.port;
 					patternResults = undefined;
 					base = undefined;
 					resultName = undefined;
@@ -63,54 +65,54 @@ function patternRouteFactory(application, configuration) {
 						'formats': []
 					};
 					context$2$0.t0 = type;
-					context$2$0.next = context$2$0.t0 === 'json' ? 14 : context$2$0.t0 === 'css' ? 16 : context$2$0.t0 === 'js' ? 19 : 22;
+					context$2$0.next = context$2$0.t0 === 'json' ? 16 : context$2$0.t0 === 'css' ? 18 : context$2$0.t0 === 'js' ? 21 : 24;
 					break;
 
-				case 14:
-					filters.environments.push('index');
-					return context$2$0.abrupt('break', 23);
-
 				case 16:
+					filters.environments.push('index');
+					return context$2$0.abrupt('break', 25);
+
+				case 18:
 					filters.environments.push(base);
 					filters.formats.push(type);
-					return context$2$0.abrupt('break', 23);
+					return context$2$0.abrupt('break', 25);
 
-				case 19:
+				case 21:
 					filters.environments.push(base);
 					filters.formats.push(type);
-					return context$2$0.abrupt('break', 23);
+					return context$2$0.abrupt('break', 25);
 
-				case 22:
+				case 24:
 					// html/text
 					filters.formats.push('html');
 
-				case 23:
+				case 25:
 
 					if (application.cache && application.runtime.env === 'production') {
 						patternResults = application.cache.get('' + id + '@' + filters.environments.join(','));
 					}
 
 					if (patternResults) {
-						context$2$0.next = 34;
+						context$2$0.next = 36;
 						break;
 					}
 
-					context$2$0.prev = 25;
-					context$2$0.next = 28;
+					context$2$0.prev = 27;
+					context$2$0.next = 30;
 					return regeneratorRuntime.awrap((0, _libraryUtilitiesGetPatterns2['default'])(id, basePath, config, application.pattern.factory, application.transforms, filters));
 
-				case 28:
+				case 30:
 					patternResults = context$2$0.sent;
-					context$2$0.next = 34;
+					context$2$0.next = 36;
 					break;
 
-				case 31:
-					context$2$0.prev = 31;
-					context$2$0.t1 = context$2$0['catch'](25);
+				case 33:
+					context$2$0.prev = 33;
+					context$2$0.t1 = context$2$0['catch'](27);
 
 					this['throw'](500, context$2$0.t1);
 
-				case 34:
+				case 36:
 
 					if (application.cache && application.runtime.env === 'production' && !patternResults.cached) {
 						application.cache.set('' + id + '@' + filters.environments.join(','), Object.assign({}, patternResults, { 'cached': true }));
@@ -128,28 +130,28 @@ function patternRouteFactory(application, configuration) {
 					this.set('Cache-Control', 'maxage=' + (configuration.options.maxage | 0));
 					result = patternResults.results.length <= 1 ? patternResults.results[0] : patternResults.results;
 					context$2$0.t2 = type;
-					context$2$0.next = context$2$0.t2 === 'json' ? 41 : 42;
+					context$2$0.next = context$2$0.t2 === 'json' ? 43 : 44;
 					break;
 
-				case 41:
-					return context$2$0.abrupt('break', 44);
+				case 43:
+					return context$2$0.abrupt('break', 46);
 
-				case 42:
+				case 44:
 					if (Array.isArray(result)) {
 						this['throw'](404);
 					}
 					this.type = type;
 
-				case 44:
+				case 46:
 					context$2$0.t3 = type;
-					context$2$0.next = context$2$0.t3 === 'json' ? 47 : context$2$0.t3 === 'css' ? 49 : context$2$0.t3 === 'js' ? 49 : 55;
+					context$2$0.next = context$2$0.t3 === 'json' ? 49 : context$2$0.t3 === 'css' ? 51 : context$2$0.t3 === 'js' ? 51 : 57;
 					break;
 
-				case 47:
-					this.body = result;
-					return context$2$0.abrupt('break', 105);
-
 				case 49:
+					this.body = result;
+					return context$2$0.abrupt('break', 107);
+
+				case 51:
 					environment = result.results[base];
 
 					if (!environment) {
@@ -163,9 +165,9 @@ function patternRouteFactory(application, configuration) {
 					}
 
 					this.body = file.demoBuffer || file.buffer;
-					return context$2$0.abrupt('break', 105);
+					return context$2$0.abrupt('break', 107);
 
-				case 55:
+				case 57:
 					templateData = {
 						'title': id,
 						'style': [],
@@ -175,12 +177,12 @@ function patternRouteFactory(application, configuration) {
 					_iteratorNormalCompletion = true;
 					_didIteratorError = false;
 					_iteratorError = undefined;
-					context$2$0.prev = 59;
+					context$2$0.prev = 61;
 					_iterator = Object.keys(result.results)[Symbol.iterator]();
 
-				case 61:
+				case 63:
 					if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
-						context$2$0.next = 89;
+						context$2$0.next = 91;
 						break;
 					}
 
@@ -192,100 +194,100 @@ function patternRouteFactory(application, configuration) {
 					_iteratorNormalCompletion2 = true;
 					_didIteratorError2 = false;
 					_iteratorError2 = undefined;
-					context$2$0.prev = 70;
+					context$2$0.prev = 72;
 
 					for (_iterator2 = Object.keys(_environment)[Symbol.iterator](); !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
 						resultType = _step2.value;
 						_result = _environment[resultType];
 						templateKey = resultType.toLowerCase();
 						content = _result.demoBuffer || _result.buffer;
-						uri = '' + this.path + '/' + environmentName + '.' + _result.out;
+						uri = '//' + host + ':' + port + '' + this.path + '/' + environmentName + '.' + _result.out;
 						templateSectionData = Object.assign({}, blueprint, { content: content, uri: uri });
 
 						templateData[templateKey] = Array.isArray(templateData[templateKey]) ? templateData[templateKey].concat([templateSectionData]) : [templateSectionData];
 					}
-					context$2$0.next = 78;
+					context$2$0.next = 80;
 					break;
 
-				case 74:
-					context$2$0.prev = 74;
-					context$2$0.t4 = context$2$0['catch'](70);
+				case 76:
+					context$2$0.prev = 76;
+					context$2$0.t4 = context$2$0['catch'](72);
 					_didIteratorError2 = true;
 					_iteratorError2 = context$2$0.t4;
 
-				case 78:
-					context$2$0.prev = 78;
-					context$2$0.prev = 79;
+				case 80:
+					context$2$0.prev = 80;
+					context$2$0.prev = 81;
 
 					if (!_iteratorNormalCompletion2 && _iterator2['return']) {
 						_iterator2['return']();
 					}
 
-				case 81:
-					context$2$0.prev = 81;
+				case 83:
+					context$2$0.prev = 83;
 
 					if (!_didIteratorError2) {
-						context$2$0.next = 84;
+						context$2$0.next = 86;
 						break;
 					}
 
 					throw _iteratorError2;
 
-				case 84:
-					return context$2$0.finish(81);
-
-				case 85:
-					return context$2$0.finish(78);
-
 				case 86:
-					_iteratorNormalCompletion = true;
-					context$2$0.next = 61;
-					break;
+					return context$2$0.finish(83);
 
-				case 89:
-					context$2$0.next = 95;
+				case 87:
+					return context$2$0.finish(80);
+
+				case 88:
+					_iteratorNormalCompletion = true;
+					context$2$0.next = 63;
 					break;
 
 				case 91:
-					context$2$0.prev = 91;
-					context$2$0.t5 = context$2$0['catch'](59);
+					context$2$0.next = 97;
+					break;
+
+				case 93:
+					context$2$0.prev = 93;
+					context$2$0.t5 = context$2$0['catch'](61);
 					_didIteratorError = true;
 					_iteratorError = context$2$0.t5;
 
-				case 95:
-					context$2$0.prev = 95;
-					context$2$0.prev = 96;
+				case 97:
+					context$2$0.prev = 97;
+					context$2$0.prev = 98;
 
 					if (!_iteratorNormalCompletion && _iterator['return']) {
 						_iterator['return']();
 					}
 
-				case 98:
-					context$2$0.prev = 98;
+				case 100:
+					context$2$0.prev = 100;
 
 					if (!_didIteratorError) {
-						context$2$0.next = 101;
+						context$2$0.next = 103;
 						break;
 					}
 
 					throw _iteratorError;
 
-				case 101:
-					return context$2$0.finish(98);
-
-				case 102:
-					return context$2$0.finish(95);
-
 				case 103:
+					return context$2$0.finish(100);
 
-					this.body = (0, _layouts2['default'])(templateData);
-					return context$2$0.abrupt('break', 105);
+				case 104:
+					return context$2$0.finish(97);
 
 				case 105:
+
+					this.body = (0, _layouts2['default'])(templateData);
+					return context$2$0.abrupt('break', 107);
+
+				case 107:
 				case 'end':
 					return context$2$0.stop();
 			}
-		}, null, this, [[25, 31], [59, 91, 95, 103], [70, 74, 78, 86], [79,, 81, 85], [96,, 98, 102]]);
+		}, null, this, [[27, 33], [61, 93, 97, 105], [72, 76, 80, 88], [81,, 83, 87], [98,, 100, 104]]);
 	};
 }
 

@@ -14,6 +14,8 @@ export default function patternRouteFactory (application, configuration) {
 		let cwd = application.runtime.patterncwd || application.runtime.cwd;
 		let basePath = resolve(cwd, config.patterns.path);
 		let id = this.params.id;
+		let host = application.configuration.server.host;
+		let port = application.configuration.server.port;
 
 		let patternResults;
 
@@ -135,7 +137,7 @@ export default function patternRouteFactory (application, configuration) {
 						let result = environment[resultType];
 						let templateKey = resultType.toLowerCase();
 						let content = result.demoBuffer || result.buffer;
-						let uri = `${this.path}/${environmentName}.${result.out}`;
+						let uri = `//${host}:${port}${this.path}/${environmentName}.${result.out}`;
 						let templateSectionData = Object.assign({}, blueprint, {content, uri});
 
 						templateData[templateKey] = Array.isArray(templateData[templateKey]) ?
