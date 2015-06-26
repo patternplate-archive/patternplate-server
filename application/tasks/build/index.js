@@ -18,6 +18,10 @@ var _archiver = require('archiver');
 
 var _archiver2 = _interopRequireDefault(_archiver);
 
+var _lodashMerge = require('lodash.merge');
+
+var _lodashMerge2 = _interopRequireDefault(_lodashMerge);
+
 var _libraryUtilitiesGit = require('../../../library/utilities/git');
 
 var _libraryUtilitiesGit2 = _interopRequireDefault(_libraryUtilitiesGit);
@@ -25,7 +29,7 @@ var _libraryUtilitiesGit2 = _interopRequireDefault(_libraryUtilitiesGit);
 var pkg = require((0, _path.resolve)(process.cwd(), 'package.json'));
 
 function build(application, config) {
-	var patternHook, patternRoot, patterns, transforms, patternConfig, built, environment, mode, revision, branch, tag, version, information, buildRoot, buildDirectory, environments, builds, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, _environment, pattern, writes, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _loop, _iterator2, _step2, _iteratorNormalCompletion3, _didIteratorError3, _iteratorError3, _iterator3, _step3, archive, output;
+	var patternHook, patternRoot, buildConfig, patterns, transforms, patternConfig, built, environment, mode, revision, branch, tag, version, information, buildRoot, buildDirectory, environments, builds, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, _environment, pattern, writes, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _loop, _iterator2, _step2, _iteratorNormalCompletion3, _didIteratorError3, _iteratorError3, _iterator3, _step3, archive, output;
 
 	return regeneratorRuntime.async(function build$(context$1$0) {
 		while (1) switch (context$1$0.prev = context$1$0.next) {
@@ -34,35 +38,36 @@ function build(application, config) {
 					return hook.name === 'patterns';
 				})[0];
 				patternRoot = (0, _path.resolve)(application.runtime.patterncwd || application.runtime.cwd, patternHook.configuration.path);
-				patterns = application.configuration.patterns || {};
-				transforms = application.configuration.transforms || {};
+				buildConfig = application.configuration.build || {};
+				patterns = (0, _lodashMerge2['default'])({}, application.configuration.patterns || {}, buildConfig.patterns || {});
+				transforms = (0, _lodashMerge2['default'])({}, application.configuration.transforms || {}, buildConfig.transforms || {});
 				patternConfig = { patterns: patterns, transforms: transforms };
 				built = new Date();
 				environment = application.runtime.env;
 				mode = application.runtime.mode;
-				context$1$0.next = 10;
+				context$1$0.next = 11;
 				return regeneratorRuntime.awrap(_libraryUtilitiesGit2['default'].short());
 
-			case 10:
+			case 11:
 				revision = context$1$0.sent;
-				context$1$0.next = 13;
+				context$1$0.next = 14;
 				return regeneratorRuntime.awrap(_libraryUtilitiesGit2['default'].branch());
 
-			case 13:
+			case 14:
 				branch = context$1$0.sent;
-				context$1$0.next = 16;
+				context$1$0.next = 17;
 				return regeneratorRuntime.awrap(_libraryUtilitiesGit2['default'].tag());
 
-			case 16:
+			case 17:
 				tag = context$1$0.sent;
 				version = pkg.version;
 				information = { built: built, environment: environment, mode: mode, revision: revision, branch: branch, tag: tag, version: version };
 				buildRoot = (0, _path.resolve)(application.runtime.patterncwd || application.runtime.cwd, 'build');
 				buildDirectory = (0, _path.resolve)(buildRoot, 'build-v' + version + '-' + environment + '-' + revision);
-				context$1$0.next = 23;
+				context$1$0.next = 24;
 				return regeneratorRuntime.awrap(_qIoFs2['default'].listTree((0, _path.resolve)(patternRoot, '@environments')));
 
-			case 23:
+			case 24:
 				environments = context$1$0.sent;
 
 				environments = environments.filter(function (item) {
@@ -75,81 +80,81 @@ function build(application, config) {
 				_iteratorNormalCompletion = true;
 				_didIteratorError = false;
 				_iteratorError = undefined;
-				context$1$0.prev = 29;
+				context$1$0.prev = 30;
 				_iterator = environments[Symbol.iterator]();
 
-			case 31:
+			case 32:
 				if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
-					context$1$0.next = 44;
+					context$1$0.next = 45;
 					break;
 				}
 
 				_environment = _step.value;
-				context$1$0.next = 35;
+				context$1$0.next = 36;
 				return regeneratorRuntime.awrap(application.pattern.factory(_qIoFs2['default'].relativeFromDirectory(patternRoot, _environment), patternRoot, patternConfig, application.transforms));
 
-			case 35:
+			case 36:
 				pattern = context$1$0.sent;
-				context$1$0.next = 38;
+				context$1$0.next = 39;
 				return regeneratorRuntime.awrap(pattern.read());
 
-			case 38:
-				context$1$0.next = 40;
+			case 39:
+				context$1$0.next = 41;
 				return regeneratorRuntime.awrap(pattern.transform(false, true));
 
-			case 40:
+			case 41:
 
 				builds.push(pattern);
 
-			case 41:
+			case 42:
 				_iteratorNormalCompletion = true;
-				context$1$0.next = 31;
+				context$1$0.next = 32;
 				break;
 
-			case 44:
-				context$1$0.next = 50;
+			case 45:
+				context$1$0.next = 51;
 				break;
 
-			case 46:
-				context$1$0.prev = 46;
-				context$1$0.t0 = context$1$0['catch'](29);
+			case 47:
+				context$1$0.prev = 47;
+				context$1$0.t0 = context$1$0['catch'](30);
 				_didIteratorError = true;
 				_iteratorError = context$1$0.t0;
 
-			case 50:
-				context$1$0.prev = 50;
+			case 51:
 				context$1$0.prev = 51;
+				context$1$0.prev = 52;
 
 				if (!_iteratorNormalCompletion && _iterator['return']) {
 					_iterator['return']();
 				}
 
-			case 53:
-				context$1$0.prev = 53;
+			case 54:
+				context$1$0.prev = 54;
 
 				if (!_didIteratorError) {
-					context$1$0.next = 56;
+					context$1$0.next = 57;
 					break;
 				}
 
 				throw _iteratorError;
 
-			case 56:
-				return context$1$0.finish(53);
-
 			case 57:
-				return context$1$0.finish(50);
+				return context$1$0.finish(54);
 
 			case 58:
-				context$1$0.next = 60;
+				return context$1$0.finish(51);
+
+			case 59:
+				context$1$0.next = 61;
 				return regeneratorRuntime.awrap(_qIoFs2['default'].makeTree(buildDirectory));
 
-			case 60:
+			case 61:
 				writes = [];
 				_iteratorNormalCompletion2 = true;
 				_didIteratorError2 = false;
 				_iteratorError2 = undefined;
-				context$1$0.prev = 64;
+				context$1$0.prev = 65;
 
 				_loop = function () {
 					var build = _step2.value;
@@ -203,44 +208,44 @@ function build(application, config) {
 					_loop();
 				}
 
-				context$1$0.next = 73;
+				context$1$0.next = 74;
 				break;
 
-			case 69:
-				context$1$0.prev = 69;
-				context$1$0.t1 = context$1$0['catch'](64);
+			case 70:
+				context$1$0.prev = 70;
+				context$1$0.t1 = context$1$0['catch'](65);
 				_didIteratorError2 = true;
 				_iteratorError2 = context$1$0.t1;
 
-			case 73:
-				context$1$0.prev = 73;
+			case 74:
 				context$1$0.prev = 74;
+				context$1$0.prev = 75;
 
 				if (!_iteratorNormalCompletion2 && _iterator2['return']) {
 					_iterator2['return']();
 				}
 
-			case 76:
-				context$1$0.prev = 76;
+			case 77:
+				context$1$0.prev = 77;
 
 				if (!_didIteratorError2) {
-					context$1$0.next = 79;
+					context$1$0.next = 80;
 					break;
 				}
 
 				throw _iteratorError2;
 
-			case 79:
-				return context$1$0.finish(76);
-
 			case 80:
-				return context$1$0.finish(73);
+				return context$1$0.finish(77);
 
 			case 81:
-				context$1$0.next = 83;
+				return context$1$0.finish(74);
+
+			case 82:
+				context$1$0.next = 84;
 				return regeneratorRuntime.awrap(Promise.all(writes));
 
-			case 83:
+			case 84:
 				archive = (0, _archiver2['default'])('zip');
 				output = (0, _fs.createWriteStream)('' + buildDirectory + '.zip');
 
@@ -253,11 +258,11 @@ function build(application, config) {
 					archive.on('error', reject);
 				}));
 
-			case 89:
+			case 90:
 			case 'end':
 				return context$1$0.stop();
 		}
-	}, null, this, [[29, 46, 50, 58], [51,, 53, 57], [64, 69, 73, 81], [74,, 76, 80]]);
+	}, null, this, [[30, 47, 51, 59], [52,, 54, 58], [65, 70, 74, 82], [75,, 77, 81]]);
 }
 
 exports['default'] = build;

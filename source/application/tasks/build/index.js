@@ -3,6 +3,7 @@ import {createWriteStream} from 'fs';
 
 import qfs from 'q-io/fs';
 import archiver from 'archiver';
+import merge from 'lodash.merge';
 
 import git from '../../../library/utilities/git';
 
@@ -12,8 +13,10 @@ async function build (application, config) {
 	const patternHook = application.hooks.filter((hook) => hook.name === 'patterns')[0];
 	const patternRoot = resolve(application.runtime.patterncwd || application.runtime.cwd, patternHook.configuration.path);
 
-	const patterns = application.configuration.patterns || {};
-	const transforms = application.configuration.transforms || {};
+	const buildConfig = application.configuration.build || {};
+
+	const patterns = merge({}, application.configuration.patterns || {}, buildConfig.patterns || {});
+	const transforms = merge({}, application.configuration.transforms || {}, buildConfig.transforms || {});
 	const patternConfig = { patterns, transforms };
 
 	const built = new Date();

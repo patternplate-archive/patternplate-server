@@ -66,7 +66,7 @@ function browserifyTransformFactory (application) {
 			return results;
 		}, {});
 
-		if (configuration.opts.noParse) {
+		if (configuration.opts && configuration.opts.noParse) {
 			configuration.opts.noParse = configuration.opts.noParse.map((item) => {
 				let basedir = pathResolve(application.runtime.patterncwd || application.runtime.cwd);
 				try {

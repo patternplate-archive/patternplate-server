@@ -31,7 +31,7 @@ async function getPatterns(options, cache = null) {
 
 	for (let patternID of patternIDs) {
 		let readCacheID = `pattern:read:${patternID}`;
-		let transformCacheID = `pattern:transformed:${patternID}}`;
+		let transformCacheID = `pattern:transformed:${patternID}`;
 		log(`Initializing pattern "${patternID}"`);
 
 		try {
@@ -54,6 +54,7 @@ async function getPatterns(options, cache = null) {
 				cache.set(readCacheID, pattern.mtime, pattern);
 			}
 
+			log(`Trying to obtain transform "${transformCacheID}" from cache`);
 			let cachedTransform = cache && cache.config.transform ? cache.get(transformCacheID, pattern.mtime, filters) : null;
 
 			if (!cachedTransform) {
@@ -69,6 +70,7 @@ async function getPatterns(options, cache = null) {
 			}
 
 			if (cache && cache.config.transform) {
+				log(`Caching pattern transform "${transformCacheID}"`);
 				cache.set(transformCacheID, pattern.mtime, pattern, filters);
 			}
 

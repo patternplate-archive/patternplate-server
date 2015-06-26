@@ -118,7 +118,7 @@ function browserifyTransformFactory(application) {
 						return results;
 					}, {});
 
-					if (configuration.opts.noParse) {
+					if (configuration.opts && configuration.opts.noParse) {
 						configuration.opts.noParse = configuration.opts.noParse.map(function (item) {
 							var basedir = (0, _path.resolve)(application.runtime.patterncwd || application.runtime.cwd);
 							try {

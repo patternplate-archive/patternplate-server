@@ -74,7 +74,6 @@ export default {
 		'inFormat': 'less',
 		'outFormat': 'css',
 		'opts': {
-			'ieCompat': true,
 			'compress': false,
 			'sourceMap': {
 				'outputSourceFiles': true,

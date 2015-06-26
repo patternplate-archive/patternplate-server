@@ -41,7 +41,7 @@ function patternCacheFactory (...args) {
 
 			let {'mtime': storedMtime, 'meta': storedMeta, value} = stored;
 
-			if (meta && storedMeta) {
+			/*if (meta && storedMeta) {
 				let matchesEnvironments = storedMeta.environments.length === 0;
 				let matchesFormats = storedMeta.environments.length === 0;
 
@@ -60,7 +60,7 @@ function patternCacheFactory (...args) {
 				if (!matchesFormats) {
 					return null;
 				}
-			}
+			} */
 
 			if (mtime === false) {
 				return value;

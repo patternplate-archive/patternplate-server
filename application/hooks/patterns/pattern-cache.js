@@ -70,30 +70,22 @@ function patternCacheFactory() {
 				var storedMeta = stored['meta'];
 				var value = stored.value;
 
-				if (meta && storedMeta) {
-					var matchesEnvironments = storedMeta.environments.length === 0;
-					var matchesFormats = storedMeta.environments.length === 0;
-
-					if (storedMeta.environments.length > 0) {
-						matchesEnvironments = meta.environments.filter(function (env) {
-							return storedMeta.environments.includes(env);
-						}).length > 0;
-					}
-
-					if (!matchesEnvironments) {
-						return null;
-					}
-
-					if (storedMeta.formats.length > 0) {
-						matchesFormats = meta.environments.filter(function (env) {
-							return storedMeta.formats.includes(env);
-						}).length > 0;
-					}
-
-					if (!matchesFormats) {
-						return null;
-					}
-				}
+				/*if (meta && storedMeta) {
+    	let matchesEnvironments = storedMeta.environments.length === 0;
+    	let matchesFormats = storedMeta.environments.length === 0;
+    		if (storedMeta.environments.length > 0) {
+    		matchesEnvironments = meta.environments.filter((env) => storedMeta.environments.includes(env)).length > 0;
+    	}
+    		if (!matchesEnvironments) {
+    		return null;
+    	}
+    		if (storedMeta.formats.length > 0) {
+    		matchesFormats = meta.environments.filter((env) => storedMeta.formats.includes(env)).length > 0;
+    	}
+    		if (!matchesFormats) {
+    		return null;
+    	}
+    } */
 
 				if (mtime === false) {
 					return value;
