@@ -113,6 +113,7 @@ export default function patternRouteFactory (application, configuration) {
 				let hostName = application.configuration.server.host;
 				let port = application.configuration.server.port;
 				let host = `${hostName}:${port}`;
+				let prefix = '';
 
 				let templateData = {
 					'title': id,
@@ -121,15 +122,23 @@ export default function patternRouteFactory (application, configuration) {
 					'markup': [],
 					'route': (name, params) => {
 						name = name || 'pattern';
+						let route = application.router.url(name, params);
 
 						if (this.host !== host) {
-							host = `${this.host}/api`;
+							host = `${this.host}`;
 						}
 
-						return encodeURI(
-							decodeURI(`${this.protocol}://${host}${application.router.url(name, params)}`)
-							.replace(/\*|\%2B|\?/g, '')
-						);
+						if (route.indexOf('/api') < 0) {
+							prefix = '/api';
+						}
+
+						let url = [host, prefix, route]
+							.filter((item) => item)
+							.map((item) => decodeURI(item).replace(/\*|\%2B|\?/g, ''));
+
+						console.log(url.join(''));
+
+						return encodeURI(`${this.protocol}://${url.join('')}`);
 					}
 				};
 
