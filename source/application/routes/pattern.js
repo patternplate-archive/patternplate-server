@@ -119,11 +119,15 @@ export default function patternRouteFactory (application, configuration) {
 					'style': [],
 					'script': [],
 					'markup': [],
-					'route': function(name, params) {
+					'route': (name, params) => {
 						name = name || 'pattern';
 
+						if (this.host !== host) {
+							host = `${this.host}/api`;
+						}
+
 						return encodeURI(
-							decodeURI(`${application.router.url(name, params)}`)
+							decodeURI(`${this.protocol}://${host}${application.router.url(name, params)}`)
 							.replace(/\*|\%2B|\?/g, '')
 						);
 					}

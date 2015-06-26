@@ -30,6 +30,8 @@ function patternRouteFactory(application, configuration) {
 		var cwd, basePath, id, patternResults, base, resultName, type, extension, format, filters, patternConfig, result, environment, file, hostName, port, host, templateData, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, environmentName, _environment, envConfig, wrapper, blueprint, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, resultType, _result, templateKey, content, uri, templateSectionData;
 
 		return regeneratorRuntime.async(function patternRoute$(context$2$0) {
+			var _this = this;
+
 			while (1) switch (context$2$0.prev = context$2$0.next) {
 				case 0:
 					cwd = application.runtime.patterncwd || application.runtime.cwd;
@@ -172,7 +174,11 @@ function patternRouteFactory(application, configuration) {
 						'route': function route(name, params) {
 							name = name || 'pattern';
 
-							return encodeURI(decodeURI('' + application.router.url(name, params)).replace(/\*|\%2B|\?/g, ''));
+							if (_this.host !== host) {
+								host = '' + _this.host + '/api';
+							}
+
+							return encodeURI(decodeURI('' + _this.protocol + '://' + host + '' + application.router.url(name, params)).replace(/\*|\%2B|\?/g, ''));
 						}
 					};
 					_iteratorNormalCompletion = true;
