@@ -1,11 +1,13 @@
+import {resolve as pathResolve} from 'path';
+
 import Vinyl from 'vinyl';
 import {dirname} from 'path';
 import browserify from 'browserify';
+import resolve from 'resolve';
 
 async function runBundler (bundler, config) {
 	return new Promise(function bundlerResolver (resolve, reject) {
 		bundler.bundle(function onBundle (err, buffer) {
-
 			if (err) {
 				return reject(err);
 			}
@@ -63,6 +65,18 @@ function browserifyTransformFactory (application) {
 			results[transformName] = [transformFn, transformConfig];
 			return results;
 		}, {});
+
+		if (configuration.opts.noParse) {
+			configuration.opts.noParse = configuration.opts.noParse.map((item) => {
+				let basedir = pathResolve(application.runtime.patterncwd || application.runtime.cwd);
+				try {
+					return resolve.sync(item, {basedir});
+				} catch (err) {
+					console.log(err);
+				}
+				return null;
+			}).filter((item) => item);
+		}
 
 		const bundler = browserify(stream, configuration.opts);
 		let dependencies = resolveDependencies(file);

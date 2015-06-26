@@ -52,13 +52,13 @@ function patternCacheFactory() {
 
 		_createClass(PatternCache, [{
 			key: 'set',
-			value: function set(key, mtime, value) {
+			value: function set(key, mtime, value, meta) {
 				var cache = namespace.get(CACHE);
-				return cache.set(key, { mtime: mtime, value: value });
+				return cache.set(key, { mtime: mtime, value: value, meta: meta });
 			}
 		}, {
 			key: 'get',
-			value: function get(key, mtime) {
+			value: function get(key, mtime, meta) {
 				var cache = namespace.get(CACHE);
 				var stored = cache.get(key);
 
@@ -67,7 +67,33 @@ function patternCacheFactory() {
 				}
 
 				var storedMtime = stored['mtime'];
+				var storedMeta = stored['meta'];
 				var value = stored.value;
+
+				if (meta && storedMeta) {
+					var matchesEnvironments = storedMeta.environments.length === 0;
+					var matchesFormats = storedMeta.environments.length === 0;
+
+					if (storedMeta.environments.length > 0) {
+						matchesEnvironments = meta.environments.filter(function (env) {
+							return storedMeta.environments.includes(env);
+						}).length > 0;
+					}
+
+					if (!matchesEnvironments) {
+						return null;
+					}
+
+					if (storedMeta.formats.length > 0) {
+						matchesFormats = meta.environments.filter(function (env) {
+							return storedMeta.formats.includes(env);
+						}).length > 0;
+					}
+
+					if (!matchesFormats) {
+						return null;
+					}
+				}
 
 				if (mtime === false) {
 					return value;

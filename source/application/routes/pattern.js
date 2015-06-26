@@ -67,7 +67,7 @@ export default function patternRouteFactory (application, configuration) {
 					'base': basePath,
 					'factory': application.pattern.factory,
 					'transforms': application.transforms,
-					'log':  function(...args) {
+					'log': function(...args) {
 						application.log.silly(...['[routes:pattern:getpattern]', ...args]);
 					}
 				};

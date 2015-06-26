@@ -157,14 +157,12 @@ export class Pattern {
 			let cached = this.cache.get(readCacheID, false);
 
 			if (cached) {
-				console.log('cached!!!!', this.id);
 				Object.assign(this, cached);
 				return this;
 			}
 		}
 
 		await this.readManifest(path, fs);
-		await this.readEnvironments();
 
 		let files = await fs.listTree(path);
 
@@ -225,6 +223,8 @@ export class Pattern {
 	}
 
 	async transform( withDemos = true, forced = false ) {
+		await this.readEnvironments();
+
 		let demos = {};
 
 		if (forced) {
@@ -271,7 +271,7 @@ export class Pattern {
 			let environmentData = this.environments[environmentName];
 			let environment = environmentData.manifest.environment || {};
 
-			for (let fileName in this.files) {
+			for (let fileName of Object.keys(this.files)) {
 				let file = this.files[fileName];
 
 				if (file.basename === 'demo') {

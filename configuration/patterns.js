@@ -36,6 +36,7 @@ exports['default'] = {
 		}
 	},
 	'cache': {
+		'populate': false,
 		'read': false,
 		'files': true,
 		'transform': true,

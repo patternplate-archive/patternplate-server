@@ -80,13 +80,13 @@ function getPatterns(options) {
 
 			case 29:
 				if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
-					context$1$0.next = 67;
+					context$1$0.next = 79;
 					break;
 				}
 
 				patternID = _step.value;
 				readCacheID = 'pattern:read:' + patternID;
-				transformCacheID = 'pattern:transformed:' + patternID + '' + filterID;
+				transformCacheID = 'pattern:transformed:' + patternID + '}';
 
 				log('Initializing pattern "' + patternID + '"');
 
@@ -99,102 +99,122 @@ function getPatterns(options) {
 				cachedRead = cache && cache.config.read ? cache.get(readCacheID, false) : null;
 
 				if (cachedRead) {
-					context$1$0.next = 45;
+					context$1$0.next = 51;
 					break;
 				}
 
 				log('Reading pattern "' + patternID + '"');
-				context$1$0.next = 43;
+				context$1$0.prev = 41;
+				context$1$0.next = 44;
 				return regeneratorRuntime.awrap(pattern.read());
 
-			case 43:
-				context$1$0.next = 47;
+			case 44:
+				context$1$0.next = 49;
 				break;
 
-			case 45:
+			case 46:
+				context$1$0.prev = 46;
+				context$1$0.t0 = context$1$0['catch'](41);
+				throw context$1$0.t0;
+
+			case 49:
+				context$1$0.next = 53;
+				break;
+
+			case 51:
 				log('Using cached pattern read "' + readCacheID + '"');
 				pattern = cachedRead;
 
-			case 47:
+			case 53:
 
 				if (cache && cache.config.read) {
 					cache.set(readCacheID, pattern.mtime, pattern);
 				}
 
-				cachedTransform = cache && cache.config.transform ? cache.get(transformCacheID, pattern.mtime) : null;
+				cachedTransform = cache && cache.config.transform ? cache.get(transformCacheID, pattern.mtime, filters) : null;
 
 				if (cachedTransform) {
-					context$1$0.next = 55;
+					context$1$0.next = 67;
 					break;
 				}
 
 				log('Transforming pattern "' + patternID + '"');
-				context$1$0.next = 53;
+				context$1$0.prev = 57;
+				context$1$0.next = 60;
 				return regeneratorRuntime.awrap(pattern.transform());
 
-			case 53:
-				context$1$0.next = 57;
+			case 60:
+				context$1$0.next = 65;
 				break;
 
-			case 55:
+			case 62:
+				context$1$0.prev = 62;
+				context$1$0.t1 = context$1$0['catch'](57);
+				throw context$1$0.t1;
+
+			case 65:
+				context$1$0.next = 69;
+				break;
+
+			case 67:
 				log('Using cached pattern transform "' + transformCacheID + '"');
 				pattern = cachedTransform;
 
-			case 57:
+			case 69:
 
 				if (cache && cache.config.transform) {
-					cache.set(transformCacheID, pattern.mtime, pattern);
+					cache.set(transformCacheID, pattern.mtime, pattern, filters);
 				}
 
 				results.push(pattern);
-				context$1$0.next = 64;
+				context$1$0.next = 76;
 				break;
 
-			case 61:
-				context$1$0.prev = 61;
-				context$1$0.t0 = context$1$0['catch'](34);
-				throw context$1$0.t0;
+			case 73:
+				context$1$0.prev = 73;
+				context$1$0.t2 = context$1$0['catch'](34);
+				throw context$1$0.t2;
 
-			case 64:
+			case 76:
 				_iteratorNormalCompletion = true;
 				context$1$0.next = 29;
 				break;
 
-			case 67:
-				context$1$0.next = 73;
+			case 79:
+				context$1$0.next = 85;
 				break;
 
-			case 69:
-				context$1$0.prev = 69;
-				context$1$0.t1 = context$1$0['catch'](27);
+			case 81:
+				context$1$0.prev = 81;
+				context$1$0.t3 = context$1$0['catch'](27);
 				_didIteratorError = true;
-				_iteratorError = context$1$0.t1;
+				_iteratorError = context$1$0.t3;
 
-			case 73:
-				context$1$0.prev = 73;
-				context$1$0.prev = 74;
+			case 85:
+				context$1$0.prev = 85;
+				context$1$0.prev = 86;
 
 				if (!_iteratorNormalCompletion && _iterator['return']) {
 					_iterator['return']();
 				}
 
-			case 76:
-				context$1$0.prev = 76;
+			case 88:
+				context$1$0.prev = 88;
 
 				if (!_didIteratorError) {
-					context$1$0.next = 79;
+					context$1$0.next = 91;
 					break;
 				}
 
 				throw _iteratorError;
 
-			case 79:
-				return context$1$0.finish(76);
+			case 91:
+				return context$1$0.finish(88);
 
-			case 80:
-				return context$1$0.finish(73);
+			case 92:
+				return context$1$0.finish(85);
 
-			case 81:
+			case 93:
 
 				results = results.map(function (result) {
 					return typeof result.toJSON === 'function' ? result.toJSON() : result;
@@ -202,11 +222,11 @@ function getPatterns(options) {
 
 				return context$1$0.abrupt('return', results);
 
-			case 83:
+			case 95:
 			case 'end':
 				return context$1$0.stop();
 		}
-	}, null, this, [[27, 69, 73, 81], [34, 61], [74,, 76, 80]]);
+	}, null, this, [[27, 81, 85, 93], [34, 73], [41, 46], [57, 62], [86,, 88, 92]]);
 }
 
 exports['default'] = getPatterns;

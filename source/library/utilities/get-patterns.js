@@ -31,7 +31,7 @@ async function getPatterns(options, cache = null) {
 
 	for (let patternID of patternIDs) {
 		let readCacheID = `pattern:read:${patternID}`;
-		let transformCacheID = `pattern:transformed:${patternID}${filterID}`;
+		let transformCacheID = `pattern:transformed:${patternID}}`;
 		log(`Initializing pattern "${patternID}"`);
 
 		try {
@@ -40,7 +40,11 @@ async function getPatterns(options, cache = null) {
 
 			if (!cachedRead) {
 				log(`Reading pattern "${patternID}"`);
-				await pattern.read();
+				try {
+					await pattern.read();
+				} catch (err) {
+					throw err;
+				}
 			} else {
 				log(`Using cached pattern read "${readCacheID}"`);
 				pattern = cachedRead;
@@ -50,18 +54,22 @@ async function getPatterns(options, cache = null) {
 				cache.set(readCacheID, pattern.mtime, pattern);
 			}
 
-			let cachedTransform = cache && cache.config.transform ? cache.get(transformCacheID, pattern.mtime) : null;
+			let cachedTransform = cache && cache.config.transform ? cache.get(transformCacheID, pattern.mtime, filters) : null;
 
 			if (!cachedTransform) {
 				log(`Transforming pattern "${patternID}"`);
-				await pattern.transform();
+				try {
+					await pattern.transform();
+				} catch (err) {
+					throw err;
+				}
 			} else {
 				log(`Using cached pattern transform "${transformCacheID}"`);
 				pattern = cachedTransform;
 			}
 
 			if (cache && cache.config.transform) {
-				cache.set(transformCacheID, pattern.mtime, pattern);
+				cache.set(transformCacheID, pattern.mtime, pattern, filters);
 			}
 
 			results.push(pattern);

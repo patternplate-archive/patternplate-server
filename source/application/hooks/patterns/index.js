@@ -1,9 +1,37 @@
 import requireAll from 'require-all';
 import {resolve} from 'path';
 
-import patternCache from './pattern-cache';
+import cache from './pattern-cache';
 import patternFactory from './pattern';
 import {Pattern} from './pattern';
+import getPatterns from '../../../library/utilities/get-patterns';
+
+async function populate(application) {
+	let config = {
+		'patterns': application.configuration.patterns,
+		'transforms': application.configuration.transforms
+	};
+
+	let id = '.';
+	let cwd = application.runtime.patterncwd || application.runtime.cwd;
+	let base = resolve(cwd, config.patterns.path);
+	let factory = application.pattern.factory;
+	let transforms = application.transforms;
+
+	application.log.info(`Populating cache from ${base}...`);
+	let start = Date.now();
+
+	await getPatterns({
+		id, config, base, factory, transforms,
+		'log': function(...args) {
+			application.log.silly(...['[cache:pattern:getpattern]', ...args]);
+		}
+	}, application.cache);
+
+	let delta = Date.now() - start / 1000;
+
+	application.log.info(`Populated cache from ${base} in ${delta}s`);
+}
 
 export default {
 	'wait': true,
@@ -38,7 +66,14 @@ export default {
 				return transforms;
 			}, {});
 
-		application.cache = patternCache(this.configuration.cache);
+		if (this.configuration.cache) {
+			application.cache = cache(this.configuration.cache);
+
+			if (this.configuration.cache.populate) {
+				populate(application);
+			}
+		}
+
 		return this;
 	}
 };

@@ -26,12 +26,12 @@ function patternCacheFactory (...args) {
 			namespace.set(CACHE, cache);
 		}
 
-		set (key, mtime, value) {
+		set (key, mtime, value, meta) {
 			let cache = namespace.get(CACHE);
-			return cache.set(key, {mtime, value});
+			return cache.set(key, {mtime, value, meta});
 		}
 
-		get (key, mtime) {
+		get (key, mtime, meta) {
 			let cache = namespace.get(CACHE);
 			let stored = cache.get(key);
 
@@ -39,7 +39,28 @@ function patternCacheFactory (...args) {
 				return null;
 			}
 
-			let {'mtime': storedMtime, value} = stored;
+			let {'mtime': storedMtime, 'meta': storedMeta, value} = stored;
+
+			if (meta && storedMeta) {
+				let matchesEnvironments = storedMeta.environments.length === 0;
+				let matchesFormats = storedMeta.environments.length === 0;
+
+				if (storedMeta.environments.length > 0) {
+					matchesEnvironments = meta.environments.filter((env) => storedMeta.environments.includes(env)).length > 0;
+				}
+
+				if (!matchesEnvironments) {
+					return null;
+				}
+
+				if (storedMeta.formats.length > 0) {
+					matchesFormats = meta.environments.filter((env) => storedMeta.formats.includes(env)).length > 0;
+				}
+
+				if (!matchesFormats) {
+					return null;
+				}
+			}
 
 			if (mtime === false) {
 				return value;

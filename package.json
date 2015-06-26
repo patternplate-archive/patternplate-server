@@ -77,6 +77,7 @@
     "react": "^0.13.2",
     "react-jsx": "^0.13.0",
     "require-all": "^1.0.0",
+    "resolve": "^1.1.6",
     "rubber-band": "git+ssh://git@git.sinnerschrader.com:frontend/rubber-band#v0.1.1",
     "semver": "^4.3.6",
     "through": "^2.3.7",

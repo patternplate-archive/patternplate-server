@@ -4,14 +4,9 @@ Object.defineProperty(exports, '__esModule', {
 	value: true
 });
 exports['default'] = {
-	'formats': {
-		'js': {
-			'name': 'Script',
-			'transforms': ['browserify', 'uglify']
-		}
-	},
 	'cache': {
-		'read': true
+		'read': true,
+		'populate': true
 	}
 };
 module.exports = exports['default'];

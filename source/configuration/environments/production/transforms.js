@@ -8,7 +8,7 @@ export default {
 		},
 		'transforms': {
 			'uglifyify': {
-				'enabled': true
+				//'enabled': true
 			}
 		}
 	},
