@@ -4,8 +4,8 @@ function layout (props) {
 		<head>
 			<title>${props.title}</title>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-			<link rel="icon" type="image/png" href="${props.route('static', { 'path': '/images/favicon-32.png' })}" sizes="32x32" />
-			<link rel="icon" type="image/png" href="${props.route('static', { 'path': '/images/favicon-16.png' })}" sizes="16x16" />
+			<link rel="icon" type="image/png" href="${props.route('static', { 'path': 'images/favicon-32.png' })}" sizes="32x32" />
+			<link rel="icon" type="image/png" href="${props.route('static', { 'path': 'images/favicon-16.png' })}" sizes="16x16" />
 			${props.style
 				.map((style) => style.wrapper(`<link rel="stylesheet" href="${props.route(null, { 'id': style.uri })}">`))
 				.join('\n')}

@@ -11,7 +11,7 @@ exports['default'] = {
 		}
 	},
 	'cache': {
-		'max': 250000
+		'read': true
 	}
 };
 module.exports = exports['default'];

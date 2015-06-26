@@ -33,21 +33,18 @@ function scriptRouteFactory(application) {
 					}).join('.');
 					relative = (0, _path.dirname)(this.params.path);
 					path = (0, _path.resolve)(application.runtime.cwd, 'assets', 'script', relative, filename);
-
-					console.log(path);
-
-					context$2$0.next = 8;
+					context$2$0.next = 7;
 					return regeneratorRuntime.awrap(_qIoFs2['default'].exists(path));
 
-				case 8:
+				case 7:
 					if (context$2$0.sent) {
-						context$2$0.next = 10;
+						context$2$0.next = 9;
 						break;
 					}
 
 					return context$2$0.abrupt('return');
 
-				case 10:
+				case 9:
 
 					this.type = 'js';
 
@@ -64,7 +61,7 @@ function scriptRouteFactory(application) {
 						this['throw'](err, 500);
 					}
 
-				case 12:
+				case 11:
 				case 'end':
 					return context$2$0.stop();
 			}

@@ -69,6 +69,7 @@
     "minimatch": "^2.0.8",
     "minimist": "^1.1.1",
     "normalize.less": "^1.0.0",
+    "object-sizeof": "^1.0.6",
     "pascal-case": "^1.1.0",
     "pretty-data": "^0.40.0",
     "q-io": "^1.12.0",

@@ -60,7 +60,7 @@ export class Pattern {
 		return results;
 	}
 
-	async read(path = this.path, fs = qfs) {
+	async readManifest(path = this.path, fs = qfs) {
 		fs.exists = fs.exists.bind(fs);
 
 		if ( await fs.exists(path) !== true ) {
@@ -115,53 +115,7 @@ export class Pattern {
 			this.manifest.patterns = list.reduce((results, item) => Object.assign(results, {[item]: `${item}@${range}`}), {});
 		}
 
-		this.environments = await this.readEnvironments();
-		let files = await fs.listTree(path);
-
-		files = files.filter(function(fileName){
-			let ext = extname(fileName);
-			return ext && ['index', 'demo', 'pattern'].indexOf(basename(fileName, ext)) > -1;
-		});
-
-		for (let file of files) {
-			let stat = await fs.stat(file);
-			let mtime = stat.node.mtime;
-			let name = basename(file);
-
-			let data;
-
-			if (this.cache) {
-				data = this.cache.get(file, mtime);
-			}
-
-			if (!data) {
-				let ext = extname(file);
-				let buffer = await fs.read(file);
-
-				data = {
-					buffer,
-					name,
-					'basename': basename(name, ext),
-					'ext': ext,
-					'format': ext.replace('.', ''),
-					'fs': stat,
-					'path': file,
-					'source': buffer
-				};
-
-				if (this.cache) {
-					this.cache.set(file, mtime, data);
-				}
-			}
-
-			this.files[name] = data;
-		}
-
-		if (typeof this.manifest.patterns !== 'object') {
-			return this;
-		}
-
-		for ( let patternName in this.manifest.patterns ) {
+		for (let patternName of Object.keys(this.manifest.patterns || {})) {
 			let patternIDString = this.manifest.patterns[patternName];
 			let patternBaseName = basename(patternIDString);
 			let patternBaseNameFragments = patternBaseName.split('@');
@@ -189,6 +143,64 @@ export class Pattern {
 					console.warn(`Omitting ${pattern.id} at version ${pattern.manifest.version} from build. It does not satisfy range ${patternRange} specified by ${this.id}.`);
 				}
 			}
+		}
+
+		await this.getLastModified();
+		return this;
+	}
+
+	async read(path = this.path, fs = qfs) {
+		let readCacheID = `pattern:read:${this.id}`;
+
+		// Use the fast-track read cache from get-patterns if applicable
+		if (this.cache && this.cache.config.read) {
+			let cached = this.cache.get(readCacheID, false);
+
+			if (cached) {
+				console.log('cached!!!!', this.id);
+				Object.assign(this, cached);
+				return this;
+			}
+		}
+
+		await this.readManifest(path, fs);
+		await this.readEnvironments();
+
+		let files = await fs.listTree(path);
+
+		files = files.filter(function(fileName){
+			let ext = extname(fileName);
+			return ext && ['index', 'demo', 'pattern'].indexOf(basename(fileName, ext)) > -1;
+		});
+
+		for (let file of files) {
+			let stat = await fs.stat(file);
+			let mtime = stat.node.mtime;
+			let name = basename(file);
+
+			let data = this.cache ? this.cache.get(file, mtime) : null;
+
+			if (!data) {
+				let ext = extname(file);
+				let buffer = await fs.read(file);
+
+				data = {
+					buffer,
+					name,
+					'basename': basename(name, ext),
+					'ext': ext,
+					'format': ext.replace('.', ''),
+					'fs': stat,
+					'path': file,
+					'source': buffer
+				};
+
+				if (this.cache) {
+					this.cache.set(file, mtime, data);
+				}
+			}
+
+			this.files[name] = data;
 		}
 
 		for ( let fileName in this.files ) {
@@ -303,11 +315,13 @@ export class Pattern {
 				this.results[environmentName][formatConfig.name] = file;
 			}
 		}
+		return this;
 	}
 
 	getLastModified() {
 		let mtimes = [];
 
+		// Already read
 		if ( this.dependencies ) {
 			for (let dependency in this.dependencies) {
 				mtimes.push(this.dependencies[dependency].getLastModified());
@@ -327,8 +341,9 @@ export class Pattern {
 		let copy = Object.assign({}, this);
 
 		if (copy.dependencies) {
-			for (let dependency in copy.dependencies) {
-				copy.dependencies[dependency] = copy.dependencies[dependency].toJSON();
+			for (let dependencyName in copy.dependencies) {
+				let dependency = copy.dependencies[dependencyName];
+				dependency = dependency.toJSON ? dependency.toJSON() : dependency;
 			}
 		}
 

@@ -1,44 +1,17 @@
 import requireAll from 'require-all';
-import {resolve, basename} from 'path';
-
-import fs from 'q-io/fs';
+import {resolve} from 'path';
 
 import patternCache from './pattern-cache';
 import patternFactory from './pattern';
 import {Pattern} from './pattern';
 
-async function populate (patternCache, root, hook) {
-	hook.log.info(`Pattern cache is enabled, populating it from ${root}`);
-	let list = await fs.listTree(root, (path) => basename(path) === 'pattern.json');
-
-	for (let manifest of list) {
-		let patternID = await fs.relative(root, fs.directory(manifest));
-		let pattern = new Pattern(patternID, root, {}, {}, {}, patternCache);
-		try {
-			await pattern.read();
-		} catch (err) {
-			hook.log.warn(`Error while populating cache for ${patternID}`);
-			hook.log.error(err.stack);
-		}
-	}
-
-	hook.log.info(`Populated pattern cache from ${root}. Size ${Math.round(patternCache.length / 1024)} MB at ${patternCache.itemCount} items.`);
-}
-
 export default {
 	'wait': true,
 	'after': ['hooks:log:start:after'],
 	'start': async function startPatternHook (application) {
-		if (this.configuration.cache && application.configuration.mode !== 'console') {
-			application.patternCache = patternCache(this.configuration.cache);
-			let patternCwd = application.runtime.patterncwd || application.runtime.cwd;
-			let patternRoot = resolve(patternCwd, this.configuration.path);
-			populate(application.patternCache, patternRoot, this);
-		}
-
 		application.pattern = {
 			'factory': (...args) => {
-				return patternFactory(...[...args, application.patternCache]);
+				return patternFactory(...[...args, application.cache]);
 			},
 			'class': Pattern
 		};
@@ -65,6 +38,7 @@ export default {
 				return transforms;
 			}, {});
 
+		application.cache = patternCache(this.configuration.cache);
 		return this;
 	}
 };

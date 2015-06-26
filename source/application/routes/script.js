@@ -18,8 +18,6 @@ function scriptRouteFactory (application) {
 		let relative = dirname(this.params.path);
 		let path = resolve(application.runtime.cwd, 'assets', 'script', relative, filename);
 
-		console.log(path);
-
 		if (!await qio.exists(path)) {
 			return;
 		}

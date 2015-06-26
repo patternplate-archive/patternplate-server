@@ -6,6 +6,6 @@ export default {
 		}
 	},
 	'cache': {
-		'max': 250000
+		'read': true
 	}
 };

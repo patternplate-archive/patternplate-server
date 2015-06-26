@@ -60,33 +60,24 @@ export default function patternRouteFactory (application, configuration) {
 				filters.formats.push('html');
 		}
 
-		if (application.cache && application.runtime.env === 'production') {
-			patternResults = application.cache.get(`${id}@${filters.environments.join(',')}`);
-		}
-
 		if (!patternResults) {
 			try {
-				patternResults = await getPatterns(id, basePath, config, application.pattern.factory, application.transforms, filters);
+				let patternConfig = {
+					id, config, filters,
+					'base': basePath,
+					'factory': application.pattern.factory,
+					'transforms': application.transforms,
+					'log':  function(...args) {
+						application.log.silly(...['[routes:pattern:getpattern]', ...args]);
+					}
+				};
+				patternResults = await getPatterns(patternConfig, application.cache);
 			} catch (err) {
 				this.throw(500, err);
 			}
 		}
 
-		if (application.cache && application.runtime.env === 'production' && !patternResults.cached) {
-			application.cache.set(`${id}@${filters.environments.join(',')}`, Object.assign({}, patternResults, { 'cached': true }));
-
-			patternResults.results.forEach(function cacheResponseItems (resp) {
-				application.cache.set(`${id}@${filters.environments.join(',')}`, {
-					'mtime': patternResults.mtime,
-					'results': [resp],
-					'cached': true
-				});
-			});
-		}
-
-		this.set('Last-Modified', patternResults.mtime.toUTCString());
-		this.set('Cache-Control', `maxage=${configuration.options.maxage | 0}`);
-		let result = patternResults.results.length <= 1 ? patternResults.results[0] : patternResults.results;
+		let result = patternResults.length <= 1 ? patternResults[0] : patternResults;
 
 		switch (type) {
 			case 'json':
@@ -130,9 +121,9 @@ export default function patternRouteFactory (application, configuration) {
 					'markup': [],
 					'route': function(name, params) {
 						name = name || 'pattern';
-						
+
 						return encodeURI(
-							decodeURI(`//${host}${application.router.url(name, params)}`)
+							decodeURI(`${application.router.url(name, params)}`)
 							.replace(/\*|\%2B|\?/g, '')
 						);
 					}

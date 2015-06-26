@@ -172,14 +172,14 @@ var Pattern = (function () {
 			}, null, this, [[13, 28, 32, 40], [33,, 35, 39]]);
 		}
 	}, {
-		key: 'read',
-		value: function read() {
+		key: 'readManifest',
+		value: function readManifest() {
 			var path = arguments[0] === undefined ? this.path : arguments[0];
 			var fs = arguments[1] === undefined ? _qIoFs2['default'] : arguments[1];
 
-			var manifestPath, manifestData, files, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, file, stat, _mtime, _name, data, ext, buffer, patternName, patternIDString, patternBaseName, patternBaseNameFragments, patternRange, patternID, pattern, fileName, dependencyName, dependencyFile;
+			var manifestPath, manifestData, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, patternName, patternIDString, patternBaseName, patternBaseNameFragments, patternRange, patternID, pattern;
 
-			return regeneratorRuntime.async(function read$(context$2$0) {
+			return regeneratorRuntime.async(function readManifest$(context$2$0) {
 				var _this2 = this;
 
 				while (1) switch (context$2$0.prev = context$2$0.next) {
@@ -299,15 +299,156 @@ var Pattern = (function () {
 						})());
 
 					case 25:
-						context$2$0.next = 27;
-						return regeneratorRuntime.awrap(this.readEnvironments());
-
-					case 27:
-						this.environments = context$2$0.sent;
-						context$2$0.next = 30;
-						return regeneratorRuntime.awrap(fs.listTree(path));
+						_iteratorNormalCompletion2 = true;
+						_didIteratorError2 = false;
+						_iteratorError2 = undefined;
+						context$2$0.prev = 28;
+						_iterator2 = Object.keys(this.manifest.patterns || {})[Symbol.iterator]();
 
 					case 30:
+						if (_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done) {
+							context$2$0.next = 53;
+							break;
+						}
+
+						patternName = _step2.value;
+						patternIDString = this.manifest.patterns[patternName];
+						patternBaseName = (0, _path.basename)(patternIDString);
+						patternBaseNameFragments = patternBaseName.split('@');
+						patternRange = _semver2['default'].validRange(patternBaseNameFragments[1]) || '*';
+
+						if (patternRange) {
+							context$2$0.next = 38;
+							break;
+						}
+
+						throw new Error('' + patternBaseNameFragments[1] + ' in ' + patternIDString + ' is no valid semver range.', {
+							'file': this.path,
+							'pattern': this.id
+						});
+
+					case 38:
+						patternID = (0, _path.join)((0, _path.dirname)(patternIDString), patternBaseNameFragments[0]);
+						pattern = new Pattern(patternID, this.base, this.config, this.transforms, this.filters, this.cache);
+						context$2$0.next = 42;
+						return regeneratorRuntime.awrap(pattern.read(pattern.path));
+
+					case 42:
+						this.dependencies[patternName] = context$2$0.sent;
+
+						if (_semver2['default'].satisfies(pattern.manifest.version, patternRange)) {
+							context$2$0.next = 50;
+							break;
+						}
+
+						if (this.isEnvironment) {
+							context$2$0.next = 48;
+							break;
+						}
+
+						throw new Error('' + pattern.id + ' at version ' + pattern.manifest.version + ' does not satisfy range ' + patternRange + ' specified by ' + this.id + '.', {
+							'file': pattern.path,
+							'pattern': this.id
+						});
+
+					case 48:
+						delete this.dependencies[patternName];
+						console.warn('Omitting ' + pattern.id + ' at version ' + pattern.manifest.version + ' from build. It does not satisfy range ' + patternRange + ' specified by ' + this.id + '.');
+
+					case 50:
+						_iteratorNormalCompletion2 = true;
+						context$2$0.next = 30;
+						break;
+
+					case 53:
+						context$2$0.next = 59;
+						break;
+
+					case 55:
+						context$2$0.prev = 55;
+						context$2$0.t3 = context$2$0['catch'](28);
+						_didIteratorError2 = true;
+						_iteratorError2 = context$2$0.t3;
+
+					case 59:
+						context$2$0.prev = 59;
+						context$2$0.prev = 60;
+
+						if (!_iteratorNormalCompletion2 && _iterator2['return']) {
+							_iterator2['return']();
+						}
+
+					case 62:
+						context$2$0.prev = 62;
+
+						if (!_didIteratorError2) {
+							context$2$0.next = 65;
+							break;
+						}
+
+						throw _iteratorError2;
+
+					case 65:
+						return context$2$0.finish(62);
+
+					case 66:
+						return context$2$0.finish(59);
+
+					case 67:
+						context$2$0.next = 69;
+						return regeneratorRuntime.awrap(this.getLastModified());
+
+					case 69:
+						return context$2$0.abrupt('return', this);
+
+					case 70:
+					case 'end':
+						return context$2$0.stop();
+				}
+			}, null, this, [[11, 19], [28, 55, 59, 67], [60,, 62, 66]]);
+		}
+	}, {
+		key: 'read',
+		value: function read() {
+			var path = arguments[0] === undefined ? this.path : arguments[0];
+			var fs = arguments[1] === undefined ? _qIoFs2['default'] : arguments[1];
+
+			var readCacheID, cached, files, _iteratorNormalCompletion3, _didIteratorError3, _iteratorError3, _iterator3, _step3, file, stat, _mtime, _name, data, ext, buffer, fileName, dependencyName, dependencyFile;
+
+			return regeneratorRuntime.async(function read$(context$2$0) {
+				while (1) switch (context$2$0.prev = context$2$0.next) {
+					case 0:
+						readCacheID = 'pattern:read:' + this.id;
+
+						if (!(this.cache && this.cache.config.read)) {
+							context$2$0.next = 7;
+							break;
+						}
+
+						cached = this.cache.get(readCacheID, false);
+
+						if (!cached) {
+							context$2$0.next = 7;
+							break;
+						}
+
+						console.log('cached!!!!', this.id);
+						Object.assign(this, cached);
+						return context$2$0.abrupt('return', this);
+
+					case 7:
+						context$2$0.next = 9;
+						return regeneratorRuntime.awrap(this.readManifest(path, fs));
+
+					case 9:
+						context$2$0.next = 11;
+						return regeneratorRuntime.awrap(this.readEnvironments());
+
+					case 11:
+						context$2$0.next = 13;
+						return regeneratorRuntime.awrap(fs.listTree(path));
+
+					case 13:
 						files = context$2$0.sent;
 
 						files = files.filter(function (fileName) {
@@ -315,42 +456,38 @@ var Pattern = (function () {
 							return ext && ['index', 'demo', 'pattern'].indexOf((0, _path.basename)(fileName, ext)) > -1;
 						});
 
-						_iteratorNormalCompletion2 = true;
-						_didIteratorError2 = false;
-						_iteratorError2 = undefined;
-						context$2$0.prev = 35;
-						_iterator2 = files[Symbol.iterator]();
+						_iteratorNormalCompletion3 = true;
+						_didIteratorError3 = false;
+						_iteratorError3 = undefined;
+						context$2$0.prev = 18;
+						_iterator3 = files[Symbol.iterator]();
 
-					case 37:
-						if (_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done) {
-							context$2$0.next = 57;
+					case 20:
+						if (_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done) {
+							context$2$0.next = 39;
 							break;
 						}
 
-						file = _step2.value;
-						context$2$0.next = 41;
+						file = _step3.value;
+						context$2$0.next = 24;
 						return regeneratorRuntime.awrap(fs.stat(file));
 
-					case 41:
+					case 24:
 						stat = context$2$0.sent;
 						_mtime = stat.node.mtime;
 						_name = (0, _path.basename)(file);
-						data = undefined;
-
-						if (this.cache) {
-							data = this.cache.get(file, _mtime);
-						}
+						data = this.cache ? this.cache.get(file, _mtime) : null;
 
 						if (data) {
-							context$2$0.next = 53;
+							context$2$0.next = 35;
 							break;
 						}
 
 						ext = (0, _path.extname)(file);
-						context$2$0.next = 50;
+						context$2$0.next = 32;
 						return regeneratorRuntime.awrap(fs.read(file));
 
-					case 50:
+					case 32:
 						buffer = context$2$0.sent;
 
 						data = {
@@ -368,136 +505,71 @@ var Pattern = (function () {
 							this.cache.set(file, _mtime, data);
 						}
 
-					case 53:
+					case 35:
 
 						this.files[_name] = data;
 
+					case 36:
+						_iteratorNormalCompletion3 = true;
+						context$2$0.next = 20;
+						break;
+
+					case 39:
+						context$2$0.next = 45;
+						break;
+
+					case 41:
+						context$2$0.prev = 41;
+						context$2$0.t0 = context$2$0['catch'](18);
+						_didIteratorError3 = true;
+						_iteratorError3 = context$2$0.t0;
+
+					case 45:
+						context$2$0.prev = 45;
+						context$2$0.prev = 46;
+
+						if (!_iteratorNormalCompletion3 && _iterator3['return']) {
+							_iterator3['return']();
+						}
+
+					case 48:
+						context$2$0.prev = 48;
+
+						if (!_didIteratorError3) {
+							context$2$0.next = 51;
+							break;
+						}
+
+						throw _iteratorError3;
+
+					case 51:
+						return context$2$0.finish(48);
+
+					case 52:
+						return context$2$0.finish(45);
+
+					case 53:
+						context$2$0.t1 = regeneratorRuntime.keys(this.files);
+
 					case 54:
-						_iteratorNormalCompletion2 = true;
-						context$2$0.next = 37;
-						break;
-
-					case 57:
-						context$2$0.next = 63;
-						break;
-
-					case 59:
-						context$2$0.prev = 59;
-						context$2$0.t3 = context$2$0['catch'](35);
-						_didIteratorError2 = true;
-						_iteratorError2 = context$2$0.t3;
-
-					case 63:
-						context$2$0.prev = 63;
-						context$2$0.prev = 64;
-
-						if (!_iteratorNormalCompletion2 && _iterator2['return']) {
-							_iterator2['return']();
-						}
-
-					case 66:
-						context$2$0.prev = 66;
-
-						if (!_didIteratorError2) {
-							context$2$0.next = 69;
+						if ((context$2$0.t2 = context$2$0.t1()).done) {
+							context$2$0.next = 63;
 							break;
 						}
 
-						throw _iteratorError2;
-
-					case 69:
-						return context$2$0.finish(66);
-
-					case 70:
-						return context$2$0.finish(63);
-
-					case 71:
-						if (!(typeof this.manifest.patterns !== 'object')) {
-							context$2$0.next = 73;
-							break;
-						}
-
-						return context$2$0.abrupt('return', this);
-
-					case 73:
-						context$2$0.t4 = regeneratorRuntime.keys(this.manifest.patterns);
-
-					case 74:
-						if ((context$2$0.t5 = context$2$0.t4()).done) {
-							context$2$0.next = 96;
-							break;
-						}
-
-						patternName = context$2$0.t5.value;
-						patternIDString = this.manifest.patterns[patternName];
-						patternBaseName = (0, _path.basename)(patternIDString);
-						patternBaseNameFragments = patternBaseName.split('@');
-						patternRange = _semver2['default'].validRange(patternBaseNameFragments[1]) || '*';
-
-						if (patternRange) {
-							context$2$0.next = 82;
-							break;
-						}
-
-						throw new Error('' + patternBaseNameFragments[1] + ' in ' + patternIDString + ' is no valid semver range.', {
-							'file': this.path,
-							'pattern': this.id
-						});
-
-					case 82:
-						patternID = (0, _path.join)((0, _path.dirname)(patternIDString), patternBaseNameFragments[0]);
-						pattern = new Pattern(patternID, this.base, this.config, this.transforms, this.filters, this.cache);
-						context$2$0.next = 86;
-						return regeneratorRuntime.awrap(pattern.read(pattern.path));
-
-					case 86:
-						this.dependencies[patternName] = context$2$0.sent;
-
-						if (_semver2['default'].satisfies(pattern.manifest.version, patternRange)) {
-							context$2$0.next = 94;
-							break;
-						}
-
-						if (this.isEnvironment) {
-							context$2$0.next = 92;
-							break;
-						}
-
-						throw new Error('' + pattern.id + ' at version ' + pattern.manifest.version + ' does not satisfy range ' + patternRange + ' specified by ' + this.id + '.', {
-							'file': pattern.path,
-							'pattern': this.id
-						});
-
-					case 92:
-						delete this.dependencies[patternName];
-						console.warn('Omitting ' + pattern.id + ' at version ' + pattern.manifest.version + ' from build. It does not satisfy range ' + patternRange + ' specified by ' + this.id + '.');
-
-					case 94:
-						context$2$0.next = 74;
-						break;
-
-					case 96:
-						context$2$0.t6 = regeneratorRuntime.keys(this.files);
-
-					case 97:
-						if ((context$2$0.t7 = context$2$0.t6()).done) {
-							context$2$0.next = 106;
-							break;
-						}
-
-						fileName = context$2$0.t7.value;
+						fileName = context$2$0.t2.value;
 						file = this.files[fileName];
 
 						file.dependencies = {};
 
 						if (!(file.basename === 'demo')) {
-							context$2$0.next = 103;
+							context$2$0.next = 60;
 							break;
 						}
 
-						return context$2$0.abrupt('continue', 97);
+						return context$2$0.abrupt('continue', 54);
 
-					case 103:
+					case 60:
 
 						for (dependencyName in this.dependencies) {
 							dependencyFile = this.dependencies[dependencyName].files[file.name];
@@ -506,19 +578,19 @@ var Pattern = (function () {
 								file.dependencies[dependencyName] = dependencyFile;
 							}
 						}
-						context$2$0.next = 97;
+						context$2$0.next = 54;
 						break;
 
-					case 106:
+					case 63:
 
 						this.getLastModified();
 						return context$2$0.abrupt('return', this);
 
-					case 108:
+					case 65:
 					case 'end':
 						return context$2$0.stop();
 				}
-			}, null, this, [[11, 19], [35, 59, 63, 71], [64,, 66, 70]]);
+			}, null, this, [[18, 41, 45, 53], [46,, 48, 52]]);
 		}
 	}, {
 		key: 'transform',
@@ -526,7 +598,7 @@ var Pattern = (function () {
 			var withDemos = arguments[0] === undefined ? true : arguments[0];
 			var forced = arguments[1] === undefined ? false : arguments[1];
 
-			var demos, fs, list, _iteratorNormalCompletion3, _didIteratorError3, _iteratorError3, _iterator3, _step3, listItem, _iteratorNormalCompletion4, _didIteratorError4, _iteratorError4, _iterator4, _step4, formatName, fileName, file, formatConfig, _iteratorNormalCompletion5, _didIteratorError5, _iteratorError5, _iterator5, _step5, environmentName, environmentData, environment, transforms, lastTransform, _iteratorNormalCompletion6, _didIteratorError6, _iteratorError6, _iterator6, _step6, transform, fn, environmentConfig, applicationConfig, configuration;
+			var demos, fs, list, _iteratorNormalCompletion4, _didIteratorError4, _iteratorError4, _iterator4, _step4, listItem, _iteratorNormalCompletion5, _didIteratorError5, _iteratorError5, _iterator5, _step5, formatName, fileName, file, formatConfig, _iteratorNormalCompletion6, _didIteratorError6, _iteratorError6, _iterator6, _step6, environmentName, environmentData, environment, transforms, lastTransform, _iteratorNormalCompletion7, _didIteratorError7, _iteratorError7, _iterator7, _step7, transform, fn, environmentConfig, applicationConfig, configuration;
 
 			return regeneratorRuntime.async(function transform$(context$2$0) {
 				while (1) switch (context$2$0.prev = context$2$0.next) {
@@ -552,19 +624,19 @@ var Pattern = (function () {
 
 					case 9:
 						list = context$2$0.sent;
-						_iteratorNormalCompletion3 = true;
-						_didIteratorError3 = false;
-						_iteratorError3 = undefined;
+						_iteratorNormalCompletion4 = true;
+						_didIteratorError4 = false;
+						_iteratorError4 = undefined;
 						context$2$0.prev = 13;
-						_iterator3 = list[Symbol.iterator]();
+						_iterator4 = list[Symbol.iterator]();
 
 					case 15:
-						if (_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done) {
+						if (_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done) {
 							context$2$0.next = 25;
 							break;
 						}
 
-						listItem = _step3.value;
+						listItem = _step4.value;
 						context$2$0.next = 19;
 						return regeneratorRuntime.awrap(fs.isFile(listItem));
 
@@ -578,7 +650,7 @@ var Pattern = (function () {
 						return regeneratorRuntime.awrap(fs.rename(listItem, fs.join(this.path, fs.base(listItem))));
 
 					case 22:
-						_iteratorNormalCompletion3 = true;
+						_iteratorNormalCompletion4 = true;
 						context$2$0.next = 15;
 						break;
 
@@ -589,26 +661,26 @@ var Pattern = (function () {
 					case 27:
 						context$2$0.prev = 27;
 						context$2$0.t0 = context$2$0['catch'](13);
-						_didIteratorError3 = true;
-						_iteratorError3 = context$2$0.t0;
+						_didIteratorError4 = true;
+						_iteratorError4 = context$2$0.t0;
 
 					case 31:
 						context$2$0.prev = 31;
 						context$2$0.prev = 32;
 
-						if (!_iteratorNormalCompletion3 && _iterator3['return']) {
-							_iterator3['return']();
+						if (!_iteratorNormalCompletion4 && _iterator4['return']) {
+							_iterator4['return']();
 						}
 
 					case 34:
 						context$2$0.prev = 34;
 
-						if (!_didIteratorError3) {
+						if (!_didIteratorError4) {
 							context$2$0.next = 37;
 							break;
 						}
 
-						throw _iteratorError3;
+						throw _iteratorError4;
 
 					case 37:
 						return context$2$0.finish(34);
@@ -617,19 +689,19 @@ var Pattern = (function () {
 						return context$2$0.finish(31);
 
 					case 39:
-						_iteratorNormalCompletion4 = true;
-						_didIteratorError4 = false;
-						_iteratorError4 = undefined;
+						_iteratorNormalCompletion5 = true;
+						_didIteratorError5 = false;
+						_iteratorError5 = undefined;
 						context$2$0.prev = 42;
-						_iterator4 = Object.keys(this.config.patterns.formats)[Symbol.iterator]();
+						_iterator5 = Object.keys(this.config.patterns.formats)[Symbol.iterator]();
 
 					case 44:
-						if (_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done) {
+						if (_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done) {
 							context$2$0.next = 52;
 							break;
 						}
 
-						formatName = _step4.value;
+						formatName = _step5.value;
 
 						if (!this.config.patterns.formats[formatName].build) {
 							context$2$0.next = 49;
@@ -640,7 +712,7 @@ var Pattern = (function () {
 						return regeneratorRuntime.awrap(fs.write((0, _path.resolve)(this.path, ['index', formatName].join('.')), '\n'));
 
 					case 49:
-						_iteratorNormalCompletion4 = true;
+						_iteratorNormalCompletion5 = true;
 						context$2$0.next = 44;
 						break;
 
@@ -651,26 +723,26 @@ var Pattern = (function () {
 					case 54:
 						context$2$0.prev = 54;
 						context$2$0.t1 = context$2$0['catch'](42);
-						_didIteratorError4 = true;
-						_iteratorError4 = context$2$0.t1;
+						_didIteratorError5 = true;
+						_iteratorError5 = context$2$0.t1;
 
 					case 58:
 						context$2$0.prev = 58;
 						context$2$0.prev = 59;
 
-						if (!_iteratorNormalCompletion4 && _iterator4['return']) {
-							_iterator4['return']();
+						if (!_iteratorNormalCompletion5 && _iterator5['return']) {
+							_iterator5['return']();
 						}
 
 					case 61:
 						context$2$0.prev = 61;
 
-						if (!_didIteratorError4) {
+						if (!_didIteratorError5) {
 							context$2$0.next = 64;
 							break;
 						}
 
-						throw _iteratorError4;
+						throw _iteratorError5;
 
 					case 64:
 						return context$2$0.finish(61);
@@ -723,19 +795,19 @@ var Pattern = (function () {
 						break;
 
 					case 81:
-						_iteratorNormalCompletion5 = true;
-						_didIteratorError5 = false;
-						_iteratorError5 = undefined;
+						_iteratorNormalCompletion6 = true;
+						_didIteratorError6 = false;
+						_iteratorError6 = undefined;
 						context$2$0.prev = 84;
-						_iterator5 = Object.keys(this.environments)[Symbol.iterator]();
+						_iterator6 = Object.keys(this.environments)[Symbol.iterator]();
 
 					case 86:
-						if (_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done) {
+						if (_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done) {
 							context$2$0.next = 151;
 							break;
 						}
 
-						environmentName = _step5.value;
+						environmentName = _step6.value;
 						environmentData = this.environments[environmentName];
 						environment = environmentData.manifest.environment || {};
 						context$2$0.t4 = regeneratorRuntime.keys(this.files);
@@ -775,19 +847,19 @@ var Pattern = (function () {
 							break;
 						}
 
-						_iteratorNormalCompletion6 = true;
-						_didIteratorError6 = false;
-						_iteratorError6 = undefined;
+						_iteratorNormalCompletion7 = true;
+						_didIteratorError7 = false;
+						_iteratorError7 = undefined;
 						context$2$0.prev = 105;
-						_iterator6 = transforms[Symbol.iterator]();
+						_iterator7 = transforms[Symbol.iterator]();
 
 					case 107:
-						if (_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done) {
+						if (_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done) {
 							context$2$0.next = 129;
 							break;
 						}
 
-						transform = _step6.value;
+						transform = _step7.value;
 						fn = this.transforms[transform];
 						environmentConfig = environment[transform] || {};
 						applicationConfig = this.config.transforms[transform] || {};
@@ -812,7 +884,7 @@ var Pattern = (function () {
 						throw context$2$0.t6;
 
 					case 126:
-						_iteratorNormalCompletion6 = true;
+						_iteratorNormalCompletion7 = true;
 						context$2$0.next = 107;
 						break;
 
@@ -823,26 +895,26 @@ var Pattern = (function () {
 					case 131:
 						context$2$0.prev = 131;
 						context$2$0.t7 = context$2$0['catch'](105);
-						_didIteratorError6 = true;
-						_iteratorError6 = context$2$0.t7;
+						_didIteratorError7 = true;
+						_iteratorError7 = context$2$0.t7;
 
 					case 135:
 						context$2$0.prev = 135;
 						context$2$0.prev = 136;
 
-						if (!_iteratorNormalCompletion6 && _iterator6['return']) {
-							_iterator6['return']();
+						if (!_iteratorNormalCompletion7 && _iterator7['return']) {
+							_iterator7['return']();
 						}
 
 					case 138:
 						context$2$0.prev = 138;
 
-						if (!_didIteratorError6) {
+						if (!_didIteratorError7) {
 							context$2$0.next = 141;
 							break;
 						}
 
-						throw _iteratorError6;
+						throw _iteratorError7;
 
 					case 141:
 						return context$2$0.finish(138);
@@ -862,7 +934,7 @@ var Pattern = (function () {
 						break;
 
 					case 148:
-						_iteratorNormalCompletion5 = true;
+						_iteratorNormalCompletion6 = true;
 						context$2$0.next = 86;
 						break;
 
@@ -873,26 +945,26 @@ var Pattern = (function () {
 					case 153:
 						context$2$0.prev = 153;
 						context$2$0.t8 = context$2$0['catch'](84);
-						_didIteratorError5 = true;
-						_iteratorError5 = context$2$0.t8;
+						_didIteratorError6 = true;
+						_iteratorError6 = context$2$0.t8;
 
 					case 157:
 						context$2$0.prev = 157;
 						context$2$0.prev = 158;
 
-						if (!_iteratorNormalCompletion5 && _iterator5['return']) {
-							_iterator5['return']();
+						if (!_iteratorNormalCompletion6 && _iterator6['return']) {
+							_iterator6['return']();
 						}
 
 					case 160:
 						context$2$0.prev = 160;
 
-						if (!_didIteratorError5) {
+						if (!_didIteratorError6) {
 							context$2$0.next = 163;
 							break;
 						}
 
-						throw _iteratorError5;
+						throw _iteratorError6;
 
 					case 163:
 						return context$2$0.finish(160);
@@ -901,6 +973,9 @@ var Pattern = (function () {
 						return context$2$0.finish(157);
 
 					case 165:
+						return context$2$0.abrupt('return', this);
+
+					case 166:
 					case 'end':
 						return context$2$0.stop();
 				}
@@ -911,6 +986,7 @@ var Pattern = (function () {
 		value: function getLastModified() {
 			var mtimes = [];
 
+			// Already read
 			if (this.dependencies) {
 				for (var dependency in this.dependencies) {
 					mtimes.push(this.dependencies[dependency].getLastModified());
@@ -933,27 +1009,28 @@ var Pattern = (function () {
 			var copy = Object.assign({}, this);
 
 			if (copy.dependencies) {
-				for (var dependency in copy.dependencies) {
-					copy.dependencies[dependency] = copy.dependencies[dependency].toJSON();
+				for (var dependencyName in copy.dependencies) {
+					var dependency = copy.dependencies[dependencyName];
+					dependency = dependency.toJSON ? dependency.toJSON() : dependency;
 				}
 			}
 
-			var _iteratorNormalCompletion7 = true;
-			var _didIteratorError7 = false;
-			var _iteratorError7 = undefined;
+			var _iteratorNormalCompletion8 = true;
+			var _didIteratorError8 = false;
+			var _iteratorError8 = undefined;
 
 			try {
-				for (var _iterator7 = Object.keys(copy.results)[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
-					var environmentName = _step7.value;
+				for (var _iterator8 = Object.keys(copy.results)[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+					var environmentName = _step8.value;
 
 					var environmentResult = copy.results[environmentName];
-					var _iteratorNormalCompletion8 = true;
-					var _didIteratorError8 = false;
-					var _iteratorError8 = undefined;
+					var _iteratorNormalCompletion9 = true;
+					var _didIteratorError9 = false;
+					var _iteratorError9 = undefined;
 
 					try {
-						for (var _iterator8 = Object.keys(environmentResult)[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
-							var resultName = _step8.value;
+						for (var _iterator9 = Object.keys(environmentResult)[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
+							var resultName = _step9.value;
 
 							var result = environmentResult[resultName];
 
@@ -968,31 +1045,31 @@ var Pattern = (function () {
 							};
 						}
 					} catch (err) {
-						_didIteratorError8 = true;
-						_iteratorError8 = err;
+						_didIteratorError9 = true;
+						_iteratorError9 = err;
 					} finally {
 						try {
-							if (!_iteratorNormalCompletion8 && _iterator8['return']) {
-								_iterator8['return']();
+							if (!_iteratorNormalCompletion9 && _iterator9['return']) {
+								_iterator9['return']();
 							}
 						} finally {
-							if (_didIteratorError8) {
-								throw _iteratorError8;
+							if (_didIteratorError9) {
+								throw _iteratorError9;
 							}
 						}
 					}
 				}
 			} catch (err) {
-				_didIteratorError7 = true;
-				_iteratorError7 = err;
+				_didIteratorError8 = true;
+				_iteratorError8 = err;
 			} finally {
 				try {
-					if (!_iteratorNormalCompletion7 && _iterator7['return']) {
-						_iterator7['return']();
+					if (!_iteratorNormalCompletion8 && _iterator8['return']) {
+						_iterator8['return']();
 					}
 				} finally {
-					if (_didIteratorError7) {
-						throw _iteratorError7;
+					if (_didIteratorError8) {
+						throw _iteratorError8;
 					}
 				}
 			}
@@ -1042,6 +1119,8 @@ function patternFactory() {
 		}
 	}, null, this);
 }
+
+// Use the fast-track read cache from get-patterns if applicable
 
 // Add fake/virtual files if forced
 

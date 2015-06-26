@@ -15,6 +15,10 @@ var _lruCache = require('lru-cache');
 
 var _lruCache2 = _interopRequireDefault(_lruCache);
 
+var _objectSizeof = require('object-sizeof');
+
+var _objectSizeof2 = _interopRequireDefault(_objectSizeof);
+
 var SETTINGS = Symbol('settings');
 var CACHE = Symbol('cache');
 
@@ -31,12 +35,16 @@ function patternCacheFactory() {
 
 			_classCallCheck(this, PatternCache);
 
-			var settings = Object.assign({}, PatternCache.defaults, options);
-			var cache = (0, _lruCache2['default'])(Object.assign(settings, {
-				'length': function length(n) {
-					return n.value.fs.size;
-				}
-			}));
+			var settings = Object.assign({}, PatternCache.defaults, options.options);
+			this.config = options;
+
+			if (settings.max !== Infinity) {
+				settings.length = function (n) {
+					return (0, _objectSizeof2['default'])(n.value) / 4;
+				};
+			}
+
+			var cache = (0, _lruCache2['default'])(settings);
 
 			namespace.set(SETTINGS, settings);
 			namespace.set(CACHE, cache);
@@ -60,6 +68,10 @@ function patternCacheFactory() {
 
 				var storedMtime = stored['mtime'];
 				var value = stored.value;
+
+				if (mtime === false) {
+					return value;
+				}
 
 				if (new Date(storedMtime) < new Date(mtime)) {
 					cache.del(key);

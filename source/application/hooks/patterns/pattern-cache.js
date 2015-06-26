@@ -1,4 +1,5 @@
 import lrucache from 'lru-cache';
+import sizeof from 'object-sizeof';
 
 const SETTINGS = Symbol('settings');
 const CACHE = Symbol('cache');
@@ -12,10 +13,14 @@ function patternCacheFactory (...args) {
 		};
 
 		constructor (options = {}) {
-			let settings = Object.assign({}, PatternCache.defaults, options);
-			let cache = lrucache(Object.assign(settings, {
-				'length': (n) => n.value.fs.size
-			}));
+			let settings = Object.assign({}, PatternCache.defaults, options.options);
+			this.config = options;
+
+			if (settings.max !== Infinity) {
+				settings.length = (n) => sizeof(n.value) / 4;
+			}
+
+			let cache = lrucache(settings);
 
 			namespace.set(SETTINGS, settings);
 			namespace.set(CACHE, cache);
@@ -35,6 +40,10 @@ function patternCacheFactory (...args) {
 			}
 
 			let {'mtime': storedMtime, value} = stored;
+
+			if (mtime === false) {
+				return value;
+			}
 
 			if (new Date(storedMtime) < new Date(mtime)) {
 				cache.del(key);

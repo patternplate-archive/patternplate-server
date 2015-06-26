@@ -35,6 +35,13 @@ exports['default'] = {
 			'transforms': ['markdown']
 		}
 	},
-	'cache': true
+	'cache': {
+		'read': false,
+		'files': true,
+		'transform': true,
+		'options': {
+			'max': Infinity
+		}
+	}
 };
 module.exports = exports['default'];
