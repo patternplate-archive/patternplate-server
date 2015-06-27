@@ -593,7 +593,7 @@ var Pattern = (function () {
 			var withDemos = arguments[0] === undefined ? true : arguments[0];
 			var forced = arguments[1] === undefined ? false : arguments[1];
 
-			var demos, fs, list, _iteratorNormalCompletion4, _didIteratorError4, _iteratorError4, _iterator4, _step4, listItem, _iteratorNormalCompletion5, _didIteratorError5, _iteratorError5, _iterator5, _step5, formatName, fileName, file, formatConfig, _iteratorNormalCompletion6, _didIteratorError6, _iteratorError6, _iterator6, _step6, environmentName, environmentData, environment, _iteratorNormalCompletion7, _didIteratorError7, _iteratorError7, _iterator7, _step7, transforms, lastTransform, _iteratorNormalCompletion8, _didIteratorError8, _iteratorError8, _iterator8, _step8, transform, fn, environmentConfig, applicationConfig, configuration;
+			var demos, fs, list, _iteratorNormalCompletion4, _didIteratorError4, _iteratorError4, _iterator4, _step4, listItem, _iteratorNormalCompletion5, _didIteratorError5, _iteratorError5, _iterator5, _step5, formatName, fileName, file, formatConfig, _iteratorNormalCompletion6, _didIteratorError6, _iteratorError6, _iterator6, _step6, environmentName, environmentData, environment, _iteratorNormalCompletion7, _didIteratorError7, _iteratorError7, _iterator7, _step7, transforms, lastTransform, _iteratorNormalCompletion8, _didIteratorError8, _iteratorError8, _iterator8, _step8, transform, cacheID, cached, _mtime2, fn, environmentConfig, applicationConfig, configuration;
 
 			return regeneratorRuntime.async(function transform$(context$2$0) {
 				while (1) switch (context$2$0.prev = context$2$0.next) {
@@ -802,7 +802,7 @@ var Pattern = (function () {
 
 					case 88:
 						if (_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done) {
-							context$2$0.next = 172;
+							context$2$0.next = 178;
 							break;
 						}
 
@@ -817,7 +817,7 @@ var Pattern = (function () {
 
 					case 97:
 						if (_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done) {
-							context$2$0.next = 155;
+							context$2$0.next = 161;
 							break;
 						}
 
@@ -829,7 +829,7 @@ var Pattern = (function () {
 							break;
 						}
 
-						return context$2$0.abrupt('continue', 152);
+						return context$2$0.abrupt('continue', 158);
 
 					case 102:
 						formatConfig = this.config.patterns.formats[file.format];
@@ -839,14 +839,14 @@ var Pattern = (function () {
 							break;
 						}
 
-						return context$2$0.abrupt('continue', 152);
+						return context$2$0.abrupt('continue', 158);
 
 					case 105:
 						transforms = formatConfig.transforms || [];
 						lastTransform = this.config.transforms[transforms[transforms.length - 1]] || {};
 
 						if (!(!this.filters.formats || !this.filters.formats.length || this.filters.formats.includes(lastTransform.outFormat))) {
-							context$2$0.next = 149;
+							context$2$0.next = 155;
 							break;
 						}
 
@@ -858,27 +858,45 @@ var Pattern = (function () {
 
 					case 113:
 						if (_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done) {
-							context$2$0.next = 135;
+							context$2$0.next = 141;
 							break;
 						}
 
 						transform = _step8.value;
+						cacheID = 'file:transform:' + file.path + ':' + environmentName + ':' + transform;
+						cached = undefined;
+						_mtime2 = file.fs.node.mtime;
+
+						if (this.cache && this.cache.config.transform) {
+							cached = this.cache.get(cacheID, _mtime2);
+							file = cached || file;
+						}
+
+						if (cached) {
+							context$2$0.next = 138;
+							break;
+						}
+
 						fn = this.transforms[transform];
 						environmentConfig = environment[transform] || {};
 						applicationConfig = this.config.transforms[transform] || {};
 						configuration = (0, _lodashMerge2['default'])({}, applicationConfig, environmentConfig);
-						context$2$0.prev = 119;
-						context$2$0.next = 122;
+						context$2$0.prev = 124;
+						context$2$0.next = 127;
 						return regeneratorRuntime.awrap(fn(Object.assign({}, file), demos[formatConfig.name], configuration, forced));
 
-					case 122:
+					case 127:
 						file = context$2$0.sent;
-						context$2$0.next = 132;
+
+						if (this.cache && this.cache.config.transform) {
+							this.cache.set(cacheID, _mtime2, file);
+						}
+						context$2$0.next = 138;
 						break;
 
-					case 125:
-						context$2$0.prev = 125;
-						context$2$0.t4 = context$2$0['catch'](119);
+					case 131:
+						context$2$0.prev = 131;
+						context$2$0.t4 = context$2$0['catch'](124);
 
 						context$2$0.t4.pattern = this.id;
 						context$2$0.t4.file = context$2$0.t4.file || file.path;
@@ -886,46 +904,46 @@ var Pattern = (function () {
 						console.error('Error while transforming file "' + context$2$0.t4.file + '" of pattern "' + context$2$0.t4.pattern + '" with transform "' + context$2$0.t4.transform + '".');
 						throw context$2$0.t4;
 
-					case 132:
+					case 138:
 						_iteratorNormalCompletion8 = true;
 						context$2$0.next = 113;
 						break;
 
-					case 135:
-						context$2$0.next = 141;
+					case 141:
+						context$2$0.next = 147;
 						break;
 
-					case 137:
-						context$2$0.prev = 137;
+					case 143:
+						context$2$0.prev = 143;
 						context$2$0.t5 = context$2$0['catch'](111);
 						_didIteratorError8 = true;
 						_iteratorError8 = context$2$0.t5;
 
-					case 141:
-						context$2$0.prev = 141;
-						context$2$0.prev = 142;
+					case 147:
+						context$2$0.prev = 147;
+						context$2$0.prev = 148;
 
 						if (!_iteratorNormalCompletion8 && _iterator8['return']) {
 							_iterator8['return']();
 						}
 
-					case 144:
-						context$2$0.prev = 144;
+					case 150:
+						context$2$0.prev = 150;
 
 						if (!_didIteratorError8) {
-							context$2$0.next = 147;
+							context$2$0.next = 153;
 							break;
 						}
 
 						throw _iteratorError8;
 
-					case 147:
-						return context$2$0.finish(144);
+					case 153:
+						return context$2$0.finish(150);
 
-					case 148:
-						return context$2$0.finish(141);
+					case 154:
+						return context$2$0.finish(147);
 
-					case 149:
+					case 155:
 
 						if (!this.results[environmentName]) {
 							this.results[environmentName] = {};
@@ -934,92 +952,92 @@ var Pattern = (function () {
 						file.out = file.out || lastTransform.outFormat || file.format;
 						this.results[environmentName][formatConfig.name] = file;
 
-					case 152:
+					case 158:
 						_iteratorNormalCompletion7 = true;
 						context$2$0.next = 97;
 						break;
 
-					case 155:
-						context$2$0.next = 161;
+					case 161:
+						context$2$0.next = 167;
 						break;
 
-					case 157:
-						context$2$0.prev = 157;
+					case 163:
+						context$2$0.prev = 163;
 						context$2$0.t6 = context$2$0['catch'](95);
 						_didIteratorError7 = true;
 						_iteratorError7 = context$2$0.t6;
 
-					case 161:
-						context$2$0.prev = 161;
-						context$2$0.prev = 162;
+					case 167:
+						context$2$0.prev = 167;
+						context$2$0.prev = 168;
 
 						if (!_iteratorNormalCompletion7 && _iterator7['return']) {
 							_iterator7['return']();
 						}
 
-					case 164:
-						context$2$0.prev = 164;
+					case 170:
+						context$2$0.prev = 170;
 
 						if (!_didIteratorError7) {
-							context$2$0.next = 167;
+							context$2$0.next = 173;
 							break;
 						}
 
 						throw _iteratorError7;
 
-					case 167:
-						return context$2$0.finish(164);
+					case 173:
+						return context$2$0.finish(170);
 
-					case 168:
-						return context$2$0.finish(161);
+					case 174:
+						return context$2$0.finish(167);
 
-					case 169:
+					case 175:
 						_iteratorNormalCompletion6 = true;
 						context$2$0.next = 88;
 						break;
 
-					case 172:
-						context$2$0.next = 178;
+					case 178:
+						context$2$0.next = 184;
 						break;
 
-					case 174:
-						context$2$0.prev = 174;
+					case 180:
+						context$2$0.prev = 180;
 						context$2$0.t7 = context$2$0['catch'](86);
 						_didIteratorError6 = true;
 						_iteratorError6 = context$2$0.t7;
 
-					case 178:
-						context$2$0.prev = 178;
-						context$2$0.prev = 179;
+					case 184:
+						context$2$0.prev = 184;
+						context$2$0.prev = 185;
 
 						if (!_iteratorNormalCompletion6 && _iterator6['return']) {
 							_iterator6['return']();
 						}
 
-					case 181:
-						context$2$0.prev = 181;
+					case 187:
+						context$2$0.prev = 187;
 
 						if (!_didIteratorError6) {
-							context$2$0.next = 184;
+							context$2$0.next = 190;
 							break;
 						}
 
 						throw _iteratorError6;
 
-					case 184:
-						return context$2$0.finish(181);
+					case 190:
+						return context$2$0.finish(187);
 
-					case 185:
-						return context$2$0.finish(178);
+					case 191:
+						return context$2$0.finish(184);
 
-					case 186:
+					case 192:
 						return context$2$0.abrupt('return', this);
 
-					case 187:
+					case 193:
 					case 'end':
 						return context$2$0.stop();
 				}
-			}, null, this, [[15, 29, 33, 41], [34,, 36, 40], [44, 56, 60, 68], [61,, 63, 67], [86, 174, 178, 186], [95, 157, 161, 169], [111, 137, 141, 149], [119, 125], [142,, 144, 148], [162,, 164, 168], [179,, 181, 185]]);
+			}, null, this, [[15, 29, 33, 41], [34,, 36, 40], [44, 56, 60, 68], [61,, 63, 67], [86, 180, 184, 192], [95, 163, 167, 175], [111, 143, 147, 155], [124, 131], [148,, 150, 154], [168,, 170, 174], [185,, 187, 191]]);
 		}
 	}, {
 		key: 'getLastModified',

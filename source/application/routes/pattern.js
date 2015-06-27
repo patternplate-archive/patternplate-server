@@ -15,9 +15,6 @@ export default function patternRouteFactory (application, configuration) {
 		let basePath = resolve(cwd, config.patterns.path);
 		let id = this.params.id;
 
-
-		let patternResults;
-
 		let base;
 		let resultName;
 		let type = this.accepts('text', 'json', 'html');
@@ -57,37 +54,32 @@ export default function patternRouteFactory (application, configuration) {
 				filters.formats.push(type);
 				break;
 			default: // html/text
-				filters.formats.push('html');
-		}
-
-		if (!patternResults) {
-			try {
-				let patternConfig = {
-					id, config, filters,
-					'base': basePath,
-					'factory': application.pattern.factory,
-					'transforms': application.transforms,
-					'log': function(...args) {
-						application.log.silly(...['[routes:pattern:getpattern]', ...args]);
-					}
-				};
-				patternResults = await getPatterns(patternConfig, application.cache);
-			} catch (err) {
-				this.throw(500, err);
-			}
-		}
-
-		let result = patternResults.length <= 1 ? patternResults[0] : patternResults;
-
-		switch (type) {
-			case 'json':
+				filters.formats.push(type);
 				break;
-			default:
-				if (Array.isArray(result)) {
-					this.throw(404);
-				}
-				this.type = type;
 		}
+
+		let patternResults;
+
+		try {
+			let patternConfig = {
+				id, config, filters,
+				'base': basePath,
+				'factory': application.pattern.factory,
+				'transforms': application.transforms,
+				'log': function(...args) {
+					application.log.silly(...['[routes:pattern:getpattern]', ...args]);
+				}
+			};
+
+			patternResults = await getPatterns(patternConfig, application.cache);
+		} catch (err) {
+			this.throw(500, err);
+		}
+
+		patternResults = patternResults || [];
+		let result = patternResults.length === 1 ? patternResults[0] : patternResults;
+
+		this.type = type;
 
 		switch(type) {
 			case 'json':
@@ -135,10 +127,7 @@ export default function patternRouteFactory (application, configuration) {
 						let url = [host, prefix, route]
 							.filter((item) => item)
 							.map((item) => decodeURI(item).replace(/\*|\%2B|\?/g, ''));
-
-						console.log(url.join(''));
-
-						return encodeURI(`${this.protocol}://${url.join('')}`);
+						return encodeURI(`//${url.join('')}`);
 					}
 				};
 

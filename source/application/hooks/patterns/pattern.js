@@ -290,19 +290,33 @@ export class Pattern {
 				// Skip file transform if format filters present and not matching
 				if (!this.filters.formats || !this.filters.formats.length || this.filters.formats.includes(lastTransform.outFormat)) {
 					for (let transform of transforms) {
-						let fn = this.transforms[transform];
-						let environmentConfig = environment[transform] || {};
-						let applicationConfig = this.config.transforms[transform] || {};
-						let configuration = merge({}, applicationConfig, environmentConfig);
+						let cacheID = `file:transform:${file.path}:${environmentName}:${transform}`;
+						let cached;
+						let mtime = file.fs.node.mtime;
 
-						try {
-							file = await fn(Object.assign({}, file), demos[formatConfig.name], configuration, forced);
-						} catch (error) {
-							error.pattern = this.id;
-							error.file = error.file || file.path;
-							error.transform = transform;
-							console.error(`Error while transforming file "${error.file}" of pattern "${error.pattern}" with transform "${error.transform}".`);
-							throw error;
+						if (this.cache && this.cache.config.transform) {
+							cached = this.cache.get(cacheID, mtime);
+							file = cached || file;
+						}
+
+						if (!cached) {
+							let fn = this.transforms[transform];
+							let environmentConfig = environment[transform] || {};
+							let applicationConfig = this.config.transforms[transform] || {};
+							let configuration = merge({}, applicationConfig, environmentConfig);
+
+							try {
+								file = await fn(Object.assign({}, file), demos[formatConfig.name], configuration, forced);
+								if (this.cache && this.cache.config.transform) {
+									this.cache.set(cacheID, mtime, file);
+								}
+							} catch (error) {
+								error.pattern = this.id;
+								error.file = error.file || file.path;
+								error.transform = transform;
+								console.error(`Error while transforming file "${error.file}" of pattern "${error.pattern}" with transform "${error.transform}".`);
+								throw error;
+							}
 						}
 					}
 				}

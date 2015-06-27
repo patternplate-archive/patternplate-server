@@ -31,50 +31,29 @@ async function getPatterns(options, cache = null) {
 
 	for (let patternID of patternIDs) {
 		let readCacheID = `pattern:read:${patternID}`;
-		let transformCacheID = `pattern:transformed:${patternID}`;
 		log(`Initializing pattern "${patternID}"`);
 
+		let pattern = await factory(patternID, base, config, transforms, filters);
+		let cachedRead = cache && cache.config.read ? cache.get(readCacheID, false) : null;
+
+		if (!cachedRead) {
+			log(`Reading pattern "${patternID}"`);
+			try {
+				await pattern.read();
+			} catch (err) {
+				throw err;
+			}
+		} else {
+			log(`Using cached pattern read "${readCacheID}"`);
+			pattern = cachedRead;
+		}
+
+		if (cache && cache.config.read) {
+			cache.set(readCacheID, pattern.mtime, pattern);
+		}
+
 		try {
-			let pattern = await factory(patternID, base, config, transforms, filters);
-			let cachedRead = cache && cache.config.read ? cache.get(readCacheID, false) : null;
-
-			if (!cachedRead) {
-				log(`Reading pattern "${patternID}"`);
-				try {
-					await pattern.read();
-				} catch (err) {
-					throw err;
-				}
-			} else {
-				log(`Using cached pattern read "${readCacheID}"`);
-				pattern = cachedRead;
-			}
-
-			if (cache && cache.config.read) {
-				cache.set(readCacheID, pattern.mtime, pattern);
-			}
-
-			log(`Trying to obtain transform "${transformCacheID}" from cache`);
-			let cachedTransform = cache && cache.config.transform ? cache.get(transformCacheID, pattern.mtime, filters) : null;
-
-			if (!cachedTransform) {
-				log(`Transforming pattern "${patternID}"`);
-				try {
-					await pattern.transform();
-				} catch (err) {
-					throw err;
-				}
-			} else {
-				log(`Using cached pattern transform "${transformCacheID}"`);
-				pattern = cachedTransform;
-			}
-
-			if (cache && cache.config.transform) {
-				log(`Caching pattern transform "${transformCacheID}"`);
-				cache.set(transformCacheID, pattern.mtime, pattern, filters);
-			}
-
-			results.push(pattern);
+			results.push(await pattern.transform());
 		} catch (err) {
 			throw err;
 		}

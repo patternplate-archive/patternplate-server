@@ -27,7 +27,7 @@ function patternRouteFactory(application, configuration) {
 	var config = { patterns: patterns, transforms: transforms };
 
 	return function patternRoute() {
-		var cwd, basePath, id, patternResults, base, resultName, type, extension, format, filters, patternConfig, result, environment, file, hostName, port, host, prefix, templateData, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, environmentName, _environment, envConfig, wrapper, blueprint, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, resultType, _result, templateKey, content, uri, templateSectionData;
+		var cwd, basePath, id, base, resultName, type, extension, format, filters, patternResults, patternConfig, result, environment, file, hostName, port, host, prefix, templateData, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, environmentName, _environment, envConfig, wrapper, blueprint, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, resultType, _result, templateKey, content, uri, templateSectionData;
 
 		return regeneratorRuntime.async(function patternRoute$(context$2$0) {
 			var _this = this;
@@ -37,7 +37,6 @@ function patternRouteFactory(application, configuration) {
 					cwd = application.runtime.patterncwd || application.runtime.cwd;
 					basePath = (0, _path.resolve)(cwd, config.patterns.path);
 					id = this.params.id;
-					patternResults = undefined;
 					base = undefined;
 					resultName = undefined;
 					type = this.accepts('text', 'json', 'html');
@@ -65,33 +64,30 @@ function patternRouteFactory(application, configuration) {
 						'formats': []
 					};
 					context$2$0.t0 = type;
-					context$2$0.next = context$2$0.t0 === 'json' ? 14 : context$2$0.t0 === 'css' ? 16 : context$2$0.t0 === 'js' ? 19 : 22;
+					context$2$0.next = context$2$0.t0 === 'json' ? 13 : context$2$0.t0 === 'css' ? 15 : context$2$0.t0 === 'js' ? 18 : 21;
 					break;
 
-				case 14:
+				case 13:
 					filters.environments.push('index');
 					return context$2$0.abrupt('break', 23);
 
-				case 16:
+				case 15:
 					filters.environments.push(base);
 					filters.formats.push(type);
 					return context$2$0.abrupt('break', 23);
 
-				case 19:
+				case 18:
 					filters.environments.push(base);
 					filters.formats.push(type);
 					return context$2$0.abrupt('break', 23);
 
-				case 22:
+				case 21:
 					// html/text
-					filters.formats.push('html');
+					filters.formats.push(type);
+					return context$2$0.abrupt('break', 23);
 
 				case 23:
-					if (patternResults) {
-						context$2$0.next = 34;
-						break;
-					}
-
+					patternResults = undefined;
 					context$2$0.prev = 24;
 					patternConfig = {
 						id: id, config: config, filters: filters,
@@ -123,30 +119,21 @@ function patternRouteFactory(application, configuration) {
 					this['throw'](500, context$2$0.t1);
 
 				case 34:
-					result = patternResults.length <= 1 ? patternResults[0] : patternResults;
-					context$2$0.t2 = type;
-					context$2$0.next = context$2$0.t2 === 'json' ? 38 : 39;
-					break;
 
-				case 38:
-					return context$2$0.abrupt('break', 41);
+					patternResults = patternResults || [];
+					result = patternResults.length === 1 ? patternResults[0] : patternResults;
 
-				case 39:
-					if (Array.isArray(result)) {
-						this['throw'](404);
-					}
 					this.type = type;
 
-				case 41:
-					context$2$0.t3 = type;
-					context$2$0.next = context$2$0.t3 === 'json' ? 44 : context$2$0.t3 === 'css' ? 46 : context$2$0.t3 === 'js' ? 46 : 52;
+					context$2$0.t2 = type;
+					context$2$0.next = context$2$0.t2 === 'json' ? 40 : context$2$0.t2 === 'css' ? 42 : context$2$0.t2 === 'js' ? 42 : 48;
 					break;
 
-				case 44:
+				case 40:
 					this.body = result;
-					return context$2$0.abrupt('break', 106);
+					return context$2$0.abrupt('break', 102);
 
-				case 46:
+				case 42:
 					environment = result.results[base];
 
 					if (!environment) {
@@ -160,9 +147,9 @@ function patternRouteFactory(application, configuration) {
 					}
 
 					this.body = file.demoBuffer || file.buffer;
-					return context$2$0.abrupt('break', 106);
+					return context$2$0.abrupt('break', 102);
 
-				case 52:
+				case 48:
 					hostName = application.configuration.server.host;
 					port = application.configuration.server.port;
 					host = '' + hostName + ':' + port;
@@ -189,21 +176,18 @@ function patternRouteFactory(application, configuration) {
 							}).map(function (item) {
 								return decodeURI(item).replace(/\*|\%2B|\?/g, '');
 							});
-
-							console.log(url.join(''));
-
-							return encodeURI('' + _this.protocol + '://' + url.join(''));
+							return encodeURI('//' + url.join(''));
 						}
 					};
 					_iteratorNormalCompletion = true;
 					_didIteratorError = false;
 					_iteratorError = undefined;
-					context$2$0.prev = 60;
+					context$2$0.prev = 56;
 					_iterator = Object.keys(result.results)[Symbol.iterator]();
 
-				case 62:
+				case 58:
 					if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
-						context$2$0.next = 90;
+						context$2$0.next = 86;
 						break;
 					}
 
@@ -215,7 +199,7 @@ function patternRouteFactory(application, configuration) {
 					_iteratorNormalCompletion2 = true;
 					_didIteratorError2 = false;
 					_iteratorError2 = undefined;
-					context$2$0.prev = 71;
+					context$2$0.prev = 67;
 
 					for (_iterator2 = Object.keys(_environment)[Symbol.iterator](); !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
 						resultType = _step2.value;
@@ -227,88 +211,88 @@ function patternRouteFactory(application, configuration) {
 
 						templateData[templateKey] = Array.isArray(templateData[templateKey]) ? templateData[templateKey].concat([templateSectionData]) : [templateSectionData];
 					}
-					context$2$0.next = 79;
+					context$2$0.next = 75;
 					break;
+
+				case 71:
+					context$2$0.prev = 71;
+					context$2$0.t3 = context$2$0['catch'](67);
+					_didIteratorError2 = true;
+					_iteratorError2 = context$2$0.t3;
 
 				case 75:
 					context$2$0.prev = 75;
-					context$2$0.t4 = context$2$0['catch'](71);
-					_didIteratorError2 = true;
-					_iteratorError2 = context$2$0.t4;
-
-				case 79:
-					context$2$0.prev = 79;
-					context$2$0.prev = 80;
+					context$2$0.prev = 76;
 
 					if (!_iteratorNormalCompletion2 && _iterator2['return']) {
 						_iterator2['return']();
 					}
 
-				case 82:
-					context$2$0.prev = 82;
+				case 78:
+					context$2$0.prev = 78;
 
 					if (!_didIteratorError2) {
-						context$2$0.next = 85;
+						context$2$0.next = 81;
 						break;
 					}
 
 					throw _iteratorError2;
 
-				case 85:
-					return context$2$0.finish(82);
+				case 81:
+					return context$2$0.finish(78);
+
+				case 82:
+					return context$2$0.finish(75);
+
+				case 83:
+					_iteratorNormalCompletion = true;
+					context$2$0.next = 58;
+					break;
 
 				case 86:
-					return context$2$0.finish(79);
-
-				case 87:
-					_iteratorNormalCompletion = true;
-					context$2$0.next = 62;
+					context$2$0.next = 92;
 					break;
 
-				case 90:
-					context$2$0.next = 96;
-					break;
+				case 88:
+					context$2$0.prev = 88;
+					context$2$0.t4 = context$2$0['catch'](56);
+					_didIteratorError = true;
+					_iteratorError = context$2$0.t4;
 
 				case 92:
 					context$2$0.prev = 92;
-					context$2$0.t5 = context$2$0['catch'](60);
-					_didIteratorError = true;
-					_iteratorError = context$2$0.t5;
-
-				case 96:
-					context$2$0.prev = 96;
-					context$2$0.prev = 97;
+					context$2$0.prev = 93;
 
 					if (!_iteratorNormalCompletion && _iterator['return']) {
 						_iterator['return']();
 					}
 
-				case 99:
-					context$2$0.prev = 99;
+				case 95:
+					context$2$0.prev = 95;
 
 					if (!_didIteratorError) {
-						context$2$0.next = 102;
+						context$2$0.next = 98;
 						break;
 					}
 
 					throw _iteratorError;
 
-				case 102:
-					return context$2$0.finish(99);
+				case 98:
+					return context$2$0.finish(95);
 
-				case 103:
-					return context$2$0.finish(96);
+				case 99:
+					return context$2$0.finish(92);
 
-				case 104:
+				case 100:
 
 					this.body = (0, _layouts2['default'])(templateData);
-					return context$2$0.abrupt('break', 106);
+					return context$2$0.abrupt('break', 102);
 
-				case 106:
+				case 102:
 				case 'end':
 					return context$2$0.stop();
 			}
-		}, null, this, [[24, 31], [60, 92, 96, 104], [71, 75, 79, 87], [80,, 82, 86], [97,, 99, 103]]);
+		}, null, this, [[24, 31], [56, 88, 92, 100], [67, 71, 75, 83], [76,, 78, 82], [93,, 95, 99]]);
 	};
 }
 
