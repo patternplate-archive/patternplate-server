@@ -5,6 +5,17 @@ import semver from 'semver';
 import merge from 'lodash.merge';
 import minimatch from 'minimatch';
 
+// Find the newest mtime of a file dependency tree
+function getLastModified(file) {
+	let mtimes = [file.fs.node.mtime];
+
+	for (let dependencyName of Object.keys(file.dependencies)) {
+		mtimes.push(getLastModified(file.dependencies[dependencyName]));
+	}
+
+	return mtimes.sort((a, b) => b - a)[0];
+}
+
 export class Pattern {
 	files = {};
 	config = {};
@@ -292,7 +303,7 @@ export class Pattern {
 					for (let transform of transforms) {
 						let cacheID = `file:transform:${file.path}:${environmentName}:${transform}`;
 						let cached;
-						let mtime = file.fs.node.mtime;
+						let mtime = getLastModified(file);
 
 						if (this.cache && this.cache.config.transform) {
 							cached = this.cache.get(cacheID, mtime);
