@@ -36,6 +36,10 @@ export default function patternRouteFactory (application, configuration) {
 			id = dirname(id);
 		}
 
+		if (type === 'text' && !extension) {
+			type = 'html';
+		}
+
 		let filters = {
 			'environments': [],
 			'formats': []

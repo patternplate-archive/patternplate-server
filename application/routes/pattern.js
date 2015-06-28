@@ -59,36 +59,40 @@ function patternRouteFactory(application, configuration) {
 						id = (0, _path.dirname)(id);
 					}
 
+					if (type === 'text' && !extension) {
+						type = 'html';
+					}
+
 					filters = {
 						'environments': [],
 						'formats': []
 					};
 					context$2$0.t0 = type;
-					context$2$0.next = context$2$0.t0 === 'json' ? 13 : context$2$0.t0 === 'css' ? 15 : context$2$0.t0 === 'js' ? 18 : 21;
+					context$2$0.next = context$2$0.t0 === 'json' ? 14 : context$2$0.t0 === 'css' ? 16 : context$2$0.t0 === 'js' ? 19 : 22;
 					break;
 
-				case 13:
+				case 14:
 					filters.environments.push('index');
-					return context$2$0.abrupt('break', 23);
+					return context$2$0.abrupt('break', 24);
 
-				case 15:
+				case 16:
 					filters.environments.push(base);
 					filters.formats.push(type);
-					return context$2$0.abrupt('break', 23);
+					return context$2$0.abrupt('break', 24);
 
-				case 18:
+				case 19:
 					filters.environments.push(base);
 					filters.formats.push(type);
-					return context$2$0.abrupt('break', 23);
+					return context$2$0.abrupt('break', 24);
 
-				case 21:
+				case 22:
 					// html/text
 					filters.formats.push(type);
-					return context$2$0.abrupt('break', 23);
+					return context$2$0.abrupt('break', 24);
 
-				case 23:
+				case 24:
 					patternResults = undefined;
-					context$2$0.prev = 24;
+					context$2$0.prev = 25;
 					patternConfig = {
 						id: id, config: config, filters: filters,
 						'base': basePath,
@@ -104,21 +108,21 @@ function patternRouteFactory(application, configuration) {
 							(_application$log = application.log).silly.apply(_application$log, ['[routes:pattern:getpattern]'].concat(args));
 						}
 					};
-					context$2$0.next = 28;
+					context$2$0.next = 29;
 					return regeneratorRuntime.awrap((0, _libraryUtilitiesGetPatterns2['default'])(patternConfig, application.cache));
 
-				case 28:
+				case 29:
 					patternResults = context$2$0.sent;
-					context$2$0.next = 34;
+					context$2$0.next = 35;
 					break;
 
-				case 31:
-					context$2$0.prev = 31;
-					context$2$0.t1 = context$2$0['catch'](24);
+				case 32:
+					context$2$0.prev = 32;
+					context$2$0.t1 = context$2$0['catch'](25);
 
 					this['throw'](500, context$2$0.t1);
 
-				case 34:
+				case 35:
 
 					patternResults = patternResults || [];
 					result = patternResults.length === 1 ? patternResults[0] : patternResults;
@@ -126,14 +130,14 @@ function patternRouteFactory(application, configuration) {
 					this.type = type;
 
 					context$2$0.t2 = type;
-					context$2$0.next = context$2$0.t2 === 'json' ? 40 : context$2$0.t2 === 'css' ? 42 : context$2$0.t2 === 'js' ? 42 : 48;
+					context$2$0.next = context$2$0.t2 === 'json' ? 41 : context$2$0.t2 === 'css' ? 43 : context$2$0.t2 === 'js' ? 43 : 49;
 					break;
 
-				case 40:
+				case 41:
 					this.body = result;
-					return context$2$0.abrupt('break', 102);
+					return context$2$0.abrupt('break', 103);
 
-				case 42:
+				case 43:
 					environment = result.results[base];
 
 					if (!environment) {
@@ -147,9 +151,9 @@ function patternRouteFactory(application, configuration) {
 					}
 
 					this.body = file.demoBuffer || file.buffer;
-					return context$2$0.abrupt('break', 102);
+					return context$2$0.abrupt('break', 103);
 
-				case 48:
+				case 49:
 					hostName = application.configuration.server.host;
 					port = application.configuration.server.port;
 					host = '' + hostName + ':' + port;
@@ -182,12 +186,12 @@ function patternRouteFactory(application, configuration) {
 					_iteratorNormalCompletion = true;
 					_didIteratorError = false;
 					_iteratorError = undefined;
-					context$2$0.prev = 56;
+					context$2$0.prev = 57;
 					_iterator = Object.keys(result.results)[Symbol.iterator]();
 
-				case 58:
+				case 59:
 					if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
-						context$2$0.next = 86;
+						context$2$0.next = 87;
 						break;
 					}
 
@@ -199,7 +203,7 @@ function patternRouteFactory(application, configuration) {
 					_iteratorNormalCompletion2 = true;
 					_didIteratorError2 = false;
 					_iteratorError2 = undefined;
-					context$2$0.prev = 67;
+					context$2$0.prev = 68;
 
 					for (_iterator2 = Object.keys(_environment)[Symbol.iterator](); !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
 						resultType = _step2.value;
@@ -211,88 +215,88 @@ function patternRouteFactory(application, configuration) {
 
 						templateData[templateKey] = Array.isArray(templateData[templateKey]) ? templateData[templateKey].concat([templateSectionData]) : [templateSectionData];
 					}
-					context$2$0.next = 75;
+					context$2$0.next = 76;
 					break;
 
-				case 71:
-					context$2$0.prev = 71;
-					context$2$0.t3 = context$2$0['catch'](67);
+				case 72:
+					context$2$0.prev = 72;
+					context$2$0.t3 = context$2$0['catch'](68);
 					_didIteratorError2 = true;
 					_iteratorError2 = context$2$0.t3;
 
-				case 75:
-					context$2$0.prev = 75;
+				case 76:
 					context$2$0.prev = 76;
+					context$2$0.prev = 77;
 
 					if (!_iteratorNormalCompletion2 && _iterator2['return']) {
 						_iterator2['return']();
 					}
 
-				case 78:
-					context$2$0.prev = 78;
+				case 79:
+					context$2$0.prev = 79;
 
 					if (!_didIteratorError2) {
-						context$2$0.next = 81;
+						context$2$0.next = 82;
 						break;
 					}
 
 					throw _iteratorError2;
 
-				case 81:
-					return context$2$0.finish(78);
-
 				case 82:
-					return context$2$0.finish(75);
+					return context$2$0.finish(79);
 
 				case 83:
+					return context$2$0.finish(76);
+
+				case 84:
 					_iteratorNormalCompletion = true;
-					context$2$0.next = 58;
+					context$2$0.next = 59;
 					break;
 
-				case 86:
-					context$2$0.next = 92;
+				case 87:
+					context$2$0.next = 93;
 					break;
 
-				case 88:
-					context$2$0.prev = 88;
-					context$2$0.t4 = context$2$0['catch'](56);
+				case 89:
+					context$2$0.prev = 89;
+					context$2$0.t4 = context$2$0['catch'](57);
 					_didIteratorError = true;
 					_iteratorError = context$2$0.t4;
 
-				case 92:
-					context$2$0.prev = 92;
+				case 93:
 					context$2$0.prev = 93;
+					context$2$0.prev = 94;
 
 					if (!_iteratorNormalCompletion && _iterator['return']) {
 						_iterator['return']();
 					}
 
-				case 95:
-					context$2$0.prev = 95;
+				case 96:
+					context$2$0.prev = 96;
 
 					if (!_didIteratorError) {
-						context$2$0.next = 98;
+						context$2$0.next = 99;
 						break;
 					}
 
 					throw _iteratorError;
 
-				case 98:
-					return context$2$0.finish(95);
-
 				case 99:
-					return context$2$0.finish(92);
+					return context$2$0.finish(96);
 
 				case 100:
+					return context$2$0.finish(93);
+
+				case 101:
 
 					this.body = (0, _layouts2['default'])(templateData);
-					return context$2$0.abrupt('break', 102);
+					return context$2$0.abrupt('break', 103);
 
-				case 102:
+				case 103:
 				case 'end':
 					return context$2$0.stop();
 			}
-		}, null, this, [[24, 31], [56, 88, 92, 100], [67, 71, 75, 83], [76,, 78, 82], [93,, 95, 99]]);
+		}, null, this, [[25, 32], [57, 89, 93, 101], [68, 72, 76, 84], [77,, 79, 83], [94,, 96, 100]]);
 	};
 }
 
