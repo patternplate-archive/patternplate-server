@@ -122,10 +122,9 @@ export default function patternRouteFactory (application, configuration) {
 
 						if (this.host !== host) {
 							host = `${this.host}`;
-						}
-
-						if (route.indexOf('/api') < 0) {
-							prefix = '/api';
+							if (route.indexOf('/api') < 0) {
+								prefix = '/api';
+							}
 						}
 
 						let url = [host, prefix, route]

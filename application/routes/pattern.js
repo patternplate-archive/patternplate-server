@@ -169,10 +169,9 @@ function patternRouteFactory(application, configuration) {
 
 							if (_this.host !== host) {
 								host = '' + _this.host;
-							}
-
-							if (route.indexOf('/api') < 0) {
-								prefix = '/api';
+								if (route.indexOf('/api') < 0) {
+									prefix = '/api';
+								}
 							}
 
 							var url = [host, prefix, route].filter(function (item) {
