@@ -11,15 +11,26 @@ function excludeFromBundleResolve(bundler, dependencies = []) {
 	});
 }
 
+function getLatestMTime(file) {
+	let mtimes = Object.keys(file.dependencies || {}).reduce(function(results, dependencyName){
+		let dependency = file.dependencies[dependencyName];
+		results.push(dependency.fs.node.mtime);
+		return results;
+	}, [file.fs.node.mtime]);
+
+	return mtimes.sort((a, b) => b - a)[0];
+}
+
 async function runBundler (bundler, config) {
-	return new Promise(function bundlerResolver (resolve, reject) {
+	return new Promise(function bundlerResolver (resolver) {
 		bundler.bundle(function onBundle (err, buffer) {
 			if (err) {
-				throw err;
+				console.log(err.toString());
+				//throw err;
 			}
 
-			resolve({
-				'buffer': buffer,
+			resolver({
+				'buffer': buffer || new Buffer(''),
 				'in': config.inFormat,
 				'out': config.outFormat
 			});
@@ -27,45 +38,72 @@ async function runBundler (bundler, config) {
 	});
 }
 
-async function resolveDependencies (file, bundler, configuration) {
-	let dependencies = [];
+function squashDependencies(file, registry = {}) {
+	let copy = Object.assign({}, file);
 
-	for (let expose of Object.keys(file.dependencies || {})) {
-		dependencies.push(expose);
+	for (let dependencyName of Object.keys(copy.dependencies)) {
+		let dependency = copy.dependencies[dependencyName];
 
-		let dependency = file.dependencies[expose];
-		let basedir = dirname(dependency.path);
-		let opts = {expose, basedir};
-		let contents = Buffer.isBuffer(dependency.source) ? dependency.source : new Buffer(dependency.source);
-		let dependencyStream = new Vinyl({contents});
+		if (!(dependencyName in registry) || registry[dependencyName].path === dependency.path) {
+			registry[dependencyName] = {
+				'path': dependency.path,
+				'source': dependency.source,
+				'buffer': dependency.buffer,
+				'dependencies': dependency.dependencies
+			};
+			delete copy.dependencies[dependencyName];
+			dependency = registry[dependencyName];
+		}
 
-		let dependencyBundler = browserify(dependencyStream, Object.assign({}, configuration.opts, { 'standalone': expose }));
-		let subDependencies = await resolveDependencies(dependency, dependencyBundler, configuration);
-		dependencies = dependencies.concat(subDependencies);
+		squashDependencies(dependency, registry);
+	}
 
-		try {
-			let results = await runBundler(dependencyBundler, configuration);
-			excludeFromBundleResolve(bundler, dependencies);
-			bundler.require(new Vinyl({ 'contents': results.buffer }), opts);
-		} catch (err) {
-			throw err;
+	return registry;
+}
+
+async function resolveDependencies (file, configuration) {
+	let dependencies = squashDependencies(file);
+
+	for (let expose of Object.keys(dependencies)) {
+		let dependency = dependencies[expose];
+
+		// Nested dependencies
+		if (dependency.dependencies && Object.keys(dependency.dependencies).length > 0) {
+			let basedir = dirname(dependency.path);
+			let opts = {expose, basedir};
+			let dependencyBundler = resolveDependencies(dependency, Object.assign(
+				{}, configuration.opts, opts,
+				{ 'standalone': expose }
+			));
+			let transformed = await runBundler(dependencyBundler, configuration);
+			dependency.buffer = transformed.buffer.toString('utf-8');
+		} else { // Squashed and flat dependencies (way faster)
+			dependency.buffer = dependency.source;
 		}
 	}
 
-	return dependencies;
+	let contents = new Buffer(file.source);
+	let bundler = browserify(new Vinyl({contents}), configuration.opts);
+
+	for (let expose of Object.keys(dependencies)) {
+		let dependency = dependencies[expose];
+		let basedir = dirname(dependency.path);
+		let opts = {expose, basedir};
+
+		bundler.exclude(expose);
+		bundler.require(new Vinyl({'contents': new Buffer(dependency.buffer)}), Object.assign({}, configuration.opts, opts));
+	}
+
+	return bundler;
 }
 
 function browserifyTransformFactory (application) {
 	return async function browserifyTransform (file, demo, configuration) {
-		let contents = new Buffer(file.source);
-		let stream = new Vinyl({contents});
-
 		const transformNames = Object.keys(configuration.transforms)
 			.map((transformName) => configuration.transforms[transformName].enabled ? transformName : false)
 			.filter((item) => item);
 
 		const transforms = transformNames.reduce(function getTransformConfig (results, transformName) {
-
 			let transformFn;
 			let transformConfig = configuration.transforms[transformName].opts || {};
 
@@ -80,24 +118,10 @@ function browserifyTransformFactory (application) {
 			return results;
 		}, {});
 
-		if (configuration.opts && configuration.opts.noParse) {
-			configuration.opts.noParse = configuration.opts.noParse.map((item) => {
-				let basedir = pathResolve(application.runtime.patterncwd || application.runtime.cwd);
-				try {
-					return resolve.sync(item, {basedir});
-				} catch (err) {
-					console.log(err);
-				}
-				return null;
-			}).filter((item) => item);
-		}
-
-		configuration.opts.debug = false;
-
-		let bundler = browserify(stream, configuration.opts);
+		let bundler;
 
 		try {
-			await resolveDependencies(file, bundler, configuration);
+			bundler = await resolveDependencies(file, configuration, application.cache);
 		} catch (err) {
 			console.log(err);
 		}
@@ -106,26 +130,32 @@ function browserifyTransformFactory (application) {
 			bundler.transform(...transforms[transformName]);
 		}
 
-		let transformed;
+		let mtime = getLatestMTime(file);
+		let transformed = application.cache && application.cache.get(`browserify:${file.path}`, mtime);
 
-		try {
-			transformed = await runBundler(bundler, configuration);
-		} catch (err) {
-			err.file = file.path || err.fileName;
-			throw err;
+		if (!transformed) {
+			try {
+				let bundled = await runBundler(bundler, configuration);
+				transformed = bundled.buffer;
+				if (application.cache) {
+					application.cache.set(`browserify:${file.path}`, mtime, transformed.buffer);
+				}
+			} catch (err) {
+				err.file = file.path || err.fileName;
+				throw err;
+			}
 		}
 
-		Object.assign(file, transformed);
+		file.buffer = transformed;
 		file.in = configuration.inFormat;
 		file.out = configuration.outFormat;
 
 		if (demo) {
-			let demoStream = new Vinyl({'contents': new Buffer(demo.source)});
-			let demoBundler = browserify(demoStream, configuration.opts);
 			demo.dependencies = { 'Pattern': file };
+			let demoBundler;
 
 			try {
-				await resolveDependencies(demo, demoBundler, configuration);
+				demoBundler = await resolveDependencies(demo, configuration, application.cache);
 			} catch (err) {
 				console.log(err);
 			}
@@ -133,7 +163,7 @@ function browserifyTransformFactory (application) {
 			let demoTransformed;
 
 			try {
-				demoTransformed = await runBundler(demoBundler, configuration);
+				demoTransformed = await runBundler(demoBundler, configuration, application.cache);
 			} catch (err) {
 				err.file = demo.path || err.fileName;
 				throw err;
@@ -143,37 +173,6 @@ function browserifyTransformFactory (application) {
 				'demoSource': demo.source,
 				'demoBuffer': demoTransformed.buffer
 			});
-
-
-
-			/*let demoStream = new Vinyl({'contents': new Buffer(demo.source)});
-			let demoBundler = browserify(demoStream, configuration.opts);
-
-			try {
-				await resolveDependencies(file, demoBundler, configuration);
-				demoBundler.exclude('Pattern');
-				demoBundler.require(new Vinyl({'contents': transformed.buffer }), { 'expose': 'Pattern' });
-			} catch (err) {
-				console.log(err);
-			}
-
-			for (let transformName of Object.keys(transforms)) {
-				demoBundler.transform(...transforms[transformName]);
-			}
-
-			let demoTransformed;
-
-			try {
-				demoTransformed = await runBundler(demoBundler, configuration);
-			} catch (err) {
-				err.file = demo.path || err.fileName;
-				throw err;
-			}
-
-			Object.assign(file, {
-				'demoSource': demo.source,
-				'demoBuffer': demoTransformed.buffer
-			});*/
 		}
 
 		return file;
