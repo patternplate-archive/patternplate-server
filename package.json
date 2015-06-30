@@ -1,6 +1,6 @@
 {
   "name": "patternplate-server",
-  "version": "0.9.5",
+  "version": "0.9.6",
   "description": "Programmatically serve patternplate components via a well defined REST API",
   "main": "library/",
   "scripts": {
@@ -83,6 +83,7 @@
     "through": "^2.3.7",
     "uglify-js": "^2.4.23",
     "uglifyify": "^3.0.1",
+
     "unreachable-branch-transform": "^0.2.3",
     "vinyl": "^0.5.0"
   },
