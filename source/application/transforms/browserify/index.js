@@ -5,6 +5,12 @@ import {dirname} from 'path';
 import browserify from 'browserify';
 import resolve from 'resolve';
 
+function excludeFromBundleResolve(bundler, dependencies = []) {
+	dependencies.forEach(function(dependency){
+		bundler.exclude(dependency);
+	});
+}
+
 async function runBundler (bundler, config) {
 	return new Promise(function bundlerResolver (resolve, reject) {
 		bundler.bundle(function onBundle (err, buffer) {
@@ -33,15 +39,13 @@ async function resolveDependencies (file, bundler, configuration) {
 		let contents = Buffer.isBuffer(dependency.source) ? dependency.source : new Buffer(dependency.source);
 		let dependencyStream = new Vinyl({contents});
 
-		let dependencyBundler = browserify(dependencyStream, Object.assign({}, configuration.opts));
+		let dependencyBundler = browserify(dependencyStream, Object.assign({}, configuration.opts, { 'standalone': expose }));
 		let subDependencies = await resolveDependencies(dependency, dependencyBundler, configuration);
 		dependencies = dependencies.concat(subDependencies);
 
 		try {
 			let results = await runBundler(dependencyBundler, configuration);
-			dependencies.forEach(function(dependency){
-				bundler.exclude(dependency);
-			});
+			excludeFromBundleResolve(bundler, dependencies);
 			bundler.require(new Vinyl({ 'contents': results.buffer }), opts);
 		} catch (err) {
 			throw err;
@@ -91,6 +95,7 @@ function browserifyTransformFactory (application) {
 		configuration.opts.debug = false;
 
 		let bundler = browserify(stream, configuration.opts);
+
 		try {
 			await resolveDependencies(file, bundler, configuration);
 		} catch (err) {
@@ -101,14 +106,53 @@ function browserifyTransformFactory (application) {
 			bundler.transform(...transforms[transformName]);
 		}
 
+		let transformed;
+
+		try {
+			transformed = await runBundler(bundler, configuration);
+		} catch (err) {
+			err.file = file.path || err.fileName;
+			throw err;
+		}
+
+		Object.assign(file, transformed);
+		file.in = configuration.inFormat;
+		file.out = configuration.outFormat;
+
 		if (demo) {
 			let demoStream = new Vinyl({'contents': new Buffer(demo.source)});
 			let demoBundler = browserify(demoStream, configuration.opts);
-
-			let Pattern = Object.assign({}, file);
+			demo.dependencies = { 'Pattern': file };
 
 			try {
-				await resolveDependencies({ 'dependencies': {Pattern}, 'path': demo.path}, demoBundler, configuration);
+				await resolveDependencies(demo, demoBundler, configuration);
+			} catch (err) {
+				console.log(err);
+			}
+
+			let demoTransformed;
+
+			try {
+				demoTransformed = await runBundler(demoBundler, configuration);
+			} catch (err) {
+				err.file = demo.path || err.fileName;
+				throw err;
+			}
+
+			Object.assign(file, {
+				'demoSource': demo.source,
+				'demoBuffer': demoTransformed.buffer
+			});
+
+
+
+			/*let demoStream = new Vinyl({'contents': new Buffer(demo.source)});
+			let demoBundler = browserify(demoStream, configuration.opts);
+
+			try {
+				await resolveDependencies(file, demoBundler, configuration);
+				demoBundler.exclude('Pattern');
+				demoBundler.require(new Vinyl({'contents': transformed.buffer }), { 'expose': 'Pattern' });
 			} catch (err) {
 				console.log(err);
 			}
@@ -129,21 +173,8 @@ function browserifyTransformFactory (application) {
 			Object.assign(file, {
 				'demoSource': demo.source,
 				'demoBuffer': demoTransformed.buffer
-			});
+			});*/
 		}
-
-		let transformed;
-
-		try {
-			transformed = await runBundler(bundler, configuration);
-		} catch (err) {
-			err.file = file.path || err.fileName;
-			throw err;
-		}
-
-		Object.assign(file, transformed);
-		file.in = configuration.inFormat;
-		file.out = configuration.outFormat;
 
 		return file;
 	};
