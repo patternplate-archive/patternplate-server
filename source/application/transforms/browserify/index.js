@@ -1,15 +1,6 @@
-import {resolve as pathResolve} from 'path';
-
 import Vinyl from 'vinyl';
 import {dirname} from 'path';
 import browserify from 'browserify';
-import resolve from 'resolve';
-
-function excludeFromBundleResolve(bundler, dependencies = []) {
-	dependencies.forEach(function(dependency){
-		bundler.exclude(dependency);
-	});
-}
 
 function getLatestMTime(file) {
 	let mtimes = Object.keys(file.dependencies || {}).reduce(function(results, dependencyName){
@@ -21,12 +12,12 @@ function getLatestMTime(file) {
 	return mtimes.sort((a, b) => b - a)[0];
 }
 
-async function runBundler (bundler, config) {
+async function runBundler (bundler, config, meta) {
 	return new Promise(function bundlerResolver (resolver) {
 		bundler.bundle(function onBundle (err, buffer) {
 			if (err) {
-				console.log(err.toString());
-				//throw err;
+				console.error('Error while bundling ' + meta.path);
+				console.error(err);
 			}
 
 			resolver({
@@ -75,7 +66,7 @@ async function resolveDependencies (file, configuration) {
 				{}, configuration.opts, opts,
 				{ 'standalone': expose }
 			));
-			let transformed = await runBundler(dependencyBundler, configuration);
+			let transformed = await runBundler(dependencyBundler, configuration, dependency);
 			dependency.buffer = transformed.buffer.toString('utf-8');
 		} else { // Squashed and flat dependencies (way faster)
 			dependency.buffer = dependency.source;
@@ -118,37 +109,41 @@ function browserifyTransformFactory (application) {
 			return results;
 		}, {});
 
-		let bundler;
+		if (!demo) {
+			let bundler;
 
-		try {
-			bundler = await resolveDependencies(file, configuration, application.cache);
-		} catch (err) {
-			console.log(err);
-		}
-
-		for (let transformName of Object.keys(transforms)) {
-			bundler.transform(...transforms[transformName]);
-		}
-
-		let mtime = getLatestMTime(file);
-		let transformed = application.cache && application.cache.get(`browserify:${file.path}`, mtime);
-
-		if (!transformed) {
 			try {
-				let bundled = await runBundler(bundler, configuration);
-				transformed = bundled.buffer;
-				if (application.cache) {
-					application.cache.set(`browserify:${file.path}`, mtime, transformed.buffer);
-				}
+				bundler = await resolveDependencies(file, configuration, application.cache);
 			} catch (err) {
-				err.file = file.path || err.fileName;
-				throw err;
+				console.log(err);
 			}
-		}
 
-		file.buffer = transformed;
-		file.in = configuration.inFormat;
-		file.out = configuration.outFormat;
+			for (let transformName of Object.keys(transforms)) {
+				bundler.transform(...transforms[transformName]);
+			}
+
+			let mtime = getLatestMTime(file);
+			let transformed = application.cache && application.cache.get(`browserify:${file.path}`, mtime);
+
+			if (!transformed) {
+				try {
+					let bundled = await runBundler(bundler, configuration, file);
+					transformed = bundled.buffer;
+					if (application.cache) {
+						application.cache.set(`browserify:${file.path}`, mtime, transformed.buffer);
+					}
+				} catch (err) {
+					err.file = file.path || err.fileName;
+					throw err;
+				}
+			}
+
+			Object.assign(file, {
+				'buffer': transformed,
+				'in': configuration.inFormat,
+				'out': configuration.outFormat
+			});
+		}
 
 		if (demo) {
 			demo.dependencies = { 'Pattern': file };
@@ -163,7 +158,7 @@ function browserifyTransformFactory (application) {
 			let demoTransformed;
 
 			try {
-				demoTransformed = await runBundler(demoBundler, configuration, application.cache);
+				demoTransformed = await runBundler(demoBundler, configuration, demo);
 			} catch (err) {
 				err.file = demo.path || err.fileName;
 				throw err;
@@ -171,7 +166,9 @@ function browserifyTransformFactory (application) {
 
 			Object.assign(file, {
 				'demoSource': demo.source,
-				'demoBuffer': demoTransformed.buffer
+				'demoBuffer': demoTransformed.buffer,
+				'in': configuration.inFormat,
+				'out': configuration.outFormat
 			});
 		}
 
