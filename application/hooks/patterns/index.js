@@ -107,7 +107,7 @@ exports['default'] = {
 						return transforms;
 					}, {});
 
-					if (this.configuration.cache) {
+					if (this.configuration.cache && application.runtime.mode !== 'console') {
 						application.cache = (0, _patternCache2['default'])(this.configuration.cache);
 
 						if (this.configuration.cache.populate) {

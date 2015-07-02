@@ -41,7 +41,7 @@ var _layouts2 = _interopRequireDefault(_layouts);
 var pkg = require((0, _path.resolve)(process.cwd(), 'package.json'));
 
 function build(application, config) {
-	var patternHook, patternRoot, staticRoot, assetRoot, buildConfig, patterns, transforms, patternConfig, built, environment, mode, revision, branch, tag, version, information, buildRoot, buildDirectory, patternBuildDirectory, environments, builds, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, _environment, pattern, writes, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _loop, _iterator2, _step2, _iteratorNormalCompletion4, _didIteratorError4, _iteratorError4, _iterator4, _step4, patternList, _iteratorNormalCompletion3, _didIteratorError3, _iteratorError3, _iterator3, _step3, patternItem, patternResultDirectory, patternSnippetsDirectory, metaData, _iteratorNormalCompletion5, _didIteratorError5, _iteratorError5, _iterator5, _step5, resultEnvironmentName, resultEnvironment, environmentConfig, _iteratorNormalCompletion7, _didIteratorError7, _iteratorError7, _iterator7, _step7, resultName, result, variants, _iteratorNormalCompletion8, _didIteratorError8, _iteratorError8, _iterator8, _step8, variant, fragments, resultFileBaseName, resultFile, mainBuffer, mainName, mainFileBaseName, mainFile, templateData, _iteratorNormalCompletion6, _didIteratorError6, _iteratorError6, _iterator6, _step6, environmentName, _environment2, envConfig, wrapper, blueprint, _iteratorNormalCompletion9, _didIteratorError9, _iteratorError9, _iterator9, _step9, resultType, templateKey, content, uri, templateSectionData, rendered, archive, output;
+	var patternHook, patternRoot, staticRoot, assetRoot, buildConfig, patterns, transforms, patternConfig, built, environment, mode, revision, branch, tag, version, information, buildRoot, buildDirectory, patternBuildDirectory, environments, builds, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, _environment, pattern, writes, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _loop, _iterator2, _step2, _iteratorNormalCompletion3, _didIteratorError3, _iteratorError3, _iterator3, _step3, patternList, _iteratorNormalCompletion4, _didIteratorError4, _iteratorError4, _iterator4, _step4, patternItem, patternResultDirectory, patternSnippetsDirectory, metaData, _iteratorNormalCompletion5, _didIteratorError5, _iteratorError5, _iterator5, _step5, resultEnvironmentName, resultEnvironment, environmentConfig, _iteratorNormalCompletion7, _didIteratorError7, _iteratorError7, _iterator7, _step7, resultName, result, variants, _iteratorNormalCompletion8, _didIteratorError8, _iteratorError8, _iterator8, _step8, variant, fragments, resultFileBaseName, resultFile, mainBuffer, mainName, mainFileBaseName, mainFile, templateData, _iteratorNormalCompletion6, _didIteratorError6, _iteratorError6, _iterator6, _step6, environmentName, _environment2, envConfig, wrapper, blueprint, _iteratorNormalCompletion9, _didIteratorError9, _iteratorError9, _iterator9, _step9, resultType, templateKey, content, uri, templateSectionData, rendered, archive, output;
 
 	return regeneratorRuntime.async(function build$(context$1$0) {
 		while (1) switch (context$1$0.prev = context$1$0.next) {
@@ -79,10 +79,16 @@ function build(application, config) {
 				buildRoot = (0, _path.resolve)(application.runtime.patterncwd || application.runtime.cwd, 'build');
 				buildDirectory = (0, _path.resolve)(buildRoot, 'build-v' + version + '-' + environment + '-' + revision);
 				patternBuildDirectory = (0, _path.resolve)(buildDirectory, 'patterns');
-				context$1$0.next = 27;
+
+				if (!buildConfig.tasks.bundles) {
+					context$1$0.next = 88;
+					break;
+				}
+
+				context$1$0.next = 28;
 				return regeneratorRuntime.awrap(_qIoFs2['default'].listTree((0, _path.resolve)(patternRoot, '@environments')));
 
-			case 27:
+			case 28:
 				environments = context$1$0.sent;
 
 				environments = environments.filter(function (item) {
@@ -95,81 +101,81 @@ function build(application, config) {
 				_iteratorNormalCompletion = true;
 				_didIteratorError = false;
 				_iteratorError = undefined;
-				context$1$0.prev = 33;
+				context$1$0.prev = 34;
 				_iterator = environments[Symbol.iterator]();
 
-			case 35:
+			case 36:
 				if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
-					context$1$0.next = 48;
+					context$1$0.next = 49;
 					break;
 				}
 
 				_environment = _step.value;
-				context$1$0.next = 39;
+				context$1$0.next = 40;
 				return regeneratorRuntime.awrap(application.pattern.factory(_qIoFs2['default'].relativeFromDirectory(patternRoot, _environment), patternRoot, patternConfig, application.transforms));
 
-			case 39:
+			case 40:
 				pattern = context$1$0.sent;
-				context$1$0.next = 42;
+				context$1$0.next = 43;
 				return regeneratorRuntime.awrap(pattern.read());
 
-			case 42:
-				context$1$0.next = 44;
+			case 43:
+				context$1$0.next = 45;
 				return regeneratorRuntime.awrap(pattern.transform(false, true));
 
-			case 44:
+			case 45:
 
 				builds.push(pattern);
 
-			case 45:
+			case 46:
 				_iteratorNormalCompletion = true;
-				context$1$0.next = 35;
+				context$1$0.next = 36;
 				break;
 
-			case 48:
-				context$1$0.next = 54;
+			case 49:
+				context$1$0.next = 55;
 				break;
 
-			case 50:
-				context$1$0.prev = 50;
-				context$1$0.t0 = context$1$0['catch'](33);
+			case 51:
+				context$1$0.prev = 51;
+				context$1$0.t0 = context$1$0['catch'](34);
 				_didIteratorError = true;
 				_iteratorError = context$1$0.t0;
 
-			case 54:
-				context$1$0.prev = 54;
+			case 55:
 				context$1$0.prev = 55;
+				context$1$0.prev = 56;
 
 				if (!_iteratorNormalCompletion && _iterator['return']) {
 					_iterator['return']();
 				}
 
-			case 57:
-				context$1$0.prev = 57;
+			case 58:
+				context$1$0.prev = 58;
 
 				if (!_didIteratorError) {
-					context$1$0.next = 60;
+					context$1$0.next = 61;
 					break;
 				}
 
 				throw _iteratorError;
 
-			case 60:
-				return context$1$0.finish(57);
-
 			case 61:
-				return context$1$0.finish(54);
+				return context$1$0.finish(58);
 
 			case 62:
-				context$1$0.next = 64;
+				return context$1$0.finish(55);
+
+			case 63:
+				context$1$0.next = 65;
 				return regeneratorRuntime.awrap(_qIoFs2['default'].makeTree(patternBuildDirectory));
 
-			case 64:
+			case 65:
 				writes = [];
 				_iteratorNormalCompletion2 = true;
 				_didIteratorError2 = false;
 				_iteratorError2 = undefined;
-				context$1$0.prev = 68;
+				context$1$0.prev = 69;
 
 				_loop = function () {
 					var build = _step2.value;
@@ -188,13 +194,13 @@ function build(application, config) {
 
 					var results = build.results[target];
 
-					_iteratorNormalCompletion4 = true;
-					_didIteratorError4 = false;
-					_iteratorError4 = undefined;
+					_iteratorNormalCompletion3 = true;
+					_didIteratorError3 = false;
+					_iteratorError3 = undefined;
 
 					try {
-						for (_iterator4 = Object.keys(results)[Symbol.iterator](); !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-							var resultName = _step4.value;
+						for (_iterator3 = Object.keys(results)[Symbol.iterator](); !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+							var resultName = _step3.value;
 
 							var result = results[resultName];
 							var contents = comment + '\n' + result.buffer.toString('utf-8');
@@ -204,16 +210,16 @@ function build(application, config) {
 							writes.push(_qIoFs2['default'].write(fileName, contents));
 						}
 					} catch (err) {
-						_didIteratorError4 = true;
-						_iteratorError4 = err;
+						_didIteratorError3 = true;
+						_iteratorError3 = err;
 					} finally {
 						try {
-							if (!_iteratorNormalCompletion4 && _iterator4['return']) {
-								_iterator4['return']();
+							if (!_iteratorNormalCompletion3 && _iterator3['return']) {
+								_iterator3['return']();
 							}
 						} finally {
-							if (_didIteratorError4) {
-								throw _iteratorError4;
+							if (_didIteratorError3) {
+								throw _iteratorError3;
 							}
 						}
 					}
@@ -223,87 +229,97 @@ function build(application, config) {
 					_loop();
 				}
 
-				context$1$0.next = 77;
+				context$1$0.next = 78;
 				break;
 
-			case 73:
-				context$1$0.prev = 73;
-				context$1$0.t1 = context$1$0['catch'](68);
+			case 74:
+				context$1$0.prev = 74;
+				context$1$0.t1 = context$1$0['catch'](69);
 				_didIteratorError2 = true;
 				_iteratorError2 = context$1$0.t1;
 
-			case 77:
-				context$1$0.prev = 77;
+			case 78:
 				context$1$0.prev = 78;
+				context$1$0.prev = 79;
 
 				if (!_iteratorNormalCompletion2 && _iterator2['return']) {
 					_iterator2['return']();
 				}
 
-			case 80:
-				context$1$0.prev = 80;
+			case 81:
+				context$1$0.prev = 81;
 
 				if (!_didIteratorError2) {
-					context$1$0.next = 83;
+					context$1$0.next = 84;
 					break;
 				}
 
 				throw _iteratorError2;
 
-			case 83:
-				return context$1$0.finish(80);
-
 			case 84:
-				return context$1$0.finish(77);
+				return context$1$0.finish(81);
 
 			case 85:
-				context$1$0.next = 87;
+				return context$1$0.finish(78);
+
+			case 86:
+				context$1$0.next = 88;
 				return regeneratorRuntime.awrap(Promise.all(writes));
 
-			case 87:
-				context$1$0.next = 89;
-				return regeneratorRuntime.awrap(_qIoFs2['default'].exists(assetRoot));
-
-			case 89:
-				if (!context$1$0.sent) {
-					context$1$0.next = 95;
+			case 88:
+				if (!buildConfig.tasks['static']) {
+					context$1$0.next = 98;
 					break;
 				}
 
-				application.log.info('[console:run] Copy static files from "' + staticRoot + '" to ' + buildDirectory + ' ...');
-				context$1$0.next = 93;
-				return regeneratorRuntime.awrap(_qIoFs2['default'].copyTree(assetRoot, (0, _path.resolve)(patternBuildDirectory, '_assets')));
-
-			case 93:
-				context$1$0.next = 96;
-				break;
-
-			case 95:
-				application.log.info('[console:run] No static files at "' + staticRoot + '"');
-
-			case 96:
-				context$1$0.next = 98;
+				context$1$0.next = 91;
 				return regeneratorRuntime.awrap(_qIoFs2['default'].exists(staticRoot));
 
-			case 98:
+			case 91:
 				if (!context$1$0.sent) {
-					context$1$0.next = 104;
+					context$1$0.next = 97;
 					break;
 				}
 
 				application.log.info('[console:run] Copy asset files from "' + assetRoot + '" to ' + patternBuildDirectory + ' ...');
-				context$1$0.next = 102;
+				context$1$0.next = 95;
 				return regeneratorRuntime.awrap(_qIoFs2['default'].copyTree(staticRoot, (0, _path.resolve)(patternBuildDirectory, 'static')));
 
-			case 102:
-				context$1$0.next = 105;
+			case 95:
+				context$1$0.next = 98;
 				break;
 
-			case 104:
+			case 97:
 				application.log.info('[console:run] No asset files at "' + assetRoot + '"');
 
+			case 98:
+				if (!buildConfig.tasks.patterns) {
+					context$1$0.next = 292;
+					break;
+				}
+
+				context$1$0.next = 101;
+				return regeneratorRuntime.awrap(_qIoFs2['default'].exists(assetRoot));
+
+			case 101:
+				if (!context$1$0.sent) {
+					context$1$0.next = 107;
+					break;
+				}
+
+				application.log.info('[console:run] Copy static files from "' + staticRoot + '" to ' + buildDirectory + ' ...');
+				context$1$0.next = 105;
+				return regeneratorRuntime.awrap(_qIoFs2['default'].copyTree(assetRoot, (0, _path.resolve)(patternBuildDirectory, '_assets')));
+
 			case 105:
-				context$1$0.next = 107;
+				context$1$0.next = 108;
+				break;
+
+			case 107:
+				application.log.info('[console:run] No static files at "' + staticRoot + '"');
+
+			case 108:
+				context$1$0.next = 110;
 				return regeneratorRuntime.awrap((0, _libraryUtilitiesGetPatterns2['default'])({
 					'id': '.',
 					'base': patternRoot,
@@ -313,31 +329,31 @@ function build(application, config) {
 					'filters': {}
 				}));
 
-			case 107:
+			case 110:
 				patternList = context$1$0.sent;
-				_iteratorNormalCompletion3 = true;
-				_didIteratorError3 = false;
-				_iteratorError3 = undefined;
-				context$1$0.prev = 111;
-				_iterator3 = patternList[Symbol.iterator]();
+				_iteratorNormalCompletion4 = true;
+				_didIteratorError4 = false;
+				_iteratorError4 = undefined;
+				context$1$0.prev = 114;
+				_iterator4 = patternList[Symbol.iterator]();
 
-			case 113:
-				if (_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done) {
-					context$1$0.next = 275;
+			case 116:
+				if (_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done) {
+					context$1$0.next = 278;
 					break;
 				}
 
-				patternItem = _step3.value;
+				patternItem = _step4.value;
 				patternResultDirectory = (0, _path.resolve)(patternBuildDirectory, patternItem.id);
 				patternSnippetsDirectory = (0, _path.resolve)(patternResultDirectory, 'snippets');
-				context$1$0.next = 119;
+				context$1$0.next = 122;
 				return regeneratorRuntime.awrap(_qIoFs2['default'].makeTree(patternResultDirectory));
 
-			case 119:
-				context$1$0.next = 121;
+			case 122:
+				context$1$0.next = 124;
 				return regeneratorRuntime.awrap(_qIoFs2['default'].makeTree(patternSnippetsDirectory));
 
-			case 121:
+			case 124:
 				metaData = Object.assign({}, patternItem.manifest, {
 					'build': {
 						'date': built,
@@ -349,12 +365,12 @@ function build(application, config) {
 				_iteratorNormalCompletion5 = true;
 				_didIteratorError5 = false;
 				_iteratorError5 = undefined;
-				context$1$0.prev = 125;
+				context$1$0.prev = 128;
 				_iterator5 = Object.keys(patternItem.results)[Symbol.iterator]();
 
-			case 127:
+			case 130:
 				if (_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done) {
-					context$1$0.next = 203;
+					context$1$0.next = 206;
 					break;
 				}
 
@@ -367,12 +383,12 @@ function build(application, config) {
 				_iteratorNormalCompletion7 = true;
 				_didIteratorError7 = false;
 				_iteratorError7 = undefined;
-				context$1$0.prev = 135;
+				context$1$0.prev = 138;
 				_iterator7 = Object.keys(resultEnvironment)[Symbol.iterator]();
 
-			case 137:
+			case 140:
 				if (_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done) {
-					context$1$0.next = 186;
+					context$1$0.next = 189;
 					break;
 				}
 
@@ -390,12 +406,12 @@ function build(application, config) {
 				_iteratorNormalCompletion8 = true;
 				_didIteratorError8 = false;
 				_iteratorError8 = undefined;
-				context$1$0.prev = 146;
+				context$1$0.prev = 149;
 				_iterator8 = variants[Symbol.iterator]();
 
-			case 148:
+			case 151:
 				if (_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done) {
-					context$1$0.next = 160;
+					context$1$0.next = 163;
 					break;
 				}
 
@@ -408,151 +424,151 @@ function build(application, config) {
 
 				resultFileBaseName = fragments.join('-') + '.' + result.out;
 				resultFile = (0, _path.resolve)(patternSnippetsDirectory, resultFileBaseName);
-				context$1$0.next = 156;
+				context$1$0.next = 159;
 				return regeneratorRuntime.awrap(_qIoFs2['default'].write(resultFile, variant.buffer));
 
-			case 156:
+			case 159:
 				metaData.results[resultEnvironmentName][resultName][variant.name || 'library'] = _qIoFs2['default'].relativeFromDirectory(patternResultDirectory, resultFile);
 
-			case 157:
-				_iteratorNormalCompletion8 = true;
-				context$1$0.next = 148;
-				break;
-
 			case 160:
-				context$1$0.next = 166;
+				_iteratorNormalCompletion8 = true;
+				context$1$0.next = 151;
 				break;
 
-			case 162:
-				context$1$0.prev = 162;
-				context$1$0.t2 = context$1$0['catch'](146);
+			case 163:
+				context$1$0.next = 169;
+				break;
+
+			case 165:
+				context$1$0.prev = 165;
+				context$1$0.t2 = context$1$0['catch'](149);
 				_didIteratorError8 = true;
 				_iteratorError8 = context$1$0.t2;
 
-			case 166:
-				context$1$0.prev = 166;
-				context$1$0.prev = 167;
+			case 169:
+				context$1$0.prev = 169;
+				context$1$0.prev = 170;
 
 				if (!_iteratorNormalCompletion8 && _iterator8['return']) {
 					_iterator8['return']();
 				}
 
-			case 169:
-				context$1$0.prev = 169;
+			case 172:
+				context$1$0.prev = 172;
 
 				if (!_didIteratorError8) {
-					context$1$0.next = 172;
+					context$1$0.next = 175;
 					break;
 				}
 
 				throw _iteratorError8;
 
-			case 172:
+			case 175:
+				return context$1$0.finish(172);
+
+			case 176:
 				return context$1$0.finish(169);
 
-			case 173:
-				return context$1$0.finish(166);
-
-			case 174:
+			case 177:
 				mainBuffer = result.demoBuffer || result.buffer;
 				mainName = resultName.toLowerCase();
 
 				if (!(mainName === 'markup')) {
-					context$1$0.next = 178;
+					context$1$0.next = 181;
 					break;
 				}
 
-				return context$1$0.abrupt('continue', 183);
+				return context$1$0.abrupt('continue', 186);
 
-			case 178:
+			case 181:
 
 				// TODO: resolve this
 				mainName = mainName === 'documentation' ? mainName : resultEnvironmentName;
 
 				mainFileBaseName = mainName + '.' + result.out;
 				mainFile = (0, _path.resolve)(patternResultDirectory, mainFileBaseName);
-				context$1$0.next = 183;
+				context$1$0.next = 186;
 				return regeneratorRuntime.awrap(_qIoFs2['default'].write(mainFile, mainBuffer));
 
-			case 183:
-				_iteratorNormalCompletion7 = true;
-				context$1$0.next = 137;
-				break;
-
 			case 186:
-				context$1$0.next = 192;
+				_iteratorNormalCompletion7 = true;
+				context$1$0.next = 140;
 				break;
 
-			case 188:
-				context$1$0.prev = 188;
-				context$1$0.t3 = context$1$0['catch'](135);
+			case 189:
+				context$1$0.next = 195;
+				break;
+
+			case 191:
+				context$1$0.prev = 191;
+				context$1$0.t3 = context$1$0['catch'](138);
 				_didIteratorError7 = true;
 				_iteratorError7 = context$1$0.t3;
 
-			case 192:
-				context$1$0.prev = 192;
-				context$1$0.prev = 193;
+			case 195:
+				context$1$0.prev = 195;
+				context$1$0.prev = 196;
 
 				if (!_iteratorNormalCompletion7 && _iterator7['return']) {
 					_iterator7['return']();
 				}
 
-			case 195:
-				context$1$0.prev = 195;
+			case 198:
+				context$1$0.prev = 198;
 
 				if (!_didIteratorError7) {
-					context$1$0.next = 198;
+					context$1$0.next = 201;
 					break;
 				}
 
 				throw _iteratorError7;
 
-			case 198:
+			case 201:
+				return context$1$0.finish(198);
+
+			case 202:
 				return context$1$0.finish(195);
 
-			case 199:
-				return context$1$0.finish(192);
-
-			case 200:
-				_iteratorNormalCompletion5 = true;
-				context$1$0.next = 127;
-				break;
-
 			case 203:
-				context$1$0.next = 209;
+				_iteratorNormalCompletion5 = true;
+				context$1$0.next = 130;
 				break;
 
-			case 205:
-				context$1$0.prev = 205;
-				context$1$0.t4 = context$1$0['catch'](125);
+			case 206:
+				context$1$0.next = 212;
+				break;
+
+			case 208:
+				context$1$0.prev = 208;
+				context$1$0.t4 = context$1$0['catch'](128);
 				_didIteratorError5 = true;
 				_iteratorError5 = context$1$0.t4;
 
-			case 209:
-				context$1$0.prev = 209;
-				context$1$0.prev = 210;
+			case 212:
+				context$1$0.prev = 212;
+				context$1$0.prev = 213;
 
 				if (!_iteratorNormalCompletion5 && _iterator5['return']) {
 					_iterator5['return']();
 				}
 
-			case 212:
-				context$1$0.prev = 212;
+			case 215:
+				context$1$0.prev = 215;
 
 				if (!_didIteratorError5) {
-					context$1$0.next = 215;
+					context$1$0.next = 218;
 					break;
 				}
 
 				throw _iteratorError5;
 
-			case 215:
+			case 218:
+				return context$1$0.finish(215);
+
+			case 219:
 				return context$1$0.finish(212);
 
-			case 216:
-				return context$1$0.finish(209);
-
-			case 217:
+			case 220:
 				templateData = {
 					'title': patternItem.id,
 					'style': [],
@@ -575,12 +591,12 @@ function build(application, config) {
 				_iteratorNormalCompletion6 = true;
 				_didIteratorError6 = false;
 				_iteratorError6 = undefined;
-				context$1$0.prev = 221;
+				context$1$0.prev = 224;
 				_iterator6 = Object.keys(patternItem.results)[Symbol.iterator]();
 
-			case 223:
+			case 226:
 				if (_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done) {
-					context$1$0.next = 251;
+					context$1$0.next = 254;
 					break;
 				}
 
@@ -592,7 +608,7 @@ function build(application, config) {
 				_iteratorNormalCompletion9 = true;
 				_didIteratorError9 = false;
 				_iteratorError9 = undefined;
-				context$1$0.prev = 232;
+				context$1$0.prev = 235;
 
 				for (_iterator9 = Object.keys(_environment2)[Symbol.iterator](); !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
 					resultType = _step9.value;
@@ -604,131 +620,131 @@ function build(application, config) {
 
 					templateData[templateKey] = Array.isArray(templateData[templateKey]) ? templateData[templateKey].concat([templateSectionData]) : [templateSectionData];
 				}
-				context$1$0.next = 240;
+				context$1$0.next = 243;
 				break;
 
-			case 236:
-				context$1$0.prev = 236;
-				context$1$0.t5 = context$1$0['catch'](232);
+			case 239:
+				context$1$0.prev = 239;
+				context$1$0.t5 = context$1$0['catch'](235);
 				_didIteratorError9 = true;
 				_iteratorError9 = context$1$0.t5;
 
-			case 240:
-				context$1$0.prev = 240;
-				context$1$0.prev = 241;
+			case 243:
+				context$1$0.prev = 243;
+				context$1$0.prev = 244;
 
 				if (!_iteratorNormalCompletion9 && _iterator9['return']) {
 					_iterator9['return']();
 				}
 
-			case 243:
-				context$1$0.prev = 243;
+			case 246:
+				context$1$0.prev = 246;
 
 				if (!_didIteratorError9) {
-					context$1$0.next = 246;
+					context$1$0.next = 249;
 					break;
 				}
 
 				throw _iteratorError9;
 
-			case 246:
+			case 249:
+				return context$1$0.finish(246);
+
+			case 250:
 				return context$1$0.finish(243);
 
-			case 247:
-				return context$1$0.finish(240);
-
-			case 248:
-				_iteratorNormalCompletion6 = true;
-				context$1$0.next = 223;
-				break;
-
 			case 251:
-				context$1$0.next = 257;
+				_iteratorNormalCompletion6 = true;
+				context$1$0.next = 226;
 				break;
 
-			case 253:
-				context$1$0.prev = 253;
-				context$1$0.t6 = context$1$0['catch'](221);
+			case 254:
+				context$1$0.next = 260;
+				break;
+
+			case 256:
+				context$1$0.prev = 256;
+				context$1$0.t6 = context$1$0['catch'](224);
 				_didIteratorError6 = true;
 				_iteratorError6 = context$1$0.t6;
 
-			case 257:
-				context$1$0.prev = 257;
-				context$1$0.prev = 258;
+			case 260:
+				context$1$0.prev = 260;
+				context$1$0.prev = 261;
 
 				if (!_iteratorNormalCompletion6 && _iterator6['return']) {
 					_iterator6['return']();
 				}
 
-			case 260:
-				context$1$0.prev = 260;
+			case 263:
+				context$1$0.prev = 263;
 
 				if (!_didIteratorError6) {
-					context$1$0.next = 263;
+					context$1$0.next = 266;
 					break;
 				}
 
 				throw _iteratorError6;
 
-			case 263:
+			case 266:
+				return context$1$0.finish(263);
+
+			case 267:
 				return context$1$0.finish(260);
 
-			case 264:
-				return context$1$0.finish(257);
-
-			case 265:
+			case 268:
 				rendered = (0, _layouts2['default'])(templateData);
-				context$1$0.next = 268;
+				context$1$0.next = 271;
 				return regeneratorRuntime.awrap(_qIoFs2['default'].write((0, _path.resolve)(patternResultDirectory, 'index.html'), rendered));
 
-			case 268:
-				context$1$0.next = 270;
+			case 271:
+				context$1$0.next = 273;
 				return regeneratorRuntime.awrap(_qIoFs2['default'].write((0, _path.resolve)(patternResultDirectory, 'build.json'), JSON.stringify(patternItem, null, '  ')));
 
-			case 270:
-				context$1$0.next = 272;
+			case 273:
+				context$1$0.next = 275;
 				return regeneratorRuntime.awrap(_qIoFs2['default'].write((0, _path.resolve)(patternResultDirectory, 'pattern.json'), JSON.stringify(metaData, null, '  ')));
 
-			case 272:
-				_iteratorNormalCompletion3 = true;
-				context$1$0.next = 113;
-				break;
-
 			case 275:
-				context$1$0.next = 281;
+				_iteratorNormalCompletion4 = true;
+				context$1$0.next = 116;
 				break;
 
-			case 277:
-				context$1$0.prev = 277;
-				context$1$0.t7 = context$1$0['catch'](111);
-				_didIteratorError3 = true;
-				_iteratorError3 = context$1$0.t7;
+			case 278:
+				context$1$0.next = 284;
+				break;
 
-			case 281:
-				context$1$0.prev = 281;
-				context$1$0.prev = 282;
-
-				if (!_iteratorNormalCompletion3 && _iterator3['return']) {
-					_iterator3['return']();
-				}
+			case 280:
+				context$1$0.prev = 280;
+				context$1$0.t7 = context$1$0['catch'](114);
+				_didIteratorError4 = true;
+				_iteratorError4 = context$1$0.t7;
 
 			case 284:
 				context$1$0.prev = 284;
+				context$1$0.prev = 285;
 
-				if (!_didIteratorError3) {
-					context$1$0.next = 287;
+				if (!_iteratorNormalCompletion4 && _iterator4['return']) {
+					_iterator4['return']();
+				}
+
+			case 287:
+				context$1$0.prev = 287;
+
+				if (!_didIteratorError4) {
+					context$1$0.next = 290;
 					break;
 				}
 
-				throw _iteratorError3;
+				throw _iteratorError4;
 
-			case 287:
+			case 290:
+				return context$1$0.finish(287);
+
+			case 291:
 				return context$1$0.finish(284);
 
-			case 288:
-				return context$1$0.finish(281);
-
-			case 289:
+			case 292:
 				archive = (0, _archiver2['default'])('zip');
 				output = (0, _fs.createWriteStream)(buildDirectory + '.zip');
 
@@ -741,11 +757,11 @@ function build(application, config) {
 					archive.on('error', reject);
 				}));
 
-			case 295:
+			case 298:
 			case 'end':
 				return context$1$0.stop();
 		}
-	}, null, this, [[33, 50, 54, 62], [55,, 57, 61], [68, 73, 77, 85], [78,, 80, 84], [111, 277, 281, 289], [125, 205, 209, 217], [135, 188, 192, 200], [146, 162, 166, 174], [167,, 169, 173], [193,, 195, 199], [210,, 212, 216], [221, 253, 257, 265], [232, 236, 240, 248], [241,, 243, 247], [258,, 260, 264], [282,, 284, 288]]);
+	}, null, this, [[34, 51, 55, 63], [56,, 58, 62], [69, 74, 78, 86], [79,, 81, 85], [114, 280, 284, 292], [128, 208, 212, 220], [138, 191, 195, 203], [149, 165, 169, 177], [170,, 172, 176], [196,, 198, 202], [213,, 215, 219], [224, 256, 260, 268], [235, 239, 243, 251], [244,, 246, 250], [261,, 263, 267], [285,, 287, 291]]);
 }
 
 exports['default'] = build;

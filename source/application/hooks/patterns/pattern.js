@@ -60,6 +60,14 @@ export class Pattern {
 			let manifest = JSON.parse(await qfs.read(manifestPath));
 			let environmentName = manifest.name || dirname(manifestPath);
 
+			if (this.isEnvironment && environmentName !== basename(this.id)) {
+				console.log(`Skipped environment ${environmentName} for environment pattern ${this.id}`);
+				if (environmentName in this.environments) {
+					delete this.environments[environmentName];
+				}
+				continue;
+			}
+
 			if (this.filters.environments && this.filters.environments.length > 0) {
 				if (this.filters.environments.includes(environmentName)) {
 					results[environmentName] = { manifest };
@@ -68,6 +76,7 @@ export class Pattern {
 				results[environmentName] = { manifest };
 			}
 		}
+
 		return results;
 	}
 

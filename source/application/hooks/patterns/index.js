@@ -66,7 +66,7 @@ export default {
 				return transforms;
 			}, {});
 
-		if (this.configuration.cache) {
+		if (this.configuration.cache && application.runtime.mode !== 'console') {
 			application.cache = cache(this.configuration.cache);
 
 			if (this.configuration.cache.populate) {

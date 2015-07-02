@@ -136,7 +136,7 @@ var Pattern = (function () {
 
 					case 15:
 						if (_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done) {
-							context$2$0.next = 27;
+							context$2$0.next = 31;
 							break;
 						}
 
@@ -150,6 +150,19 @@ var Pattern = (function () {
 						_manifest = context$2$0.t0.parse.call(context$2$0.t0, context$2$0.t1);
 						environmentName = _manifest.name || (0, _path.dirname)(manifestPath);
 
+						if (!(this.isEnvironment && environmentName !== (0, _path.basename)(this.id))) {
+							context$2$0.next = 27;
+							break;
+						}
+
+						console.log('Skipped environment ' + environmentName + ' for environment pattern ' + this.id);
+						if (environmentName in this.environments) {
+							delete this.environments[environmentName];
+						}
+						return context$2$0.abrupt('continue', 28);
+
+					case 27:
+
 						if (this.filters.environments && this.filters.environments.length > 0) {
 							if (this.filters.environments.includes(environmentName)) {
 								results[environmentName] = { manifest: _manifest };
@@ -158,53 +171,53 @@ var Pattern = (function () {
 							results[environmentName] = { manifest: _manifest };
 						}
 
-					case 24:
+					case 28:
 						_iteratorNormalCompletion2 = true;
 						context$2$0.next = 15;
 						break;
 
-					case 27:
-						context$2$0.next = 33;
+					case 31:
+						context$2$0.next = 37;
 						break;
 
-					case 29:
-						context$2$0.prev = 29;
+					case 33:
+						context$2$0.prev = 33;
 						context$2$0.t2 = context$2$0['catch'](13);
 						_didIteratorError2 = true;
 						_iteratorError2 = context$2$0.t2;
 
-					case 33:
-						context$2$0.prev = 33;
-						context$2$0.prev = 34;
+					case 37:
+						context$2$0.prev = 37;
+						context$2$0.prev = 38;
 
 						if (!_iteratorNormalCompletion2 && _iterator2['return']) {
 							_iterator2['return']();
 						}
 
-					case 36:
-						context$2$0.prev = 36;
+					case 40:
+						context$2$0.prev = 40;
 
 						if (!_didIteratorError2) {
-							context$2$0.next = 39;
+							context$2$0.next = 43;
 							break;
 						}
 
 						throw _iteratorError2;
 
-					case 39:
-						return context$2$0.finish(36);
+					case 43:
+						return context$2$0.finish(40);
 
-					case 40:
-						return context$2$0.finish(33);
+					case 44:
+						return context$2$0.finish(37);
 
-					case 41:
+					case 45:
 						return context$2$0.abrupt('return', results);
 
-					case 42:
+					case 46:
 					case 'end':
 						return context$2$0.stop();
 				}
-			}, null, this, [[13, 29, 33, 41], [34,, 36, 40]]);
+			}, null, this, [[13, 33, 37, 45], [38,, 40, 44]]);
 		}
 	}, {
 		key: 'readManifest',
