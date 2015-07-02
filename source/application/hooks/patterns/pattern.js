@@ -312,7 +312,13 @@ export class Pattern {
 					for (let transform of transforms) {
 						let cacheID = `file:transform:${file.path}:${environmentName}:${transform}`;
 						let cached;
+						let demo = demos[formatConfig.name];
 						let mtime = getLastModified(file);
+
+						// Use latest demo or file mtime
+						if (demo) {
+							mtime = Math.max(mtime, getLastModified(demo));
+						}
 
 						if (this.cache && this.cache.config.transform) {
 							cached = this.cache.get(cacheID, mtime);
@@ -326,7 +332,7 @@ export class Pattern {
 							let configuration = merge({}, applicationConfig, environmentConfig);
 
 							try {
-								file = await fn(Object.assign({}, file), demos[formatConfig.name], configuration, forced);
+								file = await fn(Object.assign({}, file), demo, configuration, forced);
 								if (this.cache && this.cache.config.transform) {
 									this.cache.set(cacheID, mtime, file);
 								}
