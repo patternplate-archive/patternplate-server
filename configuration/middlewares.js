@@ -5,7 +5,7 @@ Object.defineProperty(exports, '__esModule', {
 });
 var middlewares = {
 	'enabled': {
-		'jsonerror': true
+		'cors': true
 	}
 };
 

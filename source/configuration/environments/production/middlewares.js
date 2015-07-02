@@ -1,6 +1,6 @@
 const middlewares = {
 	'enabled': {
-		'cors': true
+		'cors': false
 	}
 };
 
