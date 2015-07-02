@@ -37,10 +37,10 @@ function indexRouteFactory(application, configuration) {
 					routes = Object.keys(routeConfig).filter(function (routeName) {
 						return routeConfig[routeName].enabled === true;
 					}).map(function getRoutes(routeName) {
-						return { 'name': routeName, 'path': routeConfig[routeName].path, 'uri': '' + base + '' + application.router.url(routeName) };
+						return { 'name': routeName, 'path': routeConfig[routeName].path, 'uri': '' + base + application.router.url(routeName) };
 					});
 					context$2$0.next = 6;
-					return regeneratorRuntime.awrap((0, _isomorphicFetch2['default'])('' + base + '' + application.router.url('meta'), { 'headers': { 'accepty-type': 'application/json' } }));
+					return regeneratorRuntime.awrap((0, _isomorphicFetch2['default'])('' + base + application.router.url('meta'), { 'headers': { 'accepty-type': 'application/json' } }));
 
 				case 6:
 					response = context$2$0.sent;

@@ -156,7 +156,7 @@ function patternRouteFactory(application, configuration) {
 				case 49:
 					hostName = application.configuration.server.host;
 					port = application.configuration.server.port;
-					host = '' + hostName + ':' + port;
+					host = hostName + ':' + port;
 					prefix = '';
 					templateData = {
 						'title': id,
@@ -209,7 +209,7 @@ function patternRouteFactory(application, configuration) {
 						_result = _environment[resultType];
 						templateKey = resultType.toLowerCase();
 						content = _result.demoBuffer || _result.buffer;
-						uri = '' + this.params.id + '/' + environmentName + '.' + _result.out;
+						uri = this.params.id + '/' + environmentName + '.' + _result.out;
 						templateSectionData = Object.assign({}, blueprint, { content: content, uri: uri });
 
 						templateData[templateKey] = Array.isArray(templateData[templateKey]) ? templateData[templateKey].concat([templateSectionData]) : [templateSectionData];

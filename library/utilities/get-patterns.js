@@ -80,7 +80,7 @@ function getPatterns(options) {
 
 			case 29:
 				if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
-					context$1$0.next = 65;
+					context$1$0.next = 66;
 					break;
 				}
 
@@ -130,60 +130,61 @@ function getPatterns(options) {
 				}
 
 				context$1$0.prev = 52;
-				context$1$0.next = 55;
+				context$1$0.t1 = results;
+				context$1$0.next = 56;
 				return regeneratorRuntime.awrap(pattern.transform());
 
-			case 55:
-				context$1$0.t1 = context$1$0.sent;
-				results.push(context$1$0.t1);
-				context$1$0.next = 62;
+			case 56:
+				context$1$0.t2 = context$1$0.sent;
+				context$1$0.t1.push.call(context$1$0.t1, context$1$0.t2);
+				context$1$0.next = 63;
 				break;
 
-			case 59:
-				context$1$0.prev = 59;
-				context$1$0.t2 = context$1$0['catch'](52);
-				throw context$1$0.t2;
+			case 60:
+				context$1$0.prev = 60;
+				context$1$0.t3 = context$1$0['catch'](52);
+				throw context$1$0.t3;
 
-			case 62:
+			case 63:
 				_iteratorNormalCompletion = true;
 				context$1$0.next = 29;
 				break;
 
-			case 65:
-				context$1$0.next = 71;
+			case 66:
+				context$1$0.next = 72;
 				break;
 
-			case 67:
-				context$1$0.prev = 67;
-				context$1$0.t3 = context$1$0['catch'](27);
+			case 68:
+				context$1$0.prev = 68;
+				context$1$0.t4 = context$1$0['catch'](27);
 				_didIteratorError = true;
-				_iteratorError = context$1$0.t3;
+				_iteratorError = context$1$0.t4;
 
-			case 71:
-				context$1$0.prev = 71;
+			case 72:
 				context$1$0.prev = 72;
+				context$1$0.prev = 73;
 
 				if (!_iteratorNormalCompletion && _iterator['return']) {
 					_iterator['return']();
 				}
 
-			case 74:
-				context$1$0.prev = 74;
+			case 75:
+				context$1$0.prev = 75;
 
 				if (!_didIteratorError) {
-					context$1$0.next = 77;
+					context$1$0.next = 78;
 					break;
 				}
 
 				throw _iteratorError;
 
-			case 77:
-				return context$1$0.finish(74);
-
 			case 78:
-				return context$1$0.finish(71);
+				return context$1$0.finish(75);
 
 			case 79:
+				return context$1$0.finish(72);
+
+			case 80:
 
 				results = results.map(function (result) {
 					return typeof result.toJSON === 'function' ? result.toJSON() : result;
@@ -191,11 +192,11 @@ function getPatterns(options) {
 
 				return context$1$0.abrupt('return', results);
 
-			case 81:
+			case 82:
 			case 'end':
 				return context$1$0.stop();
 		}
-	}, null, this, [[27, 67, 71, 79], [39, 44], [52, 59], [72,, 74, 78]]);
+	}, null, this, [[27, 68, 72, 80], [39, 44], [52, 60], [73,, 75, 79]]);
 }
 
 exports['default'] = getPatterns;

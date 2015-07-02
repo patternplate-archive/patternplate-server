@@ -22,32 +22,33 @@ function markdownTransformFactory(application) {
 			while (1) switch (context$2$0.prev = context$2$0.next) {
 				case 0:
 					context$2$0.prev = 0;
-					context$2$0.next = 3;
+					context$2$0.t0 = Buffer;
+					context$2$0.next = 4;
 					return regeneratorRuntime.awrap(parser(file.buffer.toString('utf-8')));
 
-				case 3:
-					context$2$0.t0 = context$2$0.sent;
-					file.buffer = new Buffer(context$2$0.t0, 'utf-8');
-					context$2$0.next = 10;
+				case 4:
+					context$2$0.t1 = context$2$0.sent;
+					file.buffer = new context$2$0.t0(context$2$0.t1, 'utf-8');
+					context$2$0.next = 11;
 					break;
 
-				case 7:
-					context$2$0.prev = 7;
-					context$2$0.t1 = context$2$0['catch'](0);
-					throw new Error(context$2$0.t1);
+				case 8:
+					context$2$0.prev = 8;
+					context$2$0.t2 = context$2$0['catch'](0);
+					throw new Error(context$2$0.t2);
 
-				case 10:
+				case 11:
 
 					file['in'] = config.inFormat;
 					file.out = config.outFormat;
 
 					return context$2$0.abrupt('return', file);
 
-				case 13:
+				case 14:
 				case 'end':
 					return context$2$0.stop();
 			}
-		}, null, this, [[0, 7]]);
+		}, null, this, [[0, 8]]);
 	};
 }
 

@@ -130,7 +130,7 @@ function lessTransformFactory(application) {
 							return '@import \'' + dependency + '\';';
 						});
 
-						source = '' + injects.join('\n') + '\n' + source;
+						source = injects.join('\n') + '\n' + source;
 					}
 
 					context$2$0.prev = 30;

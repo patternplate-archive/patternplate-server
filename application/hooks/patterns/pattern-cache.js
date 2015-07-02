@@ -23,10 +23,6 @@ var SETTINGS = Symbol('settings');
 var CACHE = Symbol('cache');
 
 function patternCacheFactory() {
-	for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-		args[_key] = arguments[_key];
-	}
-
 	var namespace = new WeakMap();
 
 	var PatternCache = (function () {
@@ -106,13 +102,13 @@ function patternCacheFactory() {
 			}
 		}, {
 			key: 'length',
-			get: function () {
+			get: function get() {
 				var cache = namespace.get(CACHE);
 				return cache.length;
 			}
 		}, {
 			key: 'itemCount',
-			get: function () {
+			get: function get() {
 				var cache = namespace.get(CACHE);
 				return cache.itemCount;
 			}
@@ -126,6 +122,10 @@ function patternCacheFactory() {
 
 		return PatternCache;
 	})();
+
+	for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+		args[_key] = arguments[_key];
+	}
 
 	return new (_bind.apply(PatternCache, [null].concat(args)))();
 }

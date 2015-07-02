@@ -11,7 +11,7 @@ exports['default'] = patternFactory;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-function _defineProperty(obj, key, value) { return Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); }
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
@@ -136,17 +136,18 @@ var Pattern = (function () {
 
 					case 15:
 						if (_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done) {
-							context$2$0.next = 26;
+							context$2$0.next = 27;
 							break;
 						}
 
 						manifestPath = _step2.value;
-						context$2$0.next = 19;
+						context$2$0.t0 = JSON;
+						context$2$0.next = 20;
 						return regeneratorRuntime.awrap(_qIoFs2['default'].read(manifestPath));
 
-					case 19:
-						context$2$0.t0 = context$2$0.sent;
-						_manifest = JSON.parse(context$2$0.t0);
+					case 20:
+						context$2$0.t1 = context$2$0.sent;
+						_manifest = context$2$0.t0.parse.call(context$2$0.t0, context$2$0.t1);
 						environmentName = _manifest.name || (0, _path.dirname)(manifestPath);
 
 						if (this.filters.environments && this.filters.environments.length > 0) {
@@ -157,53 +158,53 @@ var Pattern = (function () {
 							results[environmentName] = { manifest: _manifest };
 						}
 
-					case 23:
+					case 24:
 						_iteratorNormalCompletion2 = true;
 						context$2$0.next = 15;
 						break;
 
-					case 26:
-						context$2$0.next = 32;
+					case 27:
+						context$2$0.next = 33;
 						break;
 
-					case 28:
-						context$2$0.prev = 28;
-						context$2$0.t1 = context$2$0['catch'](13);
+					case 29:
+						context$2$0.prev = 29;
+						context$2$0.t2 = context$2$0['catch'](13);
 						_didIteratorError2 = true;
-						_iteratorError2 = context$2$0.t1;
+						_iteratorError2 = context$2$0.t2;
 
-					case 32:
-						context$2$0.prev = 32;
+					case 33:
 						context$2$0.prev = 33;
+						context$2$0.prev = 34;
 
 						if (!_iteratorNormalCompletion2 && _iterator2['return']) {
 							_iterator2['return']();
 						}
 
-					case 35:
-						context$2$0.prev = 35;
+					case 36:
+						context$2$0.prev = 36;
 
 						if (!_didIteratorError2) {
-							context$2$0.next = 38;
+							context$2$0.next = 39;
 							break;
 						}
 
 						throw _iteratorError2;
 
-					case 38:
-						return context$2$0.finish(35);
-
 					case 39:
-						return context$2$0.finish(32);
+						return context$2$0.finish(36);
 
 					case 40:
-						return context$2$0.abrupt('return', results);
+						return context$2$0.finish(33);
 
 					case 41:
+						return context$2$0.abrupt('return', results);
+
+					case 42:
 					case 'end':
 						return context$2$0.stop();
 				}
-			}, null, this, [[13, 28, 32, 40], [33,, 35, 39]]);
+			}, null, this, [[13, 29, 33, 41], [34,, 36, 40]]);
 		}
 	}, {
 		key: 'readManifest',
@@ -254,37 +255,38 @@ var Pattern = (function () {
 
 					case 11:
 						context$2$0.prev = 11;
-						context$2$0.next = 14;
+						context$2$0.t1 = JSON;
+						context$2$0.next = 15;
 						return regeneratorRuntime.awrap(fs.read(manifestPath));
 
-					case 14:
-						context$2$0.t1 = context$2$0.sent;
-						manifestData = JSON.parse(context$2$0.t1);
+					case 15:
+						context$2$0.t2 = context$2$0.sent;
+						manifestData = context$2$0.t1.parse.call(context$2$0.t1, context$2$0.t2);
 
 						this.manifest = Object.assign({}, {
 							'version': '0.1.0',
 							'build': true,
 							'display': true
 						}, this.manifest, manifestData);
-						context$2$0.next = 22;
+						context$2$0.next = 23;
 						break;
 
-					case 19:
-						context$2$0.prev = 19;
-						context$2$0.t2 = context$2$0['catch'](11);
+					case 20:
+						context$2$0.prev = 20;
+						context$2$0.t3 = context$2$0['catch'](11);
 						throw new Error('Error while reading pattern.json from ' + this.path, {
 							'file': this.path,
 							'pattern': this.id,
-							'stack': context$2$0.t2.stack
+							'stack': context$2$0.t3.stack
 						});
 
-					case 22:
+					case 23:
 						if (!(this.isEnvironment && !this.manifest.patterns)) {
-							context$2$0.next = 25;
+							context$2$0.next = 26;
 							break;
 						}
 
-						context$2$0.next = 25;
+						context$2$0.next = 26;
 						return regeneratorRuntime.awrap((function callee$2$0() {
 							var list, range;
 							return regeneratorRuntime.async(function callee$2$0$(context$3$0) {
@@ -322,7 +324,7 @@ var Pattern = (function () {
 										}
 
 										this.manifest.patterns = list.reduce(function (results, item) {
-											return Object.assign(results, _defineProperty({}, item, '' + item + '@' + range));
+											return Object.assign(results, _defineProperty({}, item, item + '@' + range));
 										}, {});
 
 									case 8:
@@ -332,16 +334,16 @@ var Pattern = (function () {
 							}, null, _this2);
 						})());
 
-					case 25:
+					case 26:
 						_iteratorNormalCompletion3 = true;
 						_didIteratorError3 = false;
 						_iteratorError3 = undefined;
-						context$2$0.prev = 28;
+						context$2$0.prev = 29;
 						_iterator3 = Object.keys(this.manifest.patterns || {})[Symbol.iterator]();
 
-					case 30:
+					case 31:
 						if (_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done) {
-							context$2$0.next = 53;
+							context$2$0.next = 54;
 							break;
 						}
 
@@ -352,94 +354,94 @@ var Pattern = (function () {
 						patternRange = _semver2['default'].validRange(patternBaseNameFragments[1]) || '*';
 
 						if (patternRange) {
-							context$2$0.next = 38;
+							context$2$0.next = 39;
 							break;
 						}
 
-						throw new Error('' + patternBaseNameFragments[1] + ' in ' + patternIDString + ' is no valid semver range.', {
+						throw new Error(patternBaseNameFragments[1] + ' in ' + patternIDString + ' is no valid semver range.', {
 							'file': this.path,
 							'pattern': this.id
 						});
 
-					case 38:
+					case 39:
 						patternID = (0, _path.join)((0, _path.dirname)(patternIDString), patternBaseNameFragments[0]);
 						pattern = new Pattern(patternID, this.base, this.config, this.transforms, this.filters, this.cache);
-						context$2$0.next = 42;
+						context$2$0.next = 43;
 						return regeneratorRuntime.awrap(pattern.read(pattern.path));
 
-					case 42:
+					case 43:
 						this.dependencies[patternName] = context$2$0.sent;
 
 						if (_semver2['default'].satisfies(pattern.manifest.version, patternRange)) {
-							context$2$0.next = 50;
+							context$2$0.next = 51;
 							break;
 						}
 
 						if (this.isEnvironment) {
-							context$2$0.next = 48;
+							context$2$0.next = 49;
 							break;
 						}
 
-						throw new Error('' + pattern.id + ' at version ' + pattern.manifest.version + ' does not satisfy range ' + patternRange + ' specified by ' + this.id + '.', {
+						throw new Error(pattern.id + ' at version ' + pattern.manifest.version + ' does not satisfy range ' + patternRange + ' specified by ' + this.id + '.', {
 							'file': pattern.path,
 							'pattern': this.id
 						});
 
-					case 48:
+					case 49:
 						delete this.dependencies[patternName];
 						console.warn('Omitting ' + pattern.id + ' at version ' + pattern.manifest.version + ' from build. It does not satisfy range ' + patternRange + ' specified by ' + this.id + '.');
 
-					case 50:
+					case 51:
 						_iteratorNormalCompletion3 = true;
-						context$2$0.next = 30;
+						context$2$0.next = 31;
 						break;
 
-					case 53:
-						context$2$0.next = 59;
+					case 54:
+						context$2$0.next = 60;
 						break;
 
-					case 55:
-						context$2$0.prev = 55;
-						context$2$0.t3 = context$2$0['catch'](28);
+					case 56:
+						context$2$0.prev = 56;
+						context$2$0.t4 = context$2$0['catch'](29);
 						_didIteratorError3 = true;
-						_iteratorError3 = context$2$0.t3;
+						_iteratorError3 = context$2$0.t4;
 
-					case 59:
-						context$2$0.prev = 59;
+					case 60:
 						context$2$0.prev = 60;
+						context$2$0.prev = 61;
 
 						if (!_iteratorNormalCompletion3 && _iterator3['return']) {
 							_iterator3['return']();
 						}
 
-					case 62:
-						context$2$0.prev = 62;
+					case 63:
+						context$2$0.prev = 63;
 
 						if (!_didIteratorError3) {
-							context$2$0.next = 65;
+							context$2$0.next = 66;
 							break;
 						}
 
 						throw _iteratorError3;
 
-					case 65:
-						return context$2$0.finish(62);
-
 					case 66:
-						return context$2$0.finish(59);
+						return context$2$0.finish(63);
 
 					case 67:
-						context$2$0.next = 69;
+						return context$2$0.finish(60);
+
+					case 68:
+						context$2$0.next = 70;
 						return regeneratorRuntime.awrap(this.getLastModified());
 
-					case 69:
+					case 70:
 						return context$2$0.abrupt('return', this);
 
-					case 70:
+					case 71:
 					case 'end':
 						return context$2$0.stop();
 				}
-			}, null, this, [[11, 19], [28, 55, 59, 67], [60,, 62, 66]]);
+			}, null, this, [[11, 20], [29, 56, 60, 68], [61,, 63, 67]]);
 		}
 	}, {
 		key: 'read',
@@ -1178,11 +1180,7 @@ var Pattern = (function () {
 	}], [{
 		key: 'resolve',
 		value: function resolve() {
-			for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-				args[_key] = arguments[_key];
-			}
-
-			return _path.resolve.apply(undefined, args);
+			return _path.resolve.apply(undefined, arguments);
 		}
 	}]);
 
@@ -1192,8 +1190,8 @@ var Pattern = (function () {
 exports.Pattern = Pattern;
 
 function patternFactory() {
-	for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-		args[_key2] = arguments[_key2];
+	for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+		args[_key] = arguments[_key];
 	}
 
 	return regeneratorRuntime.async(function patternFactory$(context$1$0) {
