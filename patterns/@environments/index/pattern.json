@@ -11,6 +11,13 @@
 					"global-is-legacy": true
 				}
 			}
+		},
+		"react-jsx": {
+			"opts": {
+				"globals": {
+					"env": "index"
+				}
+			}
 		}
 	}
 }

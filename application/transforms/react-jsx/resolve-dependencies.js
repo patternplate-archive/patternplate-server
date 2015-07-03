@@ -20,6 +20,7 @@ var _createClass2 = _interopRequireDefault(_createClass);
 
 function resolveDependencies() {
 	var dependencies = arguments[0] === undefined ? {} : arguments[0];
+	var configuration = arguments[1] === undefined ? {} : arguments[1];
 
 	var data = {};
 
@@ -34,7 +35,7 @@ function resolveDependencies() {
 			var dependencyBuffer = dependencies[dependencyName].source;
 			var dependencySource = dependencyBuffer.toString('utf-8');
 			var dependecyTemplate = _reactJsx2['default'].server(dependencySource, { 'raw': true });
-			data[(0, _pascalCase2['default'])(dependencyName)] = (0, _createClass2['default'])(dependencyName, dependecyTemplate, dependencies[dependencyName]);
+			data[(0, _pascalCase2['default'])(dependencyName)] = (0, _createClass2['default'])(dependencyName, dependecyTemplate, dependencies[dependencyName], configuration.opts);
 		}
 	} catch (err) {
 		_didIteratorError = true;

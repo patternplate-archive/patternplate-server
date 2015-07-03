@@ -32,6 +32,13 @@
 					}
 				}
 			}
+		},
+		"react-jsx": {
+			"opts": {
+				"globals": {
+					"env": "legacy"
+				}
+			}
 		}
 	}
 }

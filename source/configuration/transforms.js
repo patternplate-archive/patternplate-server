@@ -6,7 +6,8 @@ export default {
 	},
 	'react-jsx': {
 		'inFormat': 'jsx',
-		'outFormat': 'html'
+		'outFormat': 'html',
+		'opts': {}
 	},
 	'browserify': {
 		'inFormat': 'js',

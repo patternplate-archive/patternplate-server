@@ -1,10 +1,12 @@
 import React from 'react';
 import pascalCase from 'pascal-case';
+import merge from 'lodash.merge';
 
 import resolveDependencies from './resolve-dependencies';
 
-function createClass (name, template, file) {
+function createClass (name, template, file, configuration = {}) {
 	let dependencyData = resolveDependencies(file.dependencies);
+	merge(dependencyData, configuration);
 
 	return React.createClass({
 		'displayName': pascalCase(name),
