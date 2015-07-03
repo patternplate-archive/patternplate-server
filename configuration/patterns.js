@@ -5,7 +5,7 @@ Object.defineProperty(exports, '__esModule', {
 });
 exports['default'] = {
 	'path': './patterns',
-	'transformPath': './application/transforms',
+	'transformPath': ['application/transforms', 'application/patternplate-server/transforms'],
 	'formats': {
 		'js': {
 			'name': 'Script',

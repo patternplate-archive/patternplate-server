@@ -1,5 +1,5 @@
 export default {
-	'path': './application/transforms',
+	//'path': './application/transforms',
 	'markdown': {
 		'inFormat': 'md',
 		'outFormat': 'html'

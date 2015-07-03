@@ -4,7 +4,7 @@ Object.defineProperty(exports, '__esModule', {
 	value: true
 });
 exports['default'] = {
-	'path': './application/transforms',
+	//'path': './application/transforms',
 	'markdown': {
 		'inFormat': 'md',
 		'outFormat': 'html'

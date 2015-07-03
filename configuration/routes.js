@@ -7,6 +7,7 @@ Object.defineProperty(exports, '__esModule', {
 var _path = require('path');
 
 var routes = {
+	'path': ['application/routes', 'application/patternplate-server/routes'],
 	'enabled': {
 		'index': {
 			'enabled': true,

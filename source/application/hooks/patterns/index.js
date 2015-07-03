@@ -1,5 +1,6 @@
 import requireAll from 'require-all';
 import {resolve} from 'path';
+import qfs from 'q-io/fs';
 
 import cache from './pattern-cache';
 import patternFactory from './pattern';
@@ -14,6 +15,7 @@ async function populate(application) {
 
 	let id = '.';
 	let cwd = application.runtime.patterncwd || application.runtime.cwd;
+
 	let base = resolve(cwd, config.patterns.path);
 	let factory = application.pattern.factory;
 	let transforms = application.transforms;
@@ -44,10 +46,33 @@ export default {
 			'class': Pattern
 		};
 
-		let transformFactories = requireAll({
-			'dirname': resolve(application.runtime.cwd, this.configuration.transformPath),
-			'filter': /^(.*)\.(js|json)/
-		});
+		this.configuration.transformPath = Array.isArray(this.configuration.transformPath)
+			? this.configuration.transformPath
+			: [this.configuration.transformPath];
+
+		// TODO: Fix for mysteriously split last path, investigate
+		this.configuration.transformPath = this.configuration.transformPath.filter((item) => item.length > 1);
+
+		let transformPaths = this.configuration.transformPath
+			.reduce((items, item) => items.concat(
+				application.runtime.cwds.map((cwd) => resolve(cwd, item))
+			), []);
+
+		let transformFactories = {};
+
+		for (let transformPath of transformPaths) {
+			let resolvedTransformPath = resolve(application.runtime.cwd, transformPath);
+
+			if (await qfs.exists(resolvedTransformPath)) {
+				this.log.silly(`Importing transforms from: ${resolvedTransformPath}`);
+				let resolvedTransformFactories = requireAll({
+					'dirname': resolvedTransformPath,
+					'filter': /^(.*)\.(js|json)/
+				});
+
+				Object.assign(transformFactories, resolvedTransformFactories);
+			}
+		}
 
 		application.transforms = Object.keys(transformFactories)
 			.reduce(function getTransform (transforms, transformName) {

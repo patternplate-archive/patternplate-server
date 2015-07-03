@@ -3,10 +3,11 @@
 Object.defineProperty(exports, '__esModule', {
 	value: true
 });
-exports['default'] = {
-	'path': ['application/hooks', 'application/patternplate-server/hooks'],
+var middlewares = {
 	'enabled': {
-		'patterns': true
+		'cors': false
 	}
 };
+
+exports['default'] = middlewares;
 module.exports = exports['default'];

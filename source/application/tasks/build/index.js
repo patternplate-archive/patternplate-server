@@ -46,6 +46,10 @@ async function build (application, config) {
 			.filter((item) => basename(item) === 'pattern.json')
 			.map((item) => dirname(item));
 
+		if (environments.length === 0) {
+			environments = ['index'];
+		}
+
 		let builds = [];
 
 		for (let environment of environments) {
@@ -63,7 +67,6 @@ async function build (application, config) {
 		}
 
 		await qfs.makeTree(patternBuildDirectory);
-
 		let writes = [];
 
 		for (let build of builds) {
