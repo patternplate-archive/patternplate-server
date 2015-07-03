@@ -4,7 +4,7 @@ Object.defineProperty(exports, '__esModule', {
 	value: true
 });
 var middlewares = {
-	'path': ['application/middlewares', 'appliation/patternplate-server/middlewares'],
+	'path': ['application/middlewares', 'application/patternplate-server/middlewares'],
 	'enabled': {
 		'cors': true
 	}

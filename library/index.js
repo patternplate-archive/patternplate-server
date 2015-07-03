@@ -10,9 +10,9 @@ var _boilerplateServer = require('boilerplate-server');
 
 var _boilerplateServer2 = _interopRequireDefault(_boilerplateServer);
 
-var _appRootPath = require('app-root-path');
+var _findRoot = require('find-root');
 
-var _appRootPath2 = _interopRequireDefault(_appRootPath);
+var _findRoot2 = _interopRequireDefault(_findRoot);
 
 function server(opts) {
 	var options;
@@ -21,7 +21,7 @@ function server(opts) {
 			case 0:
 				options = Object.assign({
 					'name': 'patternplate-server',
-					'cwd': _appRootPath2['default'].path
+					'cwd': (0, _findRoot2['default'])(__dirname)
 				}, opts);
 				context$1$0.next = 3;
 				return regeneratorRuntime.awrap((0, _boilerplateServer2['default'])(options));

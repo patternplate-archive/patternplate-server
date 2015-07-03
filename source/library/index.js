@@ -1,10 +1,10 @@
 import boilerplate from 'boilerplate-server';
-import appRootPath from 'app-root-path';
+import findRoot from 'find-root';
 
 async function server (opts) {
 	let options = Object.assign({
 			'name': 'patternplate-server',
-			'cwd': appRootPath.path
+			'cwd': findRoot(__dirname)
 		}, opts);
 
 	return await boilerplate(options);

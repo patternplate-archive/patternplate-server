@@ -1,7 +1,7 @@
 const middlewares = {
 	'path': [
 		'application/middlewares',
-		'appliation/patternplate-server/middlewares'
+		'application/patternplate-server/middlewares'
 	],
 	'enabled': {
 		'cors': true
