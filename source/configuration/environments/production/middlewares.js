@@ -1,6 +1,9 @@
 const middlewares = {
 	'enabled': {
-		'cors': false
+		'cors': false,
+		'basicauth': {
+			'enabled': true
+		}
 	}
 };
 

@@ -55,6 +55,7 @@
     "bluebird": "^2.9.25",
     "boilerplate-server": "git+ssh://git@git.sinnerschrader.com:patternplate/boilerplate-server.git#v0.9.1",
     "browserify": "^10.2.4",
+    "btoa": "^1.1.2",
     "core-util-is": "^1.0.1",
     "envify": "^3.4.0",
     "find-root": "^0.1.1",

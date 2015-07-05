@@ -5,7 +5,10 @@ Object.defineProperty(exports, '__esModule', {
 });
 var middlewares = {
 	'enabled': {
-		'cors': false
+		'cors': false,
+		'basicauth': {
+			'enabled': true
+		}
 	}
 };
 

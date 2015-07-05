@@ -23,11 +23,15 @@ var _marked2 = _interopRequireDefault(_marked);
 
 var _bluebird = require('bluebird');
 
+var _btoa = require('btoa');
+
+var _btoa2 = _interopRequireDefault(_btoa);
+
 function indexRouteFactory(application, configuration) {
 	var markdown = (0, _bluebird.promisify)(_marked2['default']);
 
 	return function indexRoute() {
-		var routeConfig, serverConfig, base, routes, response, meta, readmePath, readme, readMeSource, buildPath, buildAvailable, builds, list;
+		var routeConfig, serverConfig, base, routes, authorization, basicAuthConfig, basicAuthCredentials, headers, response, meta, readmePath, readme, readMeSource, buildPath, buildAvailable, builds, list;
 		return regeneratorRuntime.async(function indexRoute$(context$2$0) {
 			while (1) switch (context$2$0.prev = context$2$0.next) {
 				case 0:
@@ -39,58 +43,71 @@ function indexRouteFactory(application, configuration) {
 					}).map(function getRoutes(routeName) {
 						return { 'name': routeName, 'path': routeConfig[routeName].path, 'uri': '' + base + application.router.url(routeName) };
 					});
-					context$2$0.next = 6;
-					return regeneratorRuntime.awrap((0, _isomorphicFetch2['default'])('' + base + application.router.url('meta'), { 'headers': { 'accepty-type': 'application/json' } }));
+					authorization = this.headers.authorization;
+					basicAuthConfig = application.configuration.middlewares.basicauth;
 
-				case 6:
+					if (basicAuthConfig && basicAuthConfig.credentials) {
+						basicAuthCredentials = basicAuthConfig.credentials;
+
+						authorization = 'Basic ' + (0, _btoa2['default'])(basicAuthCredentials.name + ':' + basicAuthCredentials.pass);
+					}
+
+					headers = Object.assign({}, {
+						'accept-type': 'application/json',
+						'authorization': authorization
+					});
+					context$2$0.next = 10;
+					return regeneratorRuntime.awrap((0, _isomorphicFetch2['default'])('' + base + application.router.url('meta'), { 'headers': headers }));
+
+				case 10:
 					response = context$2$0.sent;
-					context$2$0.next = 9;
+					context$2$0.next = 13;
 					return regeneratorRuntime.awrap(response.json());
 
-				case 9:
+				case 13:
 					meta = context$2$0.sent;
 					readmePath = (0, _path.resolve)(application.runtime.patterncwd || application.runtime.cwd, 'patterns', 'README.md');
 					readme = '';
-					context$2$0.next = 14;
+					context$2$0.next = 18;
 					return regeneratorRuntime.awrap(_qIoFs2['default'].exists(readmePath));
 
-				case 14:
+				case 18:
 					if (!context$2$0.sent) {
-						context$2$0.next = 22;
+						context$2$0.next = 26;
 						break;
 					}
 
-					context$2$0.next = 17;
+					context$2$0.next = 21;
 					return regeneratorRuntime.awrap(_qIoFs2['default'].read(readmePath));
 
-				case 17:
+				case 21:
 					readMeSource = context$2$0.sent;
 
 					readMeSource = readMeSource.toString('utf-8');
-					context$2$0.next = 21;
+					context$2$0.next = 25;
 					return regeneratorRuntime.awrap(markdown(readMeSource));
 
-				case 21:
+				case 25:
 					readme = context$2$0.sent;
 
-				case 22:
+				case 26:
 					buildPath = (0, _path.resolve)(application.runtime.patterncwd || application.runtime.cwd, 'build');
-					context$2$0.next = 25;
+					context$2$0.next = 29;
 					return regeneratorRuntime.awrap(_qIoFs2['default'].exists(buildPath));
 
-				case 25:
+				case 29:
 					buildAvailable = context$2$0.sent;
 					builds = [];
 
 					if (!buildAvailable) {
-						context$2$0.next = 33;
+						context$2$0.next = 37;
 						break;
 					}
 
-					context$2$0.next = 30;
+					context$2$0.next = 34;
 					return regeneratorRuntime.awrap(_qIoFs2['default'].listTree(buildPath));
 
-				case 30:
+				case 34:
 					list = context$2$0.sent;
 
 					list = list.filter(function (item) {
@@ -108,7 +125,7 @@ function indexRouteFactory(application, configuration) {
 						};
 					});
 
-				case 33:
+				case 37:
 
 					this.type = 'json';
 					this.body = Object.assign({}, {
@@ -123,7 +140,7 @@ function indexRouteFactory(application, configuration) {
 						'builds': builds
 					});
 
-				case 35:
+				case 39:
 				case 'end':
 					return context$2$0.stop();
 			}

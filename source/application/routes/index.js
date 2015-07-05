@@ -4,6 +4,7 @@ import {resolve, normalize, basename, extname} from 'path';
 import fs from 'q-io/fs';
 import marked from 'marked';
 import {promisify} from 'bluebird';
+import btoa from 'btoa';
 
 export default function indexRouteFactory (application, configuration) {
 	const markdown = promisify(marked);
@@ -19,7 +20,20 @@ export default function indexRouteFactory (application, configuration) {
 				return {'name': routeName, 'path': routeConfig[routeName].path, 'uri': `${base}${application.router.url(routeName)}`};
 			});
 
-		let response = await fetch(`${base}${application.router.url('meta')}`, {'headers': {'accepty-type': 'application/json'}});
+		let authorization = this.headers.authorization;
+		let basicAuthConfig = application.configuration.middlewares.basicauth;
+
+		if (basicAuthConfig && basicAuthConfig.credentials) {
+			let basicAuthCredentials = basicAuthConfig.credentials;
+			authorization = `Basic ${btoa(`${basicAuthCredentials.name}:${basicAuthCredentials.pass}`)}`;
+		}
+
+		let headers = Object.assign({}, {
+			'accept-type': 'application/json',
+			'authorization': authorization
+		});
+
+		let response = await fetch(`${base}${application.router.url('meta')}`, {'headers': headers});
 		let meta = await response.json();
 
 		let readmePath = resolve(application.runtime.patterncwd || application.runtime.cwd, 'patterns', 'README.md');
