@@ -4,9 +4,9 @@ import merge from 'lodash.merge';
 
 import resolveDependencies from './resolve-dependencies';
 
-function createClass (name, template, file, configuration = {}) {
-	let dependencyData = resolveDependencies(file.dependencies);
-	merge(dependencyData, configuration);
+function createClass (name, template, file, opts = {}) {
+	let dependencyData = resolveDependencies(file.dependencies, opts);
+	merge(dependencyData, opts);
 
 	return React.createClass({
 		'displayName': pascalCase(name),

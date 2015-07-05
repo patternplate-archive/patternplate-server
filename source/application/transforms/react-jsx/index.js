@@ -6,7 +6,7 @@ export default function reactJSXTransformFactory (application) {
 	const config = application.configuration.transforms['react-jsx'] || {};
 
 	return async function reactJSXTransform (file, demo, configuration) {
-		let scope = resolveDependencies({'Pattern': file}, configuration);
+		let scope = resolveDependencies({'Pattern': file}, configuration.opts);
 
 		try {
 			let result = React.renderToStaticMarkup(React.createElement(scope.Pattern));
@@ -21,7 +21,7 @@ export default function reactJSXTransformFactory (application) {
 
 		if (demo) {
 			demo.dependencies = Object.assign({'pattern': file}, file.dependencies);
-			let scope = resolveDependencies({'Demo': demo}, configuration);
+			let scope = resolveDependencies({'Demo': demo}, configuration.opts);
 
 			try {
 				let result = React.renderToStaticMarkup(React.createElement(scope.Demo));

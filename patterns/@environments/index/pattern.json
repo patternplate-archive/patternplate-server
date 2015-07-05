@@ -14,7 +14,7 @@
 		},
 		"react-jsx": {
 			"opts": {
-				"globals": {
+				"context": {
 					"env": "index"
 				}
 			}

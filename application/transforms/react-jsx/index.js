@@ -24,7 +24,7 @@ function reactJSXTransformFactory(application) {
 		return regeneratorRuntime.async(function reactJSXTransform$(context$2$0) {
 			while (1) switch (context$2$0.prev = context$2$0.next) {
 				case 0:
-					scope = (0, _resolveDependencies2['default'])({ 'Pattern': file }, configuration);
+					scope = (0, _resolveDependencies2['default'])({ 'Pattern': file }, configuration.opts);
 					context$2$0.prev = 1;
 					result = _react2['default'].renderToStaticMarkup(_react2['default'].createElement(scope.Pattern));
 
@@ -48,7 +48,7 @@ function reactJSXTransformFactory(application) {
 					}
 
 					demo.dependencies = Object.assign({ 'pattern': file }, file.dependencies);
-					_scope = (0, _resolveDependencies2['default'])({ 'Demo': demo }, configuration);
+					_scope = (0, _resolveDependencies2['default'])({ 'Demo': demo }, configuration.opts);
 					context$2$0.prev = 15;
 					result = _react2['default'].renderToStaticMarkup(_react2['default'].createElement(_scope.Demo));
 
