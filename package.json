@@ -53,7 +53,7 @@
     "babel-core": "^5.2.17",
     "babelify": "^6.0.2",
     "bluebird": "^2.9.25",
-    "boilerplate-server": "git+https://git.sinnerschrader.com:patternplate/boilerplate-server.git#v0.9.3",
+    "boilerplate-server": "git+https://git.sinnerschrader.com:patternplate/boilerplate-server.git#v0.9.4",
     "browserify": "^10.2.4",
     "btoa": "^1.1.2",
     "core-util-is": "^1.0.1",
