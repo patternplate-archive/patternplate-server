@@ -62,9 +62,10 @@ function populate(application) {
 			case 10:
 				delta = Date.now() - start / 1000;
 
+				application.cache.ready = true;
 				application.log.info('Populated cache from ' + base + ' in ' + delta + 's');
 
-			case 12:
+			case 13:
 			case 'end':
 				return context$1$0.stop();
 		}
@@ -194,6 +195,7 @@ exports['default'] = {
 
 					if (this.configuration.cache && application.runtime.mode !== 'console') {
 						application.cache = (0, _patternCache2['default'])(this.configuration.cache);
+						application.cache.ready = !this.configuration.cache.populate;
 
 						if (this.configuration.cache.populate) {
 							populate(application);

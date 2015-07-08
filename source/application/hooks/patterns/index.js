@@ -32,6 +32,7 @@ async function populate(application) {
 
 	let delta = Date.now() - start / 1000;
 
+	application.cache.ready = true;
 	application.log.info(`Populated cache from ${base} in ${delta}s`);
 }
 
@@ -93,6 +94,7 @@ export default {
 
 		if (this.configuration.cache && application.runtime.mode !== 'console') {
 			application.cache = cache(this.configuration.cache);
+			application.cache.ready = !this.configuration.cache.populate;
 
 			if (this.configuration.cache.populate) {
 				populate(application);
