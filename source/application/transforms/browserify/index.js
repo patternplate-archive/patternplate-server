@@ -120,7 +120,13 @@ function browserifyTransformFactory (application) {
 			}
 
 			for (let transformName of Object.keys(transforms)) {
-				bundler.transform(...transforms[transformName]);
+				let [transformFn, transformConfig] = transforms[transformName];
+
+				if (typeof transformFn.configure === 'function') {
+					bundler.transform(transformFn.configure(transformConfig));
+				} else {
+					bundler.transform(...transforms[transformName]);
+				}
 			}
 
 			let mtime = getLatestMTime(file);
@@ -154,6 +160,16 @@ function browserifyTransformFactory (application) {
 				demoBundler = await resolveDependencies(demo, configuration, application.cache);
 			} catch (err) {
 				console.log(err);
+			}
+
+			for (let transformName of Object.keys(transforms)) {
+				let [transformFn, transformConfig] = transforms[transformName];
+
+				if (typeof transformFn.configure === 'function') {
+					demoBundler.transform(transformFn.configure(transformConfig));
+				} else {
+					demoBundler.transform(...transforms[transformName]);
+				}
 			}
 
 			let demoTransformed;

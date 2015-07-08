@@ -18,12 +18,7 @@ export default {
 		'transforms': {
 			'babelify': {
 				'enabled': true,
-				'opts': {
-					'optional': [],
-					'blacklist': [],
-					'whitelist': [],
-					'extensions': 'js'
-				}
+				'opts': {}
 			},
 			'uglifyify': {
 				'enabled': false,
