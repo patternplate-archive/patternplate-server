@@ -40,12 +40,12 @@ function runBundler(bundler, config, meta) {
 	return regeneratorRuntime.async(function runBundler$(context$1$0) {
 		while (1) switch (context$1$0.prev = context$1$0.next) {
 			case 0:
-				return context$1$0.abrupt('return', new Promise(function bundlerResolver(resolver) {
+				return context$1$0.abrupt('return', new Promise(function bundlerResolver(resolver, rejecter) {
 					bundler.bundle(function onBundle(err, buffer) {
 						if (err) {
 							console.error('Error while bundling ' + meta.path);
 							console.error(err);
-							throw err;
+							rejecter(err);
 						}
 
 						resolver({
@@ -122,7 +122,7 @@ function resolveDependencies(file, configuration) {
 
 			case 6:
 				if (_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done) {
-					context$1$0.next = 23;
+					context$1$0.next = 30;
 					break;
 				}
 
@@ -130,73 +130,84 @@ function resolveDependencies(file, configuration) {
 				dependency = dependencies[expose];
 
 				if (!(dependency.dependencies && Object.keys(dependency.dependencies).length > 0)) {
-					context$1$0.next = 19;
+					context$1$0.next = 26;
 					break;
 				}
 
 				basedir = (0, _path.dirname)(dependency.path);
 				opts = { expose: expose, basedir: basedir };
 				dependencyBundler = resolveDependencies(dependency, Object.assign({}, configuration.opts, opts, { 'standalone': expose }));
-				context$1$0.next = 15;
+				transformed = undefined;
+				context$1$0.prev = 14;
+				context$1$0.next = 17;
 				return regeneratorRuntime.awrap(runBundler(dependencyBundler, configuration, dependency));
 
-			case 15:
+			case 17:
 				transformed = context$1$0.sent;
-
-				dependency.buffer = transformed.buffer.toString('utf-8');
-				context$1$0.next = 20;
+				context$1$0.next = 23;
 				break;
 
-			case 19:
+			case 20:
+				context$1$0.prev = 20;
+				context$1$0.t0 = context$1$0['catch'](14);
+				throw context$1$0.t0;
+
+			case 23:
+
+				dependency.buffer = transformed.buffer.toString('utf-8');
+				context$1$0.next = 27;
+				break;
+
+			case 26:
 				// Squashed and flat dependencies (way faster)
 				dependency.buffer = dependency.source;
 
-			case 20:
+			case 27:
 				_iteratorNormalCompletion2 = true;
 				context$1$0.next = 6;
 				break;
 
-			case 23:
-				context$1$0.next = 29;
+			case 30:
+				context$1$0.next = 36;
 				break;
 
-			case 25:
-				context$1$0.prev = 25;
-				context$1$0.t0 = context$1$0['catch'](4);
+			case 32:
+				context$1$0.prev = 32;
+				context$1$0.t1 = context$1$0['catch'](4);
 				_didIteratorError2 = true;
-				_iteratorError2 = context$1$0.t0;
+				_iteratorError2 = context$1$0.t1;
 
-			case 29:
-				context$1$0.prev = 29;
-				context$1$0.prev = 30;
+			case 36:
+				context$1$0.prev = 36;
+				context$1$0.prev = 37;
 
 				if (!_iteratorNormalCompletion2 && _iterator2['return']) {
 					_iterator2['return']();
 				}
 
-			case 32:
-				context$1$0.prev = 32;
+			case 39:
+				context$1$0.prev = 39;
 
 				if (!_didIteratorError2) {
-					context$1$0.next = 35;
+					context$1$0.next = 42;
 					break;
 				}
 
 				throw _iteratorError2;
 
-			case 35:
-				return context$1$0.finish(32);
+			case 42:
+				return context$1$0.finish(39);
 
-			case 36:
-				return context$1$0.finish(29);
+			case 43:
+				return context$1$0.finish(36);
 
-			case 37:
+			case 44:
 				contents = new Buffer(file.buffer);
 				bundler = (0, _browserify2['default'])(new _vinyl2['default']({ contents: contents }), configuration.opts);
 				_iteratorNormalCompletion3 = true;
 				_didIteratorError3 = false;
 				_iteratorError3 = undefined;
-				context$1$0.prev = 42;
+				context$1$0.prev = 49;
 
 				for (_iterator3 = Object.keys(dependencies)[Symbol.iterator](); !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
 					expose = _step3.value;
@@ -208,47 +219,47 @@ function resolveDependencies(file, configuration) {
 					bundler.require(new _vinyl2['default']({ 'contents': new Buffer(dependency.buffer) }), Object.assign({}, configuration.opts, opts));
 				}
 
-				context$1$0.next = 50;
+				context$1$0.next = 57;
 				break;
 
-			case 46:
-				context$1$0.prev = 46;
-				context$1$0.t1 = context$1$0['catch'](42);
+			case 53:
+				context$1$0.prev = 53;
+				context$1$0.t2 = context$1$0['catch'](49);
 				_didIteratorError3 = true;
-				_iteratorError3 = context$1$0.t1;
+				_iteratorError3 = context$1$0.t2;
 
-			case 50:
-				context$1$0.prev = 50;
-				context$1$0.prev = 51;
+			case 57:
+				context$1$0.prev = 57;
+				context$1$0.prev = 58;
 
 				if (!_iteratorNormalCompletion3 && _iterator3['return']) {
 					_iterator3['return']();
 				}
 
-			case 53:
-				context$1$0.prev = 53;
+			case 60:
+				context$1$0.prev = 60;
 
 				if (!_didIteratorError3) {
-					context$1$0.next = 56;
+					context$1$0.next = 63;
 					break;
 				}
 
 				throw _iteratorError3;
 
-			case 56:
-				return context$1$0.finish(53);
+			case 63:
+				return context$1$0.finish(60);
 
-			case 57:
-				return context$1$0.finish(50);
+			case 64:
+				return context$1$0.finish(57);
 
-			case 58:
+			case 65:
 				return context$1$0.abrupt('return', bundler);
 
-			case 59:
+			case 66:
 			case 'end':
 				return context$1$0.stop();
 		}
-	}, null, this, [[4, 25, 29, 37], [30,, 32, 36], [42, 46, 50, 58], [51,, 53, 57]]);
+	}, null, this, [[4, 32, 36, 44], [14, 20], [37,, 39, 43], [49, 53, 57, 65], [58,, 60, 64]]);
 }
 
 function browserifyTransformFactory(application) {
@@ -296,8 +307,7 @@ function browserifyTransformFactory(application) {
 				case 10:
 					context$2$0.prev = 10;
 					context$2$0.t0 = context$2$0['catch'](4);
-
-					console.log(context$2$0.t0);
+					throw context$2$0.t0;
 
 				case 13:
 					_iteratorNormalCompletion4 = true;
@@ -367,7 +377,7 @@ function browserifyTransformFactory(application) {
 				case 38:
 					bundled = context$2$0.sent;
 
-					transformed = bundled.buffer;
+					transformed = bundled ? bundled.buffer : file.buffer;
 					if (application.cache) {
 						application.cache.set('browserify:' + file.path, mtime, transformed.buffer);
 					}
@@ -409,8 +419,7 @@ function browserifyTransformFactory(application) {
 				case 57:
 					context$2$0.prev = 57;
 					context$2$0.t3 = context$2$0['catch'](51);
-
-					console.log(context$2$0.t3);
+					throw context$2$0.t3;
 
 				case 60:
 					_iteratorNormalCompletion5 = true;
@@ -479,14 +488,14 @@ function browserifyTransformFactory(application) {
 					context$2$0.prev = 86;
 					context$2$0.t5 = context$2$0['catch'](80);
 
-					context$2$0.t5.file = demo.path || context$2$0.t5.fileName;
+					context$2$0.t5.file = context$2$0.t5.file || demo.path || context$2$0.t5.fileName;
 					throw context$2$0.t5;
 
 				case 90:
 
 					Object.assign(file, {
 						'demoSource': demo.source,
-						'demoBuffer': demoTransformed.buffer,
+						'demoBuffer': demoTransformed ? demoTransformed.buffer : demo.buffer,
 						'in': configuration.inFormat,
 						'out': configuration.outFormat
 					});

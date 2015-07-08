@@ -28,7 +28,7 @@ async function populate(application) {
 		'log': function(...args) {
 			application.log.silly(...['[cache:pattern:getpattern]', ...args]);
 		}
-	}, application.cache);
+	}, application.cache, false);
 
 	let delta = Date.now() - start / 1000;
 

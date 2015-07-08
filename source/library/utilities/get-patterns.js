@@ -1,7 +1,7 @@
 import {resolve, join, dirname, basename} from 'path';
 import fs from 'q-io/fs';
 
-async function getPatterns(options, cache = null) {
+async function getPatterns(options, cache = null, fail = true) {
 	let {id, base, config, factory, transforms, filters, log} = options;
 	let path = resolve(base, id);
 	let search = resolve(path, 'pattern.json');
@@ -26,6 +26,7 @@ async function getPatterns(options, cache = null) {
 		.map((item) => fs.relativeFromDirectory(options.base, item));
 
 	let results = [];
+	let errors = [];
 
 	for (let patternID of patternIDs) {
 		let readCacheID = `pattern:read:${patternID}`;
@@ -39,7 +40,8 @@ async function getPatterns(options, cache = null) {
 			try {
 				await pattern.read();
 			} catch (err) {
-				throw err;
+				if (fail) throw err;
+				errors.push(err);
 			}
 		} else {
 			log(`Using cached pattern read "${readCacheID}"`);
@@ -53,9 +55,11 @@ async function getPatterns(options, cache = null) {
 		try {
 			results.push(await pattern.transform());
 		} catch (err) {
-			throw err;
+			if (fail) throw err;
+			errors.push(err);
 		}
 	}
+
 
 	results = results.map((result) => {
 		return typeof result.toJSON === 'function' ? result.toJSON() : result;

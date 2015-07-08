@@ -57,7 +57,7 @@ function populate(application) {
 
 						(_application$log = application.log).silly.apply(_application$log, ['[cache:pattern:getpattern]'].concat(args));
 					}
-				}, application.cache));
+				}, application.cache, false));
 
 			case 10:
 				delta = Date.now() - start / 1000;

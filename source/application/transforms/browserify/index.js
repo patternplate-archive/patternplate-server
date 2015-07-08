@@ -14,12 +14,12 @@ function getLatestMTime(file) {
 }
 
 async function runBundler (bundler, config, meta) {
-	return new Promise(function bundlerResolver (resolver) {
+	return new Promise(function bundlerResolver (resolver, rejecter) {
 		bundler.bundle(function onBundle (err, buffer) {
 			if (err) {
 				console.error('Error while bundling ' + meta.path);
 				console.error(err);
-				throw err;
+				rejecter(err);
 			}
 
 			resolver({
@@ -67,7 +67,13 @@ async function resolveDependencies (file, configuration) {
 				{}, configuration.opts, opts,
 				{ 'standalone': expose }
 			));
-			let transformed = await runBundler(dependencyBundler, configuration, dependency);
+			let transformed;
+			try {
+				transformed = await runBundler(dependencyBundler, configuration, dependency);
+			} catch (err) {
+				throw (err);
+			}
+
 			dependency.buffer = transformed.buffer.toString('utf-8');
 		} else { // Squashed and flat dependencies (way faster)
 			dependency.buffer = dependency.source;
@@ -116,7 +122,7 @@ function browserifyTransformFactory (application) {
 			try {
 				bundler = await resolveDependencies(file, configuration, application.cache);
 			} catch (err) {
-				console.log(err);
+				throw err;
 			}
 
 			for (let transformName of Object.keys(transforms)) {
@@ -135,7 +141,7 @@ function browserifyTransformFactory (application) {
 			if (!transformed) {
 				try {
 					let bundled = await runBundler(bundler, configuration, file);
-					transformed = bundled.buffer;
+					transformed = bundled ? bundled.buffer : file.buffer;
 					if (application.cache) {
 						application.cache.set(`browserify:${file.path}`, mtime, transformed.buffer);
 					}
@@ -159,7 +165,7 @@ function browserifyTransformFactory (application) {
 			try {
 				demoBundler = await resolveDependencies(demo, configuration, application.cache);
 			} catch (err) {
-				console.log(err);
+				throw err;
 			}
 
 			for (let transformName of Object.keys(transforms)) {
@@ -177,13 +183,13 @@ function browserifyTransformFactory (application) {
 			try {
 				demoTransformed = await runBundler(demoBundler, configuration, demo);
 			} catch (err) {
-				err.file = demo.path || err.fileName;
+				err.file = err.file || demo.path || err.fileName;
 				throw err;
 			}
 
 			Object.assign(file, {
 				'demoSource': demo.source,
-				'demoBuffer': demoTransformed.buffer,
+				'demoBuffer': demoTransformed ? demoTransformed.buffer : demo.buffer,
 				'in': configuration.inFormat,
 				'out': configuration.outFormat
 			});
