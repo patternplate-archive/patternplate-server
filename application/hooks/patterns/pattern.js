@@ -133,7 +133,7 @@ var Pattern = (function () {
 
 					case 15:
 						if (_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done) {
-							context$2$0.next = 31;
+							context$2$0.next = 30;
 							break;
 						}
 
@@ -148,17 +148,16 @@ var Pattern = (function () {
 						environmentName = _manifest.name || (0, _path.dirname)(manifestPath);
 
 						if (!(this.isEnvironment && environmentName !== (0, _path.basename)(this.id))) {
-							context$2$0.next = 27;
+							context$2$0.next = 26;
 							break;
 						}
 
-						console.log('Skipped environment ' + environmentName + ' for environment pattern ' + this.id);
 						if (environmentName in this.environments) {
 							delete this.environments[environmentName];
 						}
-						return context$2$0.abrupt('continue', 28);
+						return context$2$0.abrupt('continue', 27);
 
-					case 27:
+					case 26:
 
 						if (this.filters.environments && this.filters.environments.length > 0) {
 							if (this.filters.environments.includes(environmentName)) {
@@ -168,53 +167,53 @@ var Pattern = (function () {
 							results[environmentName] = { manifest: _manifest };
 						}
 
-					case 28:
+					case 27:
 						_iteratorNormalCompletion2 = true;
 						context$2$0.next = 15;
 						break;
 
-					case 31:
-						context$2$0.next = 37;
+					case 30:
+						context$2$0.next = 36;
 						break;
 
-					case 33:
-						context$2$0.prev = 33;
+					case 32:
+						context$2$0.prev = 32;
 						context$2$0.t2 = context$2$0['catch'](13);
 						_didIteratorError2 = true;
 						_iteratorError2 = context$2$0.t2;
 
-					case 37:
+					case 36:
+						context$2$0.prev = 36;
 						context$2$0.prev = 37;
-						context$2$0.prev = 38;
 
 						if (!_iteratorNormalCompletion2 && _iterator2['return']) {
 							_iterator2['return']();
 						}
 
-					case 40:
-						context$2$0.prev = 40;
+					case 39:
+						context$2$0.prev = 39;
 
 						if (!_didIteratorError2) {
-							context$2$0.next = 43;
+							context$2$0.next = 42;
 							break;
 						}
 
 						throw _iteratorError2;
 
+					case 42:
+						return context$2$0.finish(39);
+
 					case 43:
-						return context$2$0.finish(40);
+						return context$2$0.finish(36);
 
 					case 44:
-						return context$2$0.finish(37);
-
-					case 45:
 						return context$2$0.abrupt('return', results);
 
-					case 46:
+					case 45:
 					case 'end':
 						return context$2$0.stop();
 				}
-			}, null, this, [[13, 33, 37, 45], [38,, 40, 44]]);
+			}, null, this, [[13, 32, 36, 44], [37,, 39, 43]]);
 		}
 	}, {
 		key: 'readManifest',
@@ -466,7 +465,7 @@ var Pattern = (function () {
 					case 0:
 						readCacheID = 'pattern:read:' + this.id;
 
-						if (!(this.cache && this.cache.config.read)) {
+						if (!(this.cache && this.cache.config.read && !this.isEnvironment)) {
 							context$2$0.next = 6;
 							break;
 						}
@@ -940,7 +939,7 @@ var Pattern = (function () {
 					case 129:
 						file = context$2$0.sent;
 
-						if (this.cache && this.cache.config.transform) {
+						if (this.cache && this.cache.config.transform && !this.isEnvironment) {
 							this.cache.set(cacheID, _mtime2, file);
 						}
 						context$2$0.next = 140;

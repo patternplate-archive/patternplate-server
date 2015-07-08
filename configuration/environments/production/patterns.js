@@ -6,7 +6,8 @@ Object.defineProperty(exports, '__esModule', {
 exports['default'] = {
 	'cache': {
 		'read': true,
-		'populate': true
+		'populate': false,
+		'static': true
 	}
 };
 module.exports = exports['default'];

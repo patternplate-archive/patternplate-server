@@ -58,7 +58,6 @@ export class Pattern {
 			let environmentName = manifest.name || dirname(manifestPath);
 
 			if (this.isEnvironment && environmentName !== basename(this.id)) {
-				console.log(`Skipped environment ${environmentName} for environment pattern ${this.id}`);
 				if (environmentName in this.environments) {
 					delete this.environments[environmentName];
 				}
@@ -147,6 +146,7 @@ export class Pattern {
 
 			let patternID = join(dirname(patternIDString), patternBaseNameFragments[0]);
 			let pattern = new Pattern(patternID, this.base, this.config, this.transforms, this.filters, this.cache);
+
 			this.dependencies[patternName] = await pattern.read(pattern.path);
 
 			if (!semver.satisfies(pattern.manifest.version, patternRange)) {
@@ -170,7 +170,7 @@ export class Pattern {
 		let readCacheID = `pattern:read:${this.id}`;
 
 		// Use the fast-track read cache from get-patterns if applicable
-		if (this.cache && this.cache.config.read) {
+		if (this.cache && this.cache.config.read && !this.isEnvironment) {
 			let cached = this.cache.get(readCacheID, false);
 
 			if (cached) {
@@ -330,7 +330,7 @@ export class Pattern {
 
 							try {
 								file = await fn(Object.assign({}, file), demo, configuration, forced);
-								if (this.cache && this.cache.config.transform) {
+								if (this.cache && this.cache.config.transform && !this.isEnvironment) {
 									this.cache.set(cacheID, mtime, file);
 								}
 							} catch (error) {

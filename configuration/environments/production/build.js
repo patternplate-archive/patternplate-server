@@ -4,11 +4,14 @@ Object.defineProperty(exports, '__esModule', {
 	value: true
 });
 exports['default'] = {
+	'tasks': {
+		'cache': true
+	},
 	'patterns': {
 		'formats': {
 			'js': {
 				'name': 'Script',
-				'transforms': ['browserify', 'uglify'],
+				'transforms': ['browserify'],
 				'build': true
 			}
 		}

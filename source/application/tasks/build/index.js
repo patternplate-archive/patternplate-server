@@ -37,83 +37,21 @@ async function build (application, config) {
 	const buildRoot = resolve(application.runtime.patterncwd || application.runtime.cwd, 'build');
 	const buildDirectory = resolve(buildRoot, `build-v${version}-${environment}-${revision}`);
 	const patternBuildDirectory = resolve(buildDirectory, 'patterns');
+	const staticCacheDirectory = resolve(application.runtime.patterncwd || application.runtime.cwd, '.cache');
 
-	// Build environment output
-	if (buildConfig.tasks.bundles) {
-		let environments = await qfs.listTree(resolve(patternRoot, '@environments'));
-
-		environments = environments
-			.filter((item) => basename(item) === 'pattern.json')
-			.map((item) => dirname(item));
-
-		if (environments.length === 0) {
-			environments = ['index'];
-		}
-
-		let builds = [];
-
-		for (let environment of environments) {
-			let pattern = await application.pattern.factory(
-				qfs.relativeFromDirectory(patternRoot, environment),
-				patternRoot,
-				patternConfig,
-				application.transforms
-			);
-
-			await pattern.read();
-			await pattern.transform(false, true);
-
-			builds.push(pattern);
-		}
-
-		await qfs.makeTree(patternBuildDirectory);
-		let writes = [];
-
-		for (let build of builds) {
-			let target = build.manifest.name;
-
-			let info = Object.assign({}, information, { version, target });
-			let fragments = ['/**!'];
-
-			let comment = Object.keys(info).reduce((results, fragmentName) => {
-				let name = `${fragmentName[0].toUpperCase()}${fragmentName.slice(1)}`;
-				let value = info[fragmentName];
-				results.push(` * ${name}: ${value}`);
-				return results;
-			}, fragments).concat(['**/']).join('\n');
-
-			let results = build.results[target];
-
-			for (let resultName of Object.keys(results)) {
-				let result = results[resultName];
-				let contents = `${comment}\n${result.buffer.toString('utf-8')}`;
-				let ext = result.out;
-				let fileName = resolve(buildDirectory, [build.manifest.name, ext].join('.'));
-				application.log.info(`[console:run] Writing "${resultName}" for configuration "${build.manifest.name}" to ${fileName} ...`);
-				writes.push(qfs.write(fileName, contents));
-			}
-		}
-
-		await Promise.all(writes);
-	}
-
-	if (buildConfig.tasks.static) {
-		// Copy static files
-		if (await qfs.exists(staticRoot)) {
-			application.log.info(`[console:run] Copy asset files from "${assetRoot}" to ${patternBuildDirectory} ...`);
-			await qfs.copyTree(staticRoot, resolve(patternBuildDirectory, 'static'));
-		} else {
-			application.log.info(`[console:run] No asset files at "${assetRoot}"`);
-		}
-	}
 
 	if (buildConfig.tasks.patterns) {
 		// Copy assets
 		if (await qfs.exists(assetRoot)) {
 			application.log.info(`[console:run] Copy static files from "${staticRoot}" to ${buildDirectory} ...`);
+			await qfs.makeTree(resolve(patternBuildDirectory, '_assets'));
 			await qfs.copyTree(assetRoot, resolve(patternBuildDirectory, '_assets'));
 		} else {
 			application.log.info(`[console:run] No static files at "${staticRoot}"`);
+		}
+
+		if (application.cache) {
+			application.cache.config.static = false;
 		}
 
 		let patternList = await getPatterns({
@@ -122,8 +60,15 @@ async function build (application, config) {
 			'config': patternConfig,
 			'factory': application.pattern.factory,
 			'transforms': application.transforms,
-			'filters': {}
-		});
+			'filters': {},
+			'log': function(...args) {
+				application.log.debug(...['[console:run]', ...args]);
+			}
+		}, application.cache, false, false);
+
+		if (application.cache) {
+			application.cache.config.static = true;
+		}
 
 		for (let patternItem of patternList) {
 			let patternResultDirectory = resolve(patternBuildDirectory, patternItem.id);
@@ -234,11 +179,92 @@ async function build (application, config) {
 			// Write index.html
 			await qfs.write(resolve(patternResultDirectory, 'index.html'), rendered);
 
-			// Write build.json
+			// Write build.json to pattern tree
 			await qfs.write(resolve(patternResultDirectory, 'build.json'), JSON.stringify(patternItem, null, '  '));
+
+			// Write build.json to cache tree
+			if (buildConfig.tasks.cache) {
+				let staticPatternCacheDirectory = resolve(staticCacheDirectory, patternItem.id);
+
+				application.log.info(`[console:run] Writing cache for "${patternItem.id}" to ${staticPatternCacheDirectory} ...`);
+				await qfs.makeTree(staticPatternCacheDirectory);
+				await qfs.write(resolve(staticPatternCacheDirectory, 'build.json'), JSON.stringify(patternItem, null, '  '));
+			}
 
 			// Write augmented pattern.json
 			await qfs.write(resolve(patternResultDirectory, 'pattern.json'), JSON.stringify(metaData, null, '  '));
+		}
+	}
+
+	// Build environment output
+	if (buildConfig.tasks.bundles) {
+		let environments = await qfs.listTree(resolve(patternRoot, '@environments'));
+
+		environments = environments
+			.filter((item) => basename(item) === 'pattern.json')
+			.map((item) => dirname(item));
+
+		if (environments.length === 0) {
+			environments = ['index'];
+		}
+
+		let builds = [];
+
+		for (let environment of environments) {
+			let pattern = await getPatterns({
+				'id': qfs.relativeFromDirectory(patternRoot, environment),
+				'base': patternRoot,
+				'config': patternConfig,
+				'factory': application.pattern.factory,
+				'transforms': application.transforms,
+				'filters': {},
+				'log': function(...args) {
+					application.log.debug(...['[console:run]', ...args]);
+				}
+			}, application.cache, false, true);
+
+			builds.push(pattern[0]);
+		}
+
+		await qfs.makeTree(patternBuildDirectory);
+		let writes = [];
+
+		for (let build of builds) {
+			let target = build.manifest.name;
+
+			let info = Object.assign({}, information, { version, target });
+			let fragments = ['/**!'];
+
+			let comment = Object.keys(info).reduce((results, fragmentName) => {
+				let name = `${fragmentName[0].toUpperCase()}${fragmentName.slice(1)}`;
+				let value = info[fragmentName];
+				results.push(` * ${name}: ${value}`);
+				return results;
+			}, fragments).concat(['**/']).join('\n');
+
+			let results = build.results[target];
+
+			for (let resultName of Object.keys(results)) {
+				let result = results[resultName];
+				let contents = `${comment}\n${result.buffer.toString('utf-8')}`;
+				let ext = result.out;
+				let fileName = resolve(buildDirectory, [build.manifest.name, ext].join('.'));
+				application.log.info(`[console:run] Writing "${resultName}" for configuration "${build.manifest.name}" to ${fileName} ...`);
+				writes.push(qfs.write(fileName, contents));
+			}
+		}
+
+		await Promise.all(writes);
+	}
+
+	if (buildConfig.tasks.static) {
+		// Copy static files
+		if (await qfs.exists(staticRoot)) {
+			application.log.info(`[console:run] Copy asset files from "${assetRoot}" to ${patternBuildDirectory} ...`);
+			await qfs.makeTree(resolve(patternBuildDirectory, 'static'));
+			await qfs.copyTree(staticRoot, resolve(patternBuildDirectory, 'static'));
+		} else {
+			application.log.info(`[console:run] No asset files at "${assetRoot}"`);
 		}
 	}
 

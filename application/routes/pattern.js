@@ -105,11 +105,11 @@ function patternRouteFactory(application, configuration) {
 								args[_key] = arguments[_key];
 							}
 
-							(_application$log = application.log).silly.apply(_application$log, ['[routes:pattern:getpattern]'].concat(args));
+							(_application$log = application.log).debug.apply(_application$log, ['[routes:pattern:getpattern]'].concat(args));
 						}
 					};
 					context$2$0.next = 29;
-					return regeneratorRuntime.awrap((0, _libraryUtilitiesGetPatterns2['default'])(patternConfig, application.cache));
+					return regeneratorRuntime.awrap((0, _libraryUtilitiesGetPatterns2['default'])(patternConfig, application.cache, true));
 
 				case 29:
 					patternResults = context$2$0.sent;

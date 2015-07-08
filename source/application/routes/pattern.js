@@ -71,11 +71,11 @@ export default function patternRouteFactory (application, configuration) {
 				'factory': application.pattern.factory,
 				'transforms': application.transforms,
 				'log': function(...args) {
-					application.log.silly(...['[routes:pattern:getpattern]', ...args]);
+					application.log.debug(...['[routes:pattern:getpattern]', ...args]);
 				}
 			};
 
-			patternResults = await getPatterns(patternConfig, application.cache);
+			patternResults = await getPatterns(patternConfig, application.cache, true);
 		} catch (err) {
 			this.throw(500, err);
 		}

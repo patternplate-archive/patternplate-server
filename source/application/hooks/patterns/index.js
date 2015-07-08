@@ -92,9 +92,11 @@ export default {
 				return transforms;
 			}, {});
 
-		if (this.configuration.cache && application.runtime.mode !== 'console') {
+		if (this.configuration.cache) {
 			application.cache = cache(this.configuration.cache);
 			application.cache.ready = !this.configuration.cache.populate;
+
+			application.cache.staticRoot = resolve(application.runtime.patterncwd || application.runtime.cwd, '.cache'); // TODO: Make this configurable
 
 			if (this.configuration.cache.populate) {
 				populate(application);

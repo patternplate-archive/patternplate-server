@@ -193,9 +193,11 @@ exports['default'] = {
 						return transforms;
 					}, {});
 
-					if (this.configuration.cache && application.runtime.mode !== 'console') {
+					if (this.configuration.cache) {
 						application.cache = (0, _patternCache2['default'])(this.configuration.cache);
 						application.cache.ready = !this.configuration.cache.populate;
+
+						application.cache.staticRoot = (0, _path.resolve)(application.runtime.patterncwd || application.runtime.cwd, '.cache'); // TODO: Make this configurable
 
 						if (this.configuration.cache.populate) {
 							populate(application);

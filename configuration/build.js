@@ -7,7 +7,13 @@ exports['default'] = {
 	'tasks': {
 		'bundles': true,
 		'patterns': true,
-		'static': true
+		'static': true,
+		'cache': false
+	},
+	'patterns': {
+		'cache': {
+			'static': false
+		}
 	}
 };
 module.exports = exports['default'];

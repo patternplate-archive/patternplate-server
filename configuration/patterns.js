@@ -40,6 +40,7 @@ exports['default'] = {
 		'read': false,
 		'files': true,
 		'transform': true,
+		'static': false,
 		'options': {
 			'max': Infinity
 		}

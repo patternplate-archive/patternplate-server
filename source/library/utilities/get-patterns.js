@@ -1,7 +1,7 @@
 import {resolve, join, dirname, basename} from 'path';
 import fs from 'q-io/fs';
 
-async function getPatterns(options, cache = null, fail = true) {
+async function getPatterns(options, cache = null, fail = true, isEnvironment = false) {
 	let {id, base, config, factory, transforms, filters, log} = options;
 	let path = resolve(base, id);
 	let search = resolve(path, 'pattern.json');
@@ -21,7 +21,7 @@ async function getPatterns(options, cache = null, fail = true) {
 	let paths = await fs.listTree(search);
 	let patternIDs = paths
 		.filter((item) => basename(item) === 'pattern.json')
-		.filter((item) => !item.includes('@environments'))
+		.filter((item) => isEnvironment ? true : !item.includes('@environments'))
 		.map((item) => dirname(item))
 		.map((item) => fs.relativeFromDirectory(options.base, item));
 
@@ -31,6 +31,24 @@ async function getPatterns(options, cache = null, fail = true) {
 	for (let patternID of patternIDs) {
 		let readCacheID = `pattern:read:${patternID}`;
 		log(`Initializing pattern "${patternID}"`);
+
+		if (cache && cache.config.static && cache.staticRoot && await fs.exists(cache.staticRoot)) {
+			let cachedPatternPath = resolve(cache.staticRoot, patternID, 'build.json');
+			log(`Searching ${patternID} static cache at ${cachedPatternPath}`);
+
+			if (await fs.exists(cachedPatternPath)) {
+				try {
+					results.push(JSON.parse(await fs.read(cachedPatternPath)));
+					log(`Static cache hit for ${patternID} at ${cachedPatternPath}. Profit!`);
+					continue;
+				} catch (err) {
+					log(`Error reading static cache version of ${patternID} at ${cachedPatternPath}`, err);
+				}
+			}
+
+			log(`Static cache miss for ${patternID} at ${cachedPatternPath}, falling back to dynamic version`);
+		}
+
 
 		let pattern = await factory(patternID, base, config, transforms, filters);
 		let cachedRead = cache && cache.config.read ? cache.get(readCacheID, false) : null;
@@ -53,13 +71,12 @@ async function getPatterns(options, cache = null, fail = true) {
 		}
 
 		try {
-			results.push(await pattern.transform());
+			results.push(await pattern.transform(!isEnvironment, isEnvironment));
 		} catch (err) {
 			if (fail) throw err;
 			errors.push(err);
 		}
 	}
-
 
 	results = results.map((result) => {
 		return typeof result.toJSON === 'function' ? result.toJSON() : result;
