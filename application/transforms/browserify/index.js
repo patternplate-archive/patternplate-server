@@ -18,6 +18,10 @@ var _browserify = require('browserify');
 
 var _browserify2 = _interopRequireDefault(_browserify);
 
+var _lodashOmit = require('lodash.omit');
+
+var _lodashOmit2 = _interopRequireDefault(_lodashOmit);
+
 function getLatestMTime(file) {
 	var mtimes = Object.keys(file.dependencies || {}).reduce(function (results, dependencyName) {
 		var dependency = file.dependencies[dependencyName];
@@ -39,6 +43,7 @@ function runBundler(bundler, config, meta) {
 						if (err) {
 							console.error('Error while bundling ' + meta.path);
 							console.error(err);
+							throw err;
 						}
 
 						resolver({
@@ -58,18 +63,15 @@ function runBundler(bundler, config, meta) {
 
 function squashDependencies(file) {
 	var registry = arguments[1] === undefined ? {} : arguments[1];
-
-	var copy = Object.assign({}, file);
-
 	var _iteratorNormalCompletion = true;
 	var _didIteratorError = false;
 	var _iteratorError = undefined;
 
 	try {
-		for (var _iterator = Object.keys(copy.dependencies)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+		for (var _iterator = Object.keys(file.dependencies)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
 			var dependencyName = _step.value;
 
-			var dependency = copy.dependencies[dependencyName];
+			var dependency = file.dependencies[dependencyName];
 
 			if (!(dependencyName in registry) || registry[dependencyName].path === dependency.path) {
 				registry[dependencyName] = {
@@ -78,7 +80,8 @@ function squashDependencies(file) {
 					'buffer': dependency.buffer,
 					'dependencies': dependency.dependencies
 				};
-				delete copy.dependencies[dependencyName];
+				//copy.dependencies = omit(copy.dependencies, dependencyName);
+				file.dependencies = (0, _lodashOmit2['default'])(file.dependencies, dependencyName);
 				dependency = registry[dependencyName];
 			}
 
@@ -186,7 +189,7 @@ function resolveDependencies(file, configuration) {
 				return context$1$0.finish(29);
 
 			case 37:
-				contents = new Buffer(file.source);
+				contents = new Buffer(file.buffer);
 				bundler = (0, _browserify2['default'])(new _vinyl2['default']({ contents: contents }), configuration.opts);
 				_iteratorNormalCompletion3 = true;
 				_didIteratorError3 = false;

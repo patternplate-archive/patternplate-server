@@ -5,8 +5,6 @@ async function getPatterns(options, cache = null) {
 	let {id, base, config, factory, transforms, filters, log} = options;
 	let path = resolve(base, id);
 	let search = resolve(path, 'pattern.json');
-	let filterID = JSON.stringify(filters);
-
 	log = log || function() {};
 
 	// No patterns to find here

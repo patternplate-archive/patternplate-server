@@ -1,6 +1,7 @@
 import Vinyl from 'vinyl';
 import {dirname} from 'path';
 import browserify from 'browserify';
+import omit from 'lodash.omit';
 
 function getLatestMTime(file) {
 	let mtimes = Object.keys(file.dependencies || {}).reduce(function(results, dependencyName){
@@ -18,6 +19,7 @@ async function runBundler (bundler, config, meta) {
 			if (err) {
 				console.error('Error while bundling ' + meta.path);
 				console.error(err);
+				throw err;
 			}
 
 			resolver({
@@ -30,10 +32,8 @@ async function runBundler (bundler, config, meta) {
 }
 
 function squashDependencies(file, registry = {}) {
-	let copy = Object.assign({}, file);
-
-	for (let dependencyName of Object.keys(copy.dependencies)) {
-		let dependency = copy.dependencies[dependencyName];
+	for (let dependencyName of Object.keys(file.dependencies)) {
+		let dependency = file.dependencies[dependencyName];
 
 		if (!(dependencyName in registry) || registry[dependencyName].path === dependency.path) {
 			registry[dependencyName] = {
@@ -42,7 +42,8 @@ function squashDependencies(file, registry = {}) {
 				'buffer': dependency.buffer,
 				'dependencies': dependency.dependencies
 			};
-			delete copy.dependencies[dependencyName];
+			//copy.dependencies = omit(copy.dependencies, dependencyName);
+			file.dependencies = omit(file.dependencies, dependencyName);
 			dependency = registry[dependencyName];
 		}
 
@@ -73,7 +74,7 @@ async function resolveDependencies (file, configuration) {
 		}
 	}
 
-	let contents = new Buffer(file.source);
+	let contents = new Buffer(file.buffer);
 	let bundler = browserify(new Vinyl({contents}), configuration.opts);
 
 	for (let expose of Object.keys(dependencies)) {

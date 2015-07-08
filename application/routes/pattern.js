@@ -186,7 +186,7 @@ function patternRouteFactory(application, configuration) {
 					_didIteratorError = false;
 					_iteratorError = undefined;
 					context$2$0.prev = 57;
-					_iterator = Object.keys(result.results)[Symbol.iterator]();
+					_iterator = Object.keys(result.results || {})[Symbol.iterator]();
 
 				case 59:
 					if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {

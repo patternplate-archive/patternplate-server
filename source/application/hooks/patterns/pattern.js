@@ -25,19 +25,16 @@ export class Pattern {
 	mtime = null;
 
 	constructor(id, base, config = {}, transforms = {}, filters = {}, cache = null) {
-		this.id = id;
-		this.cache = cache;
-		this.base = base;
-		this.path = Pattern.resolve(this.base, this.id);
-		this.config = config;
-		this.transforms = transforms;
-		this.filters = filters;
-		this.environments = {
-			'index': {
-				'manifest': { 'name': 'index' }
-			}
-		};
-		this.isEnvironment = this.id.includes('@environment');
+		Object.assign(this, {
+			id, base, cache, config, transforms, filters,
+			path: Pattern.resolve(base, id),
+			environments: {
+				'index': {
+					'manifest': { 'name': 'index' }
+				}
+			},
+			isEnvironment: id.includes('@environment')
+		});
 	}
 
 	static resolve(...args) {

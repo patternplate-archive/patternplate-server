@@ -33,15 +33,7 @@ function patternCacheFactory() {
 
 			var settings = Object.assign({}, PatternCache.defaults, options.options);
 			this.config = options;
-
-			if (settings.max !== Infinity) {
-				settings.length = function (n) {
-					return (0, _objectSizeof2['default'])(n.value) / 4;
-				};
-			}
-
 			var cache = (0, _lruCache2['default'])(settings);
-
 			namespace.set(SETTINGS, settings);
 			namespace.set(CACHE, cache);
 		}
@@ -65,23 +57,6 @@ function patternCacheFactory() {
 				var storedMtime = stored['mtime'];
 				var storedMeta = stored['meta'];
 				var value = stored.value;
-
-				/*if (meta && storedMeta) {
-    	let matchesEnvironments = storedMeta.environments.length === 0;
-    	let matchesFormats = storedMeta.environments.length === 0;
-    		if (storedMeta.environments.length > 0) {
-    		matchesEnvironments = meta.environments.filter((env) => storedMeta.environments.includes(env)).length > 0;
-    	}
-    		if (!matchesEnvironments) {
-    		return null;
-    	}
-    		if (storedMeta.formats.length > 0) {
-    		matchesFormats = meta.environments.filter((env) => storedMeta.formats.includes(env)).length > 0;
-    	}
-    		if (!matchesFormats) {
-    		return null;
-    	}
-    } */
 
 				if (mtime === false) {
 					return value;

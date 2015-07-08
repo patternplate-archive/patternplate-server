@@ -134,7 +134,7 @@ export default function patternRouteFactory (application, configuration) {
 					}
 				};
 
-				for (let environmentName of Object.keys(result.results)) {
+				for (let environmentName of Object.keys(result.results || {})) {
 					let environment = result.results[environmentName];
 					let envConfig = result.environments[environmentName].manifest || {};
 					let wrapper = getWrapper(envConfig['conditional-comment']);

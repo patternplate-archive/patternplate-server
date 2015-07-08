@@ -15,13 +15,7 @@ function patternCacheFactory (...args) {
 		constructor (options = {}) {
 			let settings = Object.assign({}, PatternCache.defaults, options.options);
 			this.config = options;
-
-			if (settings.max !== Infinity) {
-				settings.length = (n) => sizeof(n.value) / 4;
-			}
-
 			let cache = lrucache(settings);
-
 			namespace.set(SETTINGS, settings);
 			namespace.set(CACHE, cache);
 		}
@@ -40,27 +34,6 @@ function patternCacheFactory (...args) {
 			}
 
 			let {'mtime': storedMtime, 'meta': storedMeta, value} = stored;
-
-			/*if (meta && storedMeta) {
-				let matchesEnvironments = storedMeta.environments.length === 0;
-				let matchesFormats = storedMeta.environments.length === 0;
-
-				if (storedMeta.environments.length > 0) {
-					matchesEnvironments = meta.environments.filter((env) => storedMeta.environments.includes(env)).length > 0;
-				}
-
-				if (!matchesEnvironments) {
-					return null;
-				}
-
-				if (storedMeta.formats.length > 0) {
-					matchesFormats = meta.environments.filter((env) => storedMeta.formats.includes(env)).length > 0;
-				}
-
-				if (!matchesFormats) {
-					return null;
-				}
-			} */
 
 			if (mtime === false) {
 				return value;

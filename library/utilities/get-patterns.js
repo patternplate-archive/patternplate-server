@@ -15,7 +15,7 @@ var _qIoFs2 = _interopRequireDefault(_qIoFs);
 function getPatterns(options) {
 	var cache = arguments[1] === undefined ? null : arguments[1];
 
-	var id, base, config, factory, transforms, filters, log, path, search, filterID, paths, patternIDs, results, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, patternID, readCacheID, pattern, cachedRead;
+	var id, base, config, factory, transforms, filters, log, path, search, paths, patternIDs, results, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, patternID, readCacheID, pattern, cachedRead;
 
 	return regeneratorRuntime.async(function getPatterns$(context$1$0) {
 		while (1) switch (context$1$0.prev = context$1$0.next) {
@@ -29,38 +29,37 @@ function getPatterns(options) {
 				log = options.log;
 				path = (0, _path.resolve)(base, id);
 				search = (0, _path.resolve)(path, 'pattern.json');
-				filterID = JSON.stringify(filters);
 
 				log = log || function () {};
 
-				context$1$0.next = 13;
+				context$1$0.next = 12;
 				return regeneratorRuntime.awrap(_qIoFs2['default'].exists(path));
 
-			case 13:
+			case 12:
 				if (context$1$0.sent) {
-					context$1$0.next = 15;
+					context$1$0.next = 14;
 					break;
 				}
 
 				return context$1$0.abrupt('return', null);
 
-			case 15:
-				context$1$0.next = 17;
+			case 14:
+				context$1$0.next = 16;
 				return regeneratorRuntime.awrap(_qIoFs2['default'].exists(search));
 
-			case 17:
+			case 16:
 				if (context$1$0.sent) {
-					context$1$0.next = 19;
+					context$1$0.next = 18;
 					break;
 				}
 
 				search = path;
 
-			case 19:
-				context$1$0.next = 21;
+			case 18:
+				context$1$0.next = 20;
 				return regeneratorRuntime.awrap(_qIoFs2['default'].listTree(search));
 
-			case 21:
+			case 20:
 				paths = context$1$0.sent;
 				patternIDs = paths.filter(function (item) {
 					return (0, _path.basename)(item) === 'pattern.json';
@@ -75,12 +74,12 @@ function getPatterns(options) {
 				_iteratorNormalCompletion = true;
 				_didIteratorError = false;
 				_iteratorError = undefined;
-				context$1$0.prev = 27;
+				context$1$0.prev = 26;
 				_iterator = patternIDs[Symbol.iterator]();
 
-			case 29:
+			case 28:
 				if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
-					context$1$0.next = 66;
+					context$1$0.next = 65;
 					break;
 				}
 
@@ -89,102 +88,102 @@ function getPatterns(options) {
 
 				log('Initializing pattern "' + patternID + '"');
 
-				context$1$0.next = 35;
+				context$1$0.next = 34;
 				return regeneratorRuntime.awrap(factory(patternID, base, config, transforms, filters));
 
-			case 35:
+			case 34:
 				pattern = context$1$0.sent;
 				cachedRead = cache && cache.config.read ? cache.get(readCacheID, false) : null;
 
 				if (cachedRead) {
-					context$1$0.next = 49;
+					context$1$0.next = 48;
 					break;
 				}
 
 				log('Reading pattern "' + patternID + '"');
-				context$1$0.prev = 39;
-				context$1$0.next = 42;
+				context$1$0.prev = 38;
+				context$1$0.next = 41;
 				return regeneratorRuntime.awrap(pattern.read());
 
-			case 42:
-				context$1$0.next = 47;
+			case 41:
+				context$1$0.next = 46;
 				break;
 
-			case 44:
-				context$1$0.prev = 44;
-				context$1$0.t0 = context$1$0['catch'](39);
+			case 43:
+				context$1$0.prev = 43;
+				context$1$0.t0 = context$1$0['catch'](38);
 				throw context$1$0.t0;
 
-			case 47:
-				context$1$0.next = 51;
+			case 46:
+				context$1$0.next = 50;
 				break;
 
-			case 49:
+			case 48:
 				log('Using cached pattern read "' + readCacheID + '"');
 				pattern = cachedRead;
 
-			case 51:
+			case 50:
 
 				if (cache && cache.config.read) {
 					cache.set(readCacheID, pattern.mtime, pattern);
 				}
 
-				context$1$0.prev = 52;
+				context$1$0.prev = 51;
 				context$1$0.t1 = results;
-				context$1$0.next = 56;
+				context$1$0.next = 55;
 				return regeneratorRuntime.awrap(pattern.transform());
 
-			case 56:
+			case 55:
 				context$1$0.t2 = context$1$0.sent;
 				context$1$0.t1.push.call(context$1$0.t1, context$1$0.t2);
-				context$1$0.next = 63;
+				context$1$0.next = 62;
 				break;
 
-			case 60:
-				context$1$0.prev = 60;
-				context$1$0.t3 = context$1$0['catch'](52);
+			case 59:
+				context$1$0.prev = 59;
+				context$1$0.t3 = context$1$0['catch'](51);
 				throw context$1$0.t3;
 
-			case 63:
+			case 62:
 				_iteratorNormalCompletion = true;
-				context$1$0.next = 29;
+				context$1$0.next = 28;
 				break;
 
-			case 66:
-				context$1$0.next = 72;
+			case 65:
+				context$1$0.next = 71;
 				break;
 
-			case 68:
-				context$1$0.prev = 68;
-				context$1$0.t4 = context$1$0['catch'](27);
+			case 67:
+				context$1$0.prev = 67;
+				context$1$0.t4 = context$1$0['catch'](26);
 				_didIteratorError = true;
 				_iteratorError = context$1$0.t4;
 
-			case 72:
+			case 71:
+				context$1$0.prev = 71;
 				context$1$0.prev = 72;
-				context$1$0.prev = 73;
 
 				if (!_iteratorNormalCompletion && _iterator['return']) {
 					_iterator['return']();
 				}
 
-			case 75:
-				context$1$0.prev = 75;
+			case 74:
+				context$1$0.prev = 74;
 
 				if (!_didIteratorError) {
-					context$1$0.next = 78;
+					context$1$0.next = 77;
 					break;
 				}
 
 				throw _iteratorError;
 
+			case 77:
+				return context$1$0.finish(74);
+
 			case 78:
-				return context$1$0.finish(75);
+				return context$1$0.finish(71);
 
 			case 79:
-				return context$1$0.finish(72);
-
-			case 80:
 
 				results = results.map(function (result) {
 					return typeof result.toJSON === 'function' ? result.toJSON() : result;
@@ -192,11 +191,11 @@ function getPatterns(options) {
 
 				return context$1$0.abrupt('return', results);
 
-			case 82:
+			case 81:
 			case 'end':
 				return context$1$0.stop();
 		}
-	}, null, this, [[27, 68, 72, 80], [39, 44], [52, 60], [73,, 75, 79]]);
+	}, null, this, [[26, 67, 71, 79], [38, 43], [51, 59], [72,, 74, 78]]);
 }
 
 exports['default'] = getPatterns;
