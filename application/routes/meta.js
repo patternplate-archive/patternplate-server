@@ -13,49 +13,87 @@ var _qIoFs = require('q-io/fs');
 
 var _qIoFs2 = _interopRequireDefault(_qIoFs);
 
+var _libraryUtilitiesGetPatterns = require('../../library/utilities/get-patterns');
+
+var _libraryUtilitiesGetPatterns2 = _interopRequireDefault(_libraryUtilitiesGetPatterns);
+
 function metaRouteFactory(application, configuration) {
 	return function metaRoute() {
-		var config, path, list, patterns;
+		var config, path, patterns, setPatternInTree, tree;
 		return regeneratorRuntime.async(function metaRoute$(context$2$0) {
 			while (1) switch (context$2$0.prev = context$2$0.next) {
 				case 0:
+					setPatternInTree = function setPatternInTree(tree, path, value) {
+						var node = tree;
+						var currentId = '';
+						while (path.length > 1) {
+							var _name = path[0];
+							currentId = currentId == '' ? _name : currentId + '/' + _name;
+
+							if (!node[_name]) {
+								node[_name] = {
+									'type': 'folder',
+									'id': currentId,
+									'children': {}
+								};
+							}
+							node = node[_name].children;
+							path.shift();
+						}
+						node[path[0]] = value;
+					};
+
 					config = application.configuration[configuration.options.key];
 					path = (0, _path.resolve)(application.runtime.patterncwd || application.runtime.cwd, config.path);
-					context$2$0.next = 4;
-					return regeneratorRuntime.awrap(_qIoFs2['default'].listTree(path));
+					context$2$0.next = 5;
+					return regeneratorRuntime.awrap((0, _libraryUtilitiesGetPatterns2['default'])({
+						'id': '.',
+						'config': {
+							'patterns': application.configuration.patterns,
+							'transforms': application.configuration.transforms
+						},
+						'base': path,
+						'factory': application.pattern.factory,
+						'transforms': application.transforms,
+						'log': function log() {
+							var _application$log;
 
-				case 4:
-					list = context$2$0.sent;
-
-					list = list.map(function normalizePath(item) {
-						var depth = _qIoFs2['default'].split((0, _path.relative)(item, path)).length;
-						return _qIoFs2['default'].join(_qIoFs2['default'].split(item).slice(depth * -1));
-					});
-
-					patterns = list.filter(function (item) {
-						return (0, _path.basename)(item) === 'pattern.json';
-					}).filter(function (item) {
-						return !item.includes('@environments');
-					}).map(function (item) {
-						return _qIoFs2['default'].directory(item);
-					});
-
-					this.type = 'json';
-					this.body = patterns.reduce(function reducePatterns(tree, patternPath) {
-						var fragments = _qIoFs2['default'].split(patternPath);
-						var sub = tree;
-
-						fragments.forEach(function iterateFragments(fragment, index) {
-							if (!(fragment in sub)) {
-								sub[fragment] = index + 1 === fragments.length ? true : {};
+							for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+								args[_key] = arguments[_key];
 							}
-							sub = sub[fragment];
-						});
 
+							(_application$log = application.log).debug.apply(_application$log, ['[cache:pattern:getpattern]'].concat(args));
+						}
+					}, application.cache, false));
+
+				case 5:
+					patterns = context$2$0.sent;
+
+					// we only care about: id, version, name, displayName
+					patterns = patterns.map(function (pattern) {
+						return {
+							'type': 'pattern',
+							'id': pattern.id,
+							'manifest': pattern.manifest
+						};
+					});
+
+					// let's ignore @environment folders
+					patterns = patterns.filter(function (pattern) {
+						return pattern.id.split('/').indexOf('@environments') === -1;
+					});
+
+					;
+
+					tree = patterns.reduce(function (tree, pattern) {
+						setPatternInTree(tree, pattern.id.split('/'), pattern);
 						return tree;
 					}, {});
 
-				case 9:
+					this.type = 'json';
+					this.body = tree;
+
+				case 12:
 				case 'end':
 					return context$2$0.stop();
 			}
@@ -64,3 +102,4 @@ function metaRouteFactory(application, configuration) {
 }
 
 module.exports = exports['default'];
+// build a tree

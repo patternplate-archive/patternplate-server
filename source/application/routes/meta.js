@@ -1,36 +1,67 @@
 import {resolve, relative, basename} from 'path';
 import fs from 'q-io/fs';
+import getPatterns from '../../library/utilities/get-patterns';
 
 export default function metaRouteFactory (application, configuration) {
 	return async function metaRoute () {
 		let config = application.configuration[configuration.options.key];
 		let path = resolve(application.runtime.patterncwd || application.runtime.cwd, config.path);
 
-		let list = await fs.listTree(path);
+		let patterns = await getPatterns({
+			'id': '.',
+			'config': {
+				'patterns': application.configuration.patterns,
+				'transforms': application.configuration.transforms
+			},
+			'base': path,
+			'factory': application.pattern.factory,
+			'transforms': application.transforms,
+			'log': function(...args) {
+				application.log.debug('[cache:pattern:getpattern]', ...args);
+			}
+		}, application.cache, false);
 
-		list = list.map(function normalizePath (item) {
-			let depth = fs.split(relative(item, path)).length;
-			return fs.join(fs.split(item).slice(depth * -1));
+		// we only care about: id, version, name, displayName
+		patterns = patterns.map(pattern => {
+			return {
+				'type': 'pattern',
+				'id': pattern.id,
+				'manifest': pattern.manifest
+			};
 		});
 
-		let patterns = list
-			.filter((item) => basename(item) === 'pattern.json')
-			.filter((item) => !item.includes('@environments'))
-			.map((item) => fs.directory(item));
+		// let's ignore @environment folders
+		patterns = patterns.filter(pattern => {
+			return pattern.id.split('/').indexOf('@environments') === -1;
+		});
 
-		this.type = 'json';
-		this.body = patterns.reduce(function reducePatterns (tree, patternPath) {
-			let fragments = fs.split(patternPath);
-			let sub = tree;
+		// build a tree
+		function setPatternInTree(tree, path, value) {
+			let node = tree;
+			let currentId = '';
+			while (path.length > 1) {
+				let name = path[0];
+				currentId = (currentId == '') ? name : (currentId + '/' + name);
 
-			fragments.forEach(function iterateFragments (fragment, index) {
-				if (!(fragment in sub)) {
-					sub[fragment] = index + 1 === fragments.length ? true : {};
+				if (!node[name]) {
+					node[name] = {
+						'type': 'folder',
+						'id': currentId,
+						'children': {}
+					};
 				}
-				sub = sub[fragment];
-			});
+				node = node[name].children;
+				path.shift();
+			}
+			node[path[0]] = value;
+		};
 
+		let tree = patterns.reduce((tree, pattern) => {
+			setPatternInTree(tree, pattern.id.split('/'), pattern);
 			return tree;
 		}, {});
+
+		this.type = 'json';
+		this.body = tree;
 	};
 }
