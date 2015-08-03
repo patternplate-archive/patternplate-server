@@ -1,38 +1,22 @@
 import {resolve, relative, basename} from 'path';
 import fs from 'q-io/fs';
-import getPatterns from '../../library/utilities/get-patterns';
+import getPatternManifests from '../../library/utilities/get-pattern-manifests';
 
 export default function metaRouteFactory (application, configuration) {
 	return async function metaRoute () {
 		let config = application.configuration[configuration.options.key];
 		let path = resolve(application.runtime.patterncwd || application.runtime.cwd, config.path);
 
-		let patterns = await getPatterns({
-			'id': '.',
-			'config': {
-				'patterns': application.configuration.patterns,
-				'transforms': application.configuration.transforms
-			},
-			'base': path,
-			'factory': application.pattern.factory,
-			'transforms': application.transforms,
-			'log': function(...args) {
-				application.log.debug('[cache:pattern:getpattern]', ...args);
-			}
-		}, application.cache, false);
+		let manifests = await getPatternManifests(path);
 
-		// we only care about: id, version, name, displayName
-		patterns = patterns.map(pattern => {
+		let patterns = manifests.map(manifest => {
+			let { id, ...rest } = manifest;
+
 			return {
 				'type': 'pattern',
-				'id': pattern.id,
-				'manifest': pattern.manifest
+				'id': id,
+				'manifest': rest
 			};
-		});
-
-		// let's ignore @environment folders
-		patterns = patterns.filter(pattern => {
-			return pattern.id.split('/').indexOf('@environments') === -1;
 		});
 
 		// build a tree
