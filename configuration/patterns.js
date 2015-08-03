@@ -36,12 +36,13 @@ exports['default'] = {
 		}
 	},
 	'cache': {
-		'read': true,
+		'populate': false,
+		'read': false,
 		'files': true,
 		'transform': true,
 		'static': false,
 		'options': {
-			'max': 1000
+			'max': Infinity
 		}
 	}
 };

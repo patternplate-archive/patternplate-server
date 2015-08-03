@@ -94,6 +94,11 @@ exports['default'] = {
 
 					this.configuration.transformPath = Array.isArray(this.configuration.transformPath) ? this.configuration.transformPath : [this.configuration.transformPath];
 
+					// TODO: Fix for mysteriously split last path, investigate
+					this.configuration.transformPath = this.configuration.transformPath.filter(function (item) {
+						return item.length > 1;
+					});
+
 					transformPaths = this.configuration.transformPath.reduce(function (items, item) {
 						return items.concat(application.runtime.cwds.map(function (cwd) {
 							return (0, _path.resolve)(cwd, item);
@@ -103,23 +108,23 @@ exports['default'] = {
 					_iteratorNormalCompletion = true;
 					_didIteratorError = false;
 					_iteratorError = undefined;
-					context$1$0.prev = 7;
+					context$1$0.prev = 8;
 					_iterator = transformPaths[Symbol.iterator]();
 
-				case 9:
+				case 10:
 					if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
-						context$1$0.next = 21;
+						context$1$0.next = 22;
 						break;
 					}
 
 					transformPath = _step.value;
 					resolvedTransformPath = (0, _path.resolve)(application.runtime.cwd, transformPath);
-					context$1$0.next = 14;
+					context$1$0.next = 15;
 					return regeneratorRuntime.awrap(_qIoFs2['default'].exists(resolvedTransformPath));
 
-				case 14:
+				case 15:
 					if (!context$1$0.sent) {
-						context$1$0.next = 18;
+						context$1$0.next = 19;
 						break;
 					}
 
@@ -131,46 +136,46 @@ exports['default'] = {
 
 					Object.assign(transformFactories, resolvedTransformFactories);
 
-				case 18:
+				case 19:
 					_iteratorNormalCompletion = true;
-					context$1$0.next = 9;
+					context$1$0.next = 10;
 					break;
 
-				case 21:
-					context$1$0.next = 27;
+				case 22:
+					context$1$0.next = 28;
 					break;
 
-				case 23:
-					context$1$0.prev = 23;
-					context$1$0.t0 = context$1$0['catch'](7);
+				case 24:
+					context$1$0.prev = 24;
+					context$1$0.t0 = context$1$0['catch'](8);
 					_didIteratorError = true;
 					_iteratorError = context$1$0.t0;
 
-				case 27:
-					context$1$0.prev = 27;
+				case 28:
 					context$1$0.prev = 28;
+					context$1$0.prev = 29;
 
 					if (!_iteratorNormalCompletion && _iterator['return']) {
 						_iterator['return']();
 					}
 
-				case 30:
-					context$1$0.prev = 30;
+				case 31:
+					context$1$0.prev = 31;
 
 					if (!_didIteratorError) {
-						context$1$0.next = 33;
+						context$1$0.next = 34;
 						break;
 					}
 
 					throw _iteratorError;
 
-				case 33:
-					return context$1$0.finish(30);
-
 				case 34:
-					return context$1$0.finish(27);
+					return context$1$0.finish(31);
 
 				case 35:
+					return context$1$0.finish(28);
+
+				case 36:
 
 					application.transforms = Object.keys(transformFactories).reduce(function getTransform(transforms, transformName) {
 						if (typeof transformFactories[transformName].index === 'function') {
@@ -201,11 +206,11 @@ exports['default'] = {
 
 					return context$1$0.abrupt('return', this);
 
-				case 38:
+				case 39:
 				case 'end':
 					return context$1$0.stop();
 			}
-		}, null, this, [[7, 23, 27, 35], [28,, 30, 34]]);
+		}, null, this, [[8, 24, 28, 36], [29,, 31, 35]]);
 	}
 };
 module.exports = exports['default'];

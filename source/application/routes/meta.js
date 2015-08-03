@@ -3,35 +3,36 @@ import fs from 'q-io/fs';
 import getPatterns from '../../library/utilities/get-patterns';
 
 export default function metaRouteFactory (application, configuration) {
-	const config = application.configuration[configuration.options.key];
-	const path = resolve(application.runtime.patterncwd || application.runtime.cwd, config.path);
-
-	const patternTask = getPatterns({
-		'id': '.',
-		'config': {
-			'patterns': application.configuration.patterns,
-			'transforms': application.configuration.transforms
-		},
-		'base': path,
-		'factory': application.pattern.factory,
-		'transforms': application.transforms,
-		'filters': {
-			'files': false,
-			'transforms': false
-		},
-		'cacheprefix': 'meta'
-	}, application.cache, false);
-
 	return async function metaRoute () {
-		let patternData = await patternTask;
+		let config = application.configuration[configuration.options.key];
+		let path = resolve(application.runtime.patterncwd || application.runtime.cwd, config.path);
+
+		let patterns = await getPatterns({
+			'id': '.',
+			'config': {
+				'patterns': application.configuration.patterns,
+				'transforms': application.configuration.transforms
+			},
+			'base': path,
+			'factory': application.pattern.factory,
+			'transforms': application.transforms,
+			'log': function(...args) {
+				application.log.debug('[cache:pattern:getpattern]', ...args);
+			}
+		}, application.cache, false);
 
 		// we only care about: id, version, name, displayName
-		let patterns = patternData.map(pattern => {
+		patterns = patterns.map(pattern => {
 			return {
 				'type': 'pattern',
 				'id': pattern.id,
 				'manifest': pattern.manifest
 			};
+		});
+
+		// let's ignore @environment folders
+		patterns = patterns.filter(pattern => {
+			return pattern.id.split('/').indexOf('@environments') === -1;
 		});
 
 		// build a tree
@@ -53,7 +54,7 @@ export default function metaRouteFactory (application, configuration) {
 				path.shift();
 			}
 			node[path[0]] = value;
-		}
+		};
 
 		let tree = patterns.reduce((tree, pattern) => {
 			setPatternInTree(tree, pattern.id.split('/'), pattern);

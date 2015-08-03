@@ -64,7 +64,7 @@ function runBundler(bundler, config, meta) {
 }
 
 function squashDependencies(file) {
-	var registry = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+	var registry = arguments[1] === undefined ? {} : arguments[1];
 	var _iteratorNormalCompletion = true;
 	var _didIteratorError = false;
 	var _iteratorError = undefined;

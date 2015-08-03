@@ -18,27 +18,8 @@ var _libraryUtilitiesGetPatterns = require('../../library/utilities/get-patterns
 var _libraryUtilitiesGetPatterns2 = _interopRequireDefault(_libraryUtilitiesGetPatterns);
 
 function metaRouteFactory(application, configuration) {
-	var config = application.configuration[configuration.options.key];
-	var path = (0, _path.resolve)(application.runtime.patterncwd || application.runtime.cwd, config.path);
-
-	var patternTask = (0, _libraryUtilitiesGetPatterns2['default'])({
-		'id': '.',
-		'config': {
-			'patterns': application.configuration.patterns,
-			'transforms': application.configuration.transforms
-		},
-		'base': path,
-		'factory': application.pattern.factory,
-		'transforms': application.transforms,
-		'filters': {
-			'files': false,
-			'transforms': false
-		},
-		'cacheprefix': 'meta'
-	}, application.cache, false);
-
 	return function metaRoute() {
-		var patternData, patterns, setPatternInTree, tree;
+		var config, path, patterns, setPatternInTree, tree;
 		return regeneratorRuntime.async(function metaRoute$(context$2$0) {
 			while (1) switch (context$2$0.prev = context$2$0.next) {
 				case 0:
@@ -62,18 +43,48 @@ function metaRouteFactory(application, configuration) {
 						node[path[0]] = value;
 					};
 
-					context$2$0.next = 3;
-					return regeneratorRuntime.awrap(patternTask);
+					config = application.configuration[configuration.options.key];
+					path = (0, _path.resolve)(application.runtime.patterncwd || application.runtime.cwd, config.path);
+					context$2$0.next = 5;
+					return regeneratorRuntime.awrap((0, _libraryUtilitiesGetPatterns2['default'])({
+						'id': '.',
+						'config': {
+							'patterns': application.configuration.patterns,
+							'transforms': application.configuration.transforms
+						},
+						'base': path,
+						'factory': application.pattern.factory,
+						'transforms': application.transforms,
+						'log': function log() {
+							var _application$log;
 
-				case 3:
-					patternData = context$2$0.sent;
-					patterns = patternData.map(function (pattern) {
+							for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+								args[_key] = arguments[_key];
+							}
+
+							(_application$log = application.log).debug.apply(_application$log, ['[cache:pattern:getpattern]'].concat(args));
+						}
+					}, application.cache, false));
+
+				case 5:
+					patterns = context$2$0.sent;
+
+					// we only care about: id, version, name, displayName
+					patterns = patterns.map(function (pattern) {
 						return {
 							'type': 'pattern',
 							'id': pattern.id,
 							'manifest': pattern.manifest
 						};
 					});
+
+					// let's ignore @environment folders
+					patterns = patterns.filter(function (pattern) {
+						return pattern.id.split('/').indexOf('@environments') === -1;
+					});
+
+					;
+
 					tree = patterns.reduce(function (tree, pattern) {
 						setPatternInTree(tree, pattern.id.split('/'), pattern);
 						return tree;
@@ -82,7 +93,7 @@ function metaRouteFactory(application, configuration) {
 					this.type = 'json';
 					this.body = tree;
 
-				case 8:
+				case 12:
 				case 'end':
 					return context$2$0.stop();
 			}
@@ -91,7 +102,4 @@ function metaRouteFactory(application, configuration) {
 }
 
 module.exports = exports['default'];
-
-// we only care about: id, version, name, displayName
-
 // build a tree

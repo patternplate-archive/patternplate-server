@@ -51,6 +51,9 @@ export default {
 			? this.configuration.transformPath
 			: [this.configuration.transformPath];
 
+		// TODO: Fix for mysteriously split last path, investigate
+		this.configuration.transformPath = this.configuration.transformPath.filter((item) => item.length > 1);
+
 		let transformPaths = this.configuration.transformPath
 			.reduce((items, item) => items.concat(
 				application.runtime.cwds.map((cwd) => resolve(cwd, item))
