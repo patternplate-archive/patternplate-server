@@ -54,7 +54,7 @@ export class Pattern {
 			.filter((environment) => basename(environment) === 'pattern.json');
 
 		for (let manifestPath of manifestPaths) {
-			let manifest = JSON.parse(await qfs.read(manifestPath));
+			let manifest = JSON.parse(await qfs. read(manifestPath));
 			let environmentName = manifest.name || dirname(manifestPath);
 
 			if (this.isEnvironment && environmentName !== basename(this.id)) {
@@ -96,12 +96,27 @@ export class Pattern {
 		}
 
 		try {
-			let manifestData = JSON.parse(await fs.read(manifestPath));
+			let manifestCacheID = `pattern:read:manifest:${this.id}`;
+			let manifestData;
+
+			if (this.cache && this.cache.config.read) {
+				manifestData = this.cache.get(manifestCacheID, false);
+			}
+
+			if (!manifestData) {
+				manifestData = JSON.parse(await fs.read(manifestPath));
+
+				if (this.cache && this.cache.config.read) {
+					this.cache.set(manifestCacheID, null, manifestData);
+				}
+			}
+
 			this.manifest = Object.assign({}, {
 				'version': '0.1.0',
 				'build': true,
 				'display': true
 			}, this.manifest, manifestData);
+
 		} catch (error) {
 			throw new Error(`Error while reading pattern.json from ${this.path}`, {
 				'file': this.path,
@@ -181,6 +196,11 @@ export class Pattern {
 
 		await this.readManifest(path, fs);
 
+		if ('files' in this.filters && !this.filters.files) {
+			this.getLastModified();
+			return this;
+		}
+
 		let files = await fs.listTree(path);
 
 		files = files.filter(function(fileName){
@@ -210,7 +230,7 @@ export class Pattern {
 					'source': buffer
 				};
 
-				if (this.cache) {
+				if (this.cache && !('files' in this.filters) && !('transforms' in this.filters)) {
 					this.cache.set(file, mtime, data);
 				}
 			}
@@ -241,6 +261,10 @@ export class Pattern {
 
 	async transform( withDemos = true, forced = false ) {
 		await this.readEnvironments();
+
+		if ('transforms' in this.filters && !this.filters.transforms) {
+			return this;
+		}
 
 		let demos = {};
 

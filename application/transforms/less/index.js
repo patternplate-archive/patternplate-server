@@ -46,7 +46,7 @@ function render(source, config) {
 
 function lessTransformFactory(application) {
 	return function lessTransform(file, demo, configuration) {
-		var forced = arguments[3] === undefined ? false : arguments[3];
+		var forced = arguments.length <= 3 || arguments[3] === undefined ? false : arguments[3];
 
 		var config, patternPath, dependencies, plugins, pluginConfigs, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, pluginName, pluginConfig, Plugin, source, results, demoResults, injects, demoSource, demoConfig, demoDepdendencies;
 

@@ -2,7 +2,7 @@ import {resolve, join, dirname, basename} from 'path';
 import fs from 'q-io/fs';
 
 async function getPatterns(options, cache = null, fail = true, isEnvironment = false) {
-	let {id, base, config, factory, transforms, filters, log} = options;
+	let {id, base, config, factory, transforms, filters, log, cacheprefix} = options;
 	let path = resolve(base, id);
 	let search = resolve(path, 'pattern.json');
 	log = log || function() {};
@@ -29,7 +29,7 @@ async function getPatterns(options, cache = null, fail = true, isEnvironment = f
 	let errors = [];
 
 	for (let patternID of patternIDs) {
-		let readCacheID = `pattern:read:${patternID}`;
+		let readCacheID = ['pattern', 'read', cacheprefix, patternID].filter((item) => item).join(':');
 		log(`Initializing pattern "${patternID}"`);
 
 		if (cache && cache.config.static && cache.staticRoot && await fs.exists(cache.staticRoot)) {

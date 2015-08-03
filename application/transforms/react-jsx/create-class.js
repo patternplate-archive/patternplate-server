@@ -23,7 +23,7 @@ var _resolveDependencies = require('./resolve-dependencies');
 var _resolveDependencies2 = _interopRequireDefault(_resolveDependencies);
 
 function createClass(name, template, file) {
-	var opts = arguments[3] === undefined ? {} : arguments[3];
+	var opts = arguments.length <= 3 || arguments[3] === undefined ? {} : arguments[3];
 
 	var dependencyData = (0, _resolveDependencies2['default'])(file.dependencies, opts);
 	(0, _lodashMerge2['default'])(dependencyData, opts);

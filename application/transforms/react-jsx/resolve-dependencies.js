@@ -19,8 +19,8 @@ var _createClass = require('./create-class');
 var _createClass2 = _interopRequireDefault(_createClass);
 
 function resolveDependencies() {
-	var dependencies = arguments[0] === undefined ? {} : arguments[0];
-	var opts = arguments[1] === undefined ? {} : arguments[1];
+	var dependencies = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+	var opts = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
 	var data = {};
 	var _iteratorNormalCompletion = true;
