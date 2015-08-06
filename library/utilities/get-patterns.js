@@ -13,9 +13,9 @@ var _qIoFs = require('q-io/fs');
 var _qIoFs2 = _interopRequireDefault(_qIoFs);
 
 function getPatterns(options) {
-	var cache = arguments[1] === undefined ? null : arguments[1];
-	var fail = arguments[2] === undefined ? true : arguments[2];
-	var isEnvironment = arguments[3] === undefined ? false : arguments[3];
+	var cache = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
+	var fail = arguments.length <= 2 || arguments[2] === undefined ? true : arguments[2];
+	var isEnvironment = arguments.length <= 3 || arguments[3] === undefined ? false : arguments[3];
 
 	var id, base, config, factory, transforms, filters, log, path, search, paths, patternIDs, results, errors, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, patternID, readCacheID, cachedPatternPath, pattern, cachedRead;
 

@@ -69,10 +69,10 @@ function getLastModified(file) {
 
 var Pattern = (function () {
 	function Pattern(id, base) {
-		var config = arguments[2] === undefined ? {} : arguments[2];
-		var transforms = arguments[3] === undefined ? {} : arguments[3];
-		var filters = arguments[4] === undefined ? {} : arguments[4];
-		var cache = arguments[5] === undefined ? null : arguments[5];
+		var config = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
+		var transforms = arguments.length <= 3 || arguments[3] === undefined ? {} : arguments[3];
+		var filters = arguments.length <= 4 || arguments[4] === undefined ? {} : arguments[4];
+		var cache = arguments.length <= 5 || arguments[5] === undefined ? null : arguments[5];
 
 		_classCallCheck(this, Pattern);
 
@@ -98,7 +98,7 @@ var Pattern = (function () {
 	_createClass(Pattern, [{
 		key: 'readEnvironments',
 		value: function readEnvironments() {
-			var environmentsPath, results, environments, manifestPaths, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, manifestPath, _manifest, environmentName;
+			var environmentsPath, results, environments, manifestPaths, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, manifestPath, manifest, environmentName;
 
 			return regeneratorRuntime.async(function readEnvironments$(context$2$0) {
 				while (1) switch (context$2$0.prev = context$2$0.next) {
@@ -144,8 +144,8 @@ var Pattern = (function () {
 
 					case 20:
 						context$2$0.t1 = context$2$0.sent;
-						_manifest = context$2$0.t0.parse.call(context$2$0.t0, context$2$0.t1);
-						environmentName = _manifest.name || (0, _path.dirname)(manifestPath);
+						manifest = context$2$0.t0.parse.call(context$2$0.t0, context$2$0.t1);
+						environmentName = manifest.name || (0, _path.dirname)(manifestPath);
 
 						if (!(this.isEnvironment && environmentName !== (0, _path.basename)(this.id))) {
 							context$2$0.next = 26;
@@ -161,10 +161,10 @@ var Pattern = (function () {
 
 						if (this.filters.environments && this.filters.environments.length > 0) {
 							if (this.filters.environments.includes(environmentName)) {
-								results[environmentName] = { manifest: _manifest };
+								results[environmentName] = { manifest: manifest };
 							}
 						} else {
-							results[environmentName] = { manifest: _manifest };
+							results[environmentName] = { manifest: manifest };
 						}
 
 					case 27:
@@ -218,8 +218,8 @@ var Pattern = (function () {
 	}, {
 		key: 'readManifest',
 		value: function readManifest() {
-			var path = arguments[0] === undefined ? this.path : arguments[0];
-			var fs = arguments[1] === undefined ? _qIoFs2['default'] : arguments[1];
+			var path = arguments.length <= 0 || arguments[0] === undefined ? this.path : arguments[0];
+			var fs = arguments.length <= 1 || arguments[1] === undefined ? _qIoFs2['default'] : arguments[1];
 
 			var manifestPath, manifestData, _iteratorNormalCompletion3, _didIteratorError3, _iteratorError3, _iterator3, _step3, patternName, patternIDString, patternBaseName, patternBaseNameFragments, patternRange, patternID, pattern;
 
@@ -455,10 +455,10 @@ var Pattern = (function () {
 	}, {
 		key: 'read',
 		value: function read() {
-			var path = arguments[0] === undefined ? this.path : arguments[0];
-			var fs = arguments[1] === undefined ? _qIoFs2['default'] : arguments[1];
+			var path = arguments.length <= 0 || arguments[0] === undefined ? this.path : arguments[0];
+			var fs = arguments.length <= 1 || arguments[1] === undefined ? _qIoFs2['default'] : arguments[1];
 
-			var readCacheID, cached, files, _iteratorNormalCompletion4, _didIteratorError4, _iteratorError4, _iterator4, _step4, file, stat, _mtime, _name, data, ext, buffer, fileName, dependencyName, dependencyFile;
+			var readCacheID, cached, files, _iteratorNormalCompletion4, _didIteratorError4, _iteratorError4, _iterator4, _step4, file, stat, mtime, _name, data, ext, buffer, fileName, dependencyName, dependencyFile;
 
 			return regeneratorRuntime.async(function read$(context$2$0) {
 				while (1) switch (context$2$0.prev = context$2$0.next) {
@@ -514,9 +514,9 @@ var Pattern = (function () {
 
 					case 21:
 						stat = context$2$0.sent;
-						_mtime = stat.node.mtime;
+						mtime = stat.node.mtime;
 						_name = (0, _path.basename)(file);
-						data = this.cache ? this.cache.get(file, _mtime) : null;
+						data = this.cache ? this.cache.get(file, mtime) : null;
 
 						if (data) {
 							context$2$0.next = 32;
@@ -542,7 +542,7 @@ var Pattern = (function () {
 						};
 
 						if (this.cache) {
-							this.cache.set(file, _mtime, data);
+							this.cache.set(file, mtime, data);
 						}
 
 					case 32:
@@ -635,10 +635,10 @@ var Pattern = (function () {
 	}, {
 		key: 'transform',
 		value: function transform() {
-			var withDemos = arguments[0] === undefined ? true : arguments[0];
-			var forced = arguments[1] === undefined ? false : arguments[1];
+			var withDemos = arguments.length <= 0 || arguments[0] === undefined ? true : arguments[0];
+			var forced = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
 
-			var demos, fs, list, _iteratorNormalCompletion5, _didIteratorError5, _iteratorError5, _iterator5, _step5, listItem, _iteratorNormalCompletion6, _didIteratorError6, _iteratorError6, _iterator6, _step6, formatName, fileName, file, formatConfig, _iteratorNormalCompletion7, _didIteratorError7, _iteratorError7, _iterator7, _step7, environmentName, environmentData, environment, _iteratorNormalCompletion8, _didIteratorError8, _iteratorError8, _iterator8, _step8, transforms, lastTransform, _iteratorNormalCompletion9, _didIteratorError9, _iteratorError9, _iterator9, _step9, transform, cacheID, cached, demo, _mtime2, fn, environmentConfig, applicationConfig, configuration;
+			var demos, fs, list, _iteratorNormalCompletion5, _didIteratorError5, _iteratorError5, _iterator5, _step5, listItem, _iteratorNormalCompletion6, _didIteratorError6, _iteratorError6, _iterator6, _step6, formatName, fileName, file, formatConfig, _iteratorNormalCompletion7, _didIteratorError7, _iteratorError7, _iterator7, _step7, environmentName, environmentData, environment, _iteratorNormalCompletion8, _didIteratorError8, _iteratorError8, _iterator8, _step8, transforms, lastTransform, _iteratorNormalCompletion9, _didIteratorError9, _iteratorError9, _iterator9, _step9, transform, cacheID, cached, demo, mtime, fn, environmentConfig, applicationConfig, configuration;
 
 			return regeneratorRuntime.async(function transform$(context$2$0) {
 				while (1) switch (context$2$0.prev = context$2$0.next) {
@@ -911,15 +911,15 @@ var Pattern = (function () {
 						cacheID = 'file:transform:' + file.path + ':' + environmentName + ':' + transform;
 						cached = undefined;
 						demo = demos[formatConfig.name];
-						_mtime2 = getLastModified(file);
+						mtime = getLastModified(file);
 
 						// Use latest demo or file mtime
 						if (demo) {
-							_mtime2 = Math.max(_mtime2, getLastModified(demo));
+							mtime = Math.max(mtime, getLastModified(demo));
 						}
 
 						if (this.cache && this.cache.config.transform) {
-							cached = this.cache.get(cacheID, _mtime2);
+							cached = this.cache.get(cacheID, mtime);
 							file = cached || file;
 						}
 
@@ -940,7 +940,7 @@ var Pattern = (function () {
 						file = context$2$0.sent;
 
 						if (this.cache && this.cache.config.transform && !this.isEnvironment) {
-							this.cache.set(cacheID, _mtime2, file);
+							this.cache.set(cacheID, mtime, file);
 						}
 						context$2$0.next = 140;
 						break;

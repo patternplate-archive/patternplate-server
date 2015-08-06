@@ -26,8 +26,16 @@ function patternCacheFactory() {
 	var namespace = new WeakMap();
 
 	var PatternCache = (function () {
+		_createClass(PatternCache, null, [{
+			key: 'defaults',
+			value: {
+				'max': 50000
+			},
+			enumerable: true
+		}]);
+
 		function PatternCache() {
-			var options = arguments[0] === undefined ? {} : arguments[0];
+			var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
 			_classCallCheck(this, PatternCache);
 
@@ -87,12 +95,6 @@ function patternCacheFactory() {
 				var cache = namespace.get(CACHE);
 				return cache.itemCount;
 			}
-		}], [{
-			key: 'defaults',
-			value: {
-				'max': 50000
-			},
-			enumerable: true
 		}]);
 
 		return PatternCache;
