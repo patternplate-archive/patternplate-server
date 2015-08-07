@@ -214,6 +214,7 @@ function build(application, config) {
 					return item.buffer.length > 0;
 				});
 
+				// Write all variants into snippets
 				_iteratorNormalCompletion5 = true;
 				_didIteratorError5 = false;
 				_iteratorError5 = undefined;
@@ -826,7 +827,6 @@ module.exports = exports['default'];
 // Copy assets
 
 // write pattern.json with additional meta data
-// Write all variants into snippets
 
 // Write main variant into pattern build folder, render html into layout
 

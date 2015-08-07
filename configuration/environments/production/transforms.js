@@ -12,7 +12,9 @@ exports['default'] = {
 			'debug': false
 		},
 		'transforms': {
-			'uglifyify': {}
+			'uglifyify': {
+				//'enabled': true
+			}
 		}
 	},
 	'less': {
@@ -28,5 +30,3 @@ exports['default'] = {
 	}
 };
 module.exports = exports['default'];
-
-//'enabled': true

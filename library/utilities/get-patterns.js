@@ -34,6 +34,7 @@ function getPatterns(options) {
 
 				log = log || function () {};
 
+				// No patterns to find here
 				context$1$0.next = 12;
 				return regeneratorRuntime.awrap(_qIoFs2['default'].exists(path));
 
@@ -278,7 +279,6 @@ function getPatterns(options) {
 
 exports['default'] = getPatterns;
 module.exports = exports['default'];
-// No patterns to find here
 
 // We are dealing with a directory listing
 

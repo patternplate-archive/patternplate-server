@@ -264,7 +264,7 @@ function resolveDependencies(file, configuration) {
 
 function browserifyTransformFactory(application) {
 	return function browserifyTransform(file, demo, configuration) {
-		var transformNames, transforms, bundler, _iteratorNormalCompletion4, _didIteratorError4, _iteratorError4, _iterator4, _step4, transformName, _transforms$transformName, transformFn, transformConfig, mtime, transformed, bundled, demoBundler, _iteratorNormalCompletion5, _didIteratorError5, _iteratorError5, _iterator5, _step5, _transforms$transformName2, demoTransformed;
+		var transformNames, transforms, bundler, _iteratorNormalCompletion4, _didIteratorError4, _iteratorError4, _iterator4, _step4, transformName, _transforms$transformName, transformFn, transformConfig, _bundler, mtime, transformed, bundled, demoBundler, _iteratorNormalCompletion5, _didIteratorError5, _iteratorError5, _iterator5, _step5, _transforms$transformName2, _demoBundler, demoTransformed;
 
 		return regeneratorRuntime.async(function browserifyTransform$(context$2$0) {
 			while (1) switch (context$2$0.prev = context$2$0.next) {
@@ -324,7 +324,7 @@ function browserifyTransformFactory(application) {
 						if (typeof transformFn.configure === 'function') {
 							bundler.transform(transformFn.configure(transformConfig));
 						} else {
-							bundler.transform.apply(bundler, _toConsumableArray(transforms[transformName]));
+							(_bundler = bundler).transform.apply(_bundler, _toConsumableArray(transforms[transformName]));
 						}
 					}
 
@@ -436,7 +436,7 @@ function browserifyTransformFactory(application) {
 						if (typeof transformFn.configure === 'function') {
 							demoBundler.transform(transformFn.configure(transformConfig));
 						} else {
-							demoBundler.transform.apply(demoBundler, _toConsumableArray(transforms[transformName]));
+							(_demoBundler = demoBundler).transform.apply(_demoBundler, _toConsumableArray(transforms[transformName]));
 						}
 					}
 
