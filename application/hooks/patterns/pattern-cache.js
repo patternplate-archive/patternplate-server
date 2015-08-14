@@ -15,91 +15,98 @@ var _lruCache = require('lru-cache');
 
 var _lruCache2 = _interopRequireDefault(_lruCache);
 
-var _objectSizeof = require('object-sizeof');
+var namespace = new WeakMap();
 
-var _objectSizeof2 = _interopRequireDefault(_objectSizeof);
+var PatternCache = (function () {
+	_createClass(PatternCache, null, [{
+		key: 'defaults',
+		value: {
+			'max': 50000
+		},
+		enumerable: true
+	}]);
 
-var SETTINGS = Symbol('settings');
-var CACHE = Symbol('cache');
+	function PatternCache() {
+		var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
-function patternCacheFactory() {
-	var namespace = new WeakMap();
+		_classCallCheck(this, PatternCache);
 
-	var PatternCache = (function () {
-		_createClass(PatternCache, null, [{
-			key: 'defaults',
-			value: {
-				'max': 50000
-			},
-			enumerable: true
-		}]);
+		var settings = Object.assign({}, PatternCache.defaults, options.options);
+		this.config = options;
+		var cache = (0, _lruCache2['default'])(settings);
+		namespace.set(this, { settings: settings, cache: cache });
+	}
 
-		function PatternCache() {
-			var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+	_createClass(PatternCache, [{
+		key: 'set',
+		value: function set(key, mtime, value, meta) {
+			var _namespace$get = namespace.get(this);
 
-			_classCallCheck(this, PatternCache);
+			var cache = _namespace$get.cache;
 
-			var settings = Object.assign({}, PatternCache.defaults, options.options);
-			this.config = options;
-			var cache = (0, _lruCache2['default'])(settings);
-			namespace.set(SETTINGS, settings);
-			namespace.set(CACHE, cache);
+			return cache.set(key, { mtime: mtime, value: value, meta: meta });
 		}
+	}, {
+		key: 'get',
+		value: function get(key, mtime, meta) {
+			var _namespace$get2 = namespace.get(this);
 
-		_createClass(PatternCache, [{
-			key: 'set',
-			value: function set(key, mtime, value, meta) {
-				var cache = namespace.get(CACHE);
-				return cache.set(key, { mtime: mtime, value: value, meta: meta });
+			var cache = _namespace$get2.cache;
+
+			var stored = cache.get(key);
+
+			if (typeof stored === 'undefined') {
+				return null;
 			}
-		}, {
-			key: 'get',
-			value: function get(key, mtime, meta) {
-				var cache = namespace.get(CACHE);
-				var stored = cache.get(key);
 
-				if (typeof stored === 'undefined') {
-					return null;
-				}
+			var storedMtime = stored['mtime'];
+			var storedMeta = stored['meta'];
+			var value = stored.value;
 
-				var storedMtime = stored['mtime'];
-				var storedMeta = stored['meta'];
-				var value = stored.value;
-
-				if (mtime === false) {
-					return value;
-				}
-
-				if (new Date(storedMtime) < new Date(mtime)) {
-					cache.del(key);
-					return null;
-				}
-
+			if (mtime === false) {
 				return value;
 			}
-		}, {
-			key: 'peek',
-			value: function peek(key) {
-				var cache = namespace.get(CACHE);
-				return cache.peek(key);
-			}
-		}, {
-			key: 'length',
-			get: function get() {
-				var cache = namespace.get(CACHE);
-				return cache.length;
-			}
-		}, {
-			key: 'itemCount',
-			get: function get() {
-				var cache = namespace.get(CACHE);
-				return cache.itemCount;
-			}
-		}]);
 
-		return PatternCache;
-	})();
+			if (new Date(storedMtime) < new Date(mtime)) {
+				cache.del(key);
+				return null;
+			}
 
+			return value;
+		}
+	}, {
+		key: 'peek',
+		value: function peek(key) {
+			var _namespace$get3 = namespace.get(this);
+
+			var cache = _namespace$get3.cache;
+
+			return cache.peek(key);
+		}
+	}, {
+		key: 'length',
+		get: function get() {
+			var _namespace$get4 = namespace.get(this);
+
+			var cache = _namespace$get4.cache;
+
+			return cache.length;
+		}
+	}, {
+		key: 'itemCount',
+		get: function get() {
+			var _namespace$get5 = namespace.get(this);
+
+			var cache = _namespace$get5.cache;
+
+			return cache.itemCount;
+		}
+	}]);
+
+	return PatternCache;
+})();
+
+function patternCacheFactory() {
 	for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
 		args[_key] = arguments[_key];
 	}
@@ -108,4 +115,4 @@ function patternCacheFactory() {
 }
 
 exports['default'] = patternCacheFactory;
-module.exports = exports['default'];
+exports.PatternCache = PatternCache;
