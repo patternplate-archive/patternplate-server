@@ -7,12 +7,12 @@
     "start": "node --harmony binary/patternplate-server.js",
     "console": "boilerplate-console",
     "build": "npm run clean && npm run build-server && npm run build-assets",
-    "build-server": "npm run babel",
+    "build-server": "npm run clean && npm run babel",
     "build-assets": "browserify assets/script/content.js | uglifyjs > assets/script/content.bundle.js",
-    "watch": "npm run watch-assets & npm run watch-server",
+    "watch": "npm run build && npm run watch-assets & npm run watch-server",
     "watch-server": "npm run babel -- --watch",
-    "watch-assets": "chokidar 'assets/script/**/*' --ignore '**.bundle.js' -c 'npm run build-assets'",
-    "babel": "npm run clean && babel source --out-dir ./",
+    "watch-assets": "chokidar 'assets/script/**/*' --initial --ignore '**/*.bundle.js' -c 'npm run build-assets'",
+    "babel": "babel source --out-dir ./",
     "clean": "rm -rf application binary configuration library assets"
   },
   "bin": {
