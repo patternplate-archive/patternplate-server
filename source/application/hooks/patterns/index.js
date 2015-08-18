@@ -68,7 +68,7 @@ export default {
 				this.log.silly(`Importing transforms from: ${resolvedTransformPath}`);
 				let resolvedTransformFactories = requireAll({
 					'dirname': resolvedTransformPath,
-					'filter': /^(.*)\.(js|json)/
+					'filter': /^(.*)\.(js|json)$/
 				});
 
 				Object.assign(transformFactories, resolvedTransformFactories);
