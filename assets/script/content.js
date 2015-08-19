@@ -3,4 +3,3 @@
 var _rubberBand = require('rubber-band');
 
 (0, _rubberBand.content)();
-//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIi4uLy4uL3NvdXJjZS9hc3NldHMvc2NyaXB0L2NvbnRlbnQuanMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6Ijs7MEJBQXNCLGFBQWE7O0FBQ25DLDBCQUFTLENBQUMiLCJmaWxlIjoiY29udGVudC5qcyIsInNvdXJjZXNDb250ZW50IjpbImltcG9ydCB7Y29udGVudH0gZnJvbSAncnViYmVyLWJhbmQnO1xuY29udGVudCgpO1xuIl19
