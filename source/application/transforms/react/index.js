@@ -32,34 +32,17 @@ function convertCode(file) {
 	return fixDependencyImports(source, dependencies);
 }
 
-function convertDependencies(file) {
-	let dependencies = {};
-	for (let dependencyName of Object.keys(file.dependencies)) {
-		let dependencyFile = file.dependencies[dependencyName];
-		dependencies[dependencyName] = convertCode(dependencyFile);
-	}
-	return dependencies;
-}
-
-function fixDependencyImports(source, dependencies) {
-	// Replace import statements (but react) with a dumb module loader
-	return source.replace(/^\s*import\s+(?:\*\s+as\s+)?([^R][^e][^a][^c][^t].*?)\s+from\s+['"]([-_a-zA-Z0-9]+)['"].*$/gm, (match, name, module) => {
-		return `let ${name} = (() => {
-			${dependencies[module].replace("import * as React from 'react';", '').replace('export default ', 'return ')}
-		})();
-		`;
-	})
-}
-
-function createWrappedRenderFunction(file, source, className) {
+function createWrappedRenderFunction(file, source) {
 	let patternJson = loadPatternJson(file.path);
 	let dependencies = writeDependencyImports(file).join('\n');
+	return renderCodeTemplate(source, dependencies, template, pascalCase(patternJson.name));
+}
 
-	return renderCodeTemplate(
-		source, 
-		dependencies,
-		template,
-		className ? className : pascalCase(patternJson.name));
+function loadPatternJson(path) {
+	return require(
+		join(
+			path.substring(0, 
+				path.lastIndexOf('/')), 'pattern.json'));
 }
 
 function writeDependencyImports(file) {
@@ -83,9 +66,21 @@ function matchFirstJsxExpressionAndWrapWithReturn(source) {
 			'return (\n$1\n);')
 }
 
-function loadPatternJson(path) {
-	return require(
-		join(
-			path.substring(0, 
-				path.lastIndexOf('/')), 'pattern.json'));
+function convertDependencies(file) {
+	let dependencies = {};
+	for (let dependencyName of Object.keys(file.dependencies)) {
+		let dependencyFile = file.dependencies[dependencyName];
+		dependencies[dependencyName] = convertCode(dependencyFile);
+	}
+	return dependencies;
+}
+
+function fixDependencyImports(source, dependencies) {
+	// Replace import statements (but react) with a dumb module loader
+	return source.replace(/^\s*import\s+(?:\*\s+as\s+)?([^R][^e][^a][^c][^t].*?)\s+from\s+['"]([-_a-zA-Z0-9]+)['"].*$/gm, (match, name, module) => {
+		return `let ${name} = (() => {
+			${dependencies[module].replace("import * as React from 'react';", '').replace('export default ', 'return ')}
+		})();
+		`;
+	})
 }
