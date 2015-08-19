@@ -12,7 +12,7 @@
     "watch": "npm run build && npm run watch-assets & npm run watch-server",
     "watch-server": "npm run babel -- --watch",
     "watch-assets": "chokidar 'assets/script/**/*' --initial --ignore '**/*.bundle.js' -c 'npm run build-assets'",
-    "babel": "babel source --out-dir ./",
+    "babel": "babel source --source-maps=inline --out-dir ./",
     "clean": "rm -rf application binary configuration library assets"
   },
   "bin": {
@@ -39,6 +39,10 @@
     {
       "name": "Mario Nebl",
       "email": "mario.nebl@sinnerschrader.com"
+    },
+    {
+      "name": "Markus Wolf",
+      "email": "markus.wolf@sinnerschrader.com"
     }
   ],
   "license": "MIT",

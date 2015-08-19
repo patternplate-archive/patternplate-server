@@ -49,7 +49,6 @@ async function getPatterns(options, cache = null, fail = true, isEnvironment = f
 			log(`Static cache miss for ${patternID} at ${cachedPatternPath}, falling back to dynamic version`);
 		}
 
-
 		let pattern = await factory(patternID, base, config, transforms, filters);
 		let cachedRead = cache && cache.config.read ? cache.get(readCacheID, false) : null;
 
