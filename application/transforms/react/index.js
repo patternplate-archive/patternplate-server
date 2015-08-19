@@ -51,12 +51,14 @@ function createReactCodeFactory(application) {
 }
 
 function convertCode(file) {
+	var removeReact = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
+
 	var source = file.buffer.toString('utf-8');
 	if (source.indexOf('export default class') === -1 || source.indexOf('React.createClass') !== -1) {
 		source = createWrappedRenderFunction(file, source);
 	}
 	var dependencies = convertDependencies(file);
-	return fixDependencyImports(source, dependencies);
+	return fixDependencyImports(source, dependencies, removeReact);
 }
 
 function createWrappedRenderFunction(file, source) {
@@ -118,7 +120,7 @@ function convertDependencies(file) {
 			var dependencyName = _step2.value;
 
 			var dependencyFile = file.dependencies[dependencyName];
-			dependencies[dependencyName] = convertCode(dependencyFile);
+			dependencies[dependencyName] = convertCode(dependencyFile, true);
 		}
 	} catch (err) {
 		_didIteratorError2 = true;
@@ -138,9 +140,15 @@ function convertDependencies(file) {
 	return dependencies;
 }
 
-function fixDependencyImports(source, dependencies) {
+function fixDependencyImports(source, dependencies, removeReact) {
 	// Replace import statements (but react) with a dumb module loader
-	return source.replace(/^\s*import\s+(?:\*\s+as\s+)?([^R][^e][^a][^c][^t].*?)\s+from\s+['"]([-_a-zA-Z0-9]+)['"].*$/gm, function (match, name, module) {
+	return source.replace(/^\s*import\s+(?:\*\s+as\s+)?(.*?)\s+from\s+['"]([-_a-zA-Z0-9]+)['"].*$/gm, function (match, name, module) {
+		if (name === 'React' || module === 'react') {
+			if (removeReact) {
+				return '';
+			}
+			return "import * as React from 'react'";
+		}
 		return 'let ' + name + ' = (() => {\n\t\t\t' + dependencies[module].replace("import * as React from 'react';", '').replace('export default ', 'return ') + '\n\t\t})();\n\t\t';
 	});
 }
