@@ -4,7 +4,12 @@ export default {
 		'inFormat': 'md',
 		'outFormat': 'html'
 	},
-	'react-jsx': {
+	'react': {
+		'inFormat': 'jsx',
+		'outFormat': 'jsx',
+		'opts': {}
+	},
+	'react-to-markup': {
 		'inFormat': 'jsx',
 		'outFormat': 'html',
 		'opts': {}
