@@ -28,9 +28,9 @@ function createReactRendererFactory(application) {
 		return regeneratorRuntime.async(function renderReactComponent$(context$2$0) {
 			while (1) switch (context$2$0.prev = context$2$0.next) {
 				case 0:
-					file.buffer = renderMarkup(file.buffer.toString('utf-8'));
+					file.buffer = renderMarkup(file.buffer.toString('utf-8'), config.opts);
 					if (file.demoBuffer) {
-						file.demoBuffer = renderMarkup(file.demoBuffer.toString('utf-8'));
+						file.demoBuffer = renderMarkup(file.demoBuffer.toString('utf-8'), config.opts);
 					}
 					file['in'] = config.inFormat;
 					file.out = config.outFormat;
@@ -44,9 +44,9 @@ function createReactRendererFactory(application) {
 	};
 }
 
-function renderMarkup(source) {
+function renderMarkup(source, opts) {
 	// Convert to es5...
-	var result = (0, _babelCore.transform)(source, {});
+	var result = (0, _babelCore.transform)(source, opts);
 
 	// ...then 'require' module...
 	var moduleScope = { exports: {} };
