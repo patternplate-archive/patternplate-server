@@ -1,26 +1,19 @@
 import {join} from 'path';
 import pascalCase from 'pascal-case';
 import merge from 'lodash.merge';
-import {transform, buildExternalHelpers} from 'babel-core';
 import template from './react-class.tmpl';
-import dependencyTemplate from './require.tmpl';
 
 export default function createReactCodeFactory(application) {
 	const config = application.configuration.transforms['react'] || {};
 
 	return async function createReactCode(file, demo) {
-		let helpers = buildExternalHelpers(undefined, 'var');
-		let result = convertCode(file, config.opts);
-		let requireBlock = createRequireBlock(getDependencies(file));
-		result = helpers + requireBlock + result;
+		let result = convertCode(file);
 		if (demo) {
 			demo.dependencies = {
 				pattern: file
 			};
 			merge(demo.dependencies, file.dependencies);
-			let demoResult = convertCode(demo, config.opts);
-			let requireBlock = createRequireBlock(getDependencies(demo));
-			demoResult = helpers + requireBlock + demoResult;
+			let demoResult = convertCode(demo);
 			file.demoSource = demo.source;
 			file.demoBuffer = new Buffer(demoResult, 'utf-8');
 		}
@@ -32,15 +25,13 @@ export default function createReactCodeFactory(application) {
 	}
 }
 
-function convertCode(file, opts) {
+function convertCode(file, removeReact = false) {
 	let source = file.buffer.toString('utf-8');
-	// TODO: This is a weak criteria to check if we have to create a wrapper
-	if (source.indexOf('extends React.Component') === -1 || source.indexOf('React.createClass') !== -1)	 {
+	if (source.indexOf('export default class') === -1 || source.indexOf('React.createClass') !== -1)	 {
 		source = createWrappedRenderFunction(file, source);
-	} else {
-		source = rewriteImportsToGlobalNames(file, source);
 	}
-	return transform(source, merge({externalHelpers: true}, opts)).code;
+	let dependencies = convertDependencies(file);
+	return fixDependencyImports(source, dependencies, removeReact);
 }
 
 function createWrappedRenderFunction(file, source) {
@@ -50,10 +41,9 @@ function createWrappedRenderFunction(file, source) {
 }
 
 function writeDependencyImports(file) {
-	let patterns = loadPatternJson(file.path).patterns || {};
 	let dependencies = [];
-	for (let name of Object.keys(file.dependencies)) {
-		dependencies.push(`import ${pascalCase(name)} from '${patterns[name] || name}';`);
+	for (let dependencyName of Object.keys(file.dependencies)) {
+		dependencies.push(`import ${pascalCase(dependencyName)} from '${dependencyName}';`);
 	}
 	return dependencies;
 }
@@ -64,19 +54,6 @@ function renderCodeTemplate(source, dependencies, template, className) {
 		.replace('$$class-name$$', className)
 		.replace('$$render-code$$', matchFirstJsxExpressionAndWrapWithReturn(source));
 }
-
-const TAG_START = '<[-_a-z0-9]+';
-const ATTRIBUTE_NAME = '[-_a-z0-9]+';
-const HTML_ATTRIBUTE_VALUE = `"[^"]*"`;
-const REACT_ATTRIBUTE_VALUE = `{(?:{[^}]*}|[^}]*)}`;
-const ATTRIBUTE_VALUE = `\\s*=\\s*(?:${HTML_ATTRIBUTE_VALUE}|${REACT_ATTRIBUTE_VALUE})`;
-const NAMED_ATTRIBUTE= `(?:${ATTRIBUTE_NAME}(?:${ATTRIBUTE_VALUE})?)`;
-const SPREAD_ATTRIBUTE = '{\\.\\.\\.[^}]+}';
-const ATTRIBUTE = `(?:${NAMED_ATTRIBUTE}|${SPREAD_ATTRIBUTE})`;
-const ATTRIBUTES = `(?:\\s+${ATTRIBUTE})*`;
-const TAG_END = '\\s*\\/?>';
-const EXPR = new RegExp(`(${TAG_START}${ATTRIBUTES}${TAG_END}[^]*)`, 'gi');
-//console.log('EXPR', EXPR);
 
 function matchFirstJsxExpressionAndWrapWithReturn(source) {
 	return source
@@ -104,27 +81,28 @@ function rewriteImportsToGlobalNames(file, source) {
 	});
 }
 
-function getDependencies(file) {
-	let patterns = loadPatternJson(file.path).patterns || {};
+function convertDependencies(file) {
 	let dependencies = {};
-	for (let name of Object.keys(file.dependencies)) {
-		let globalName = patterns[name] || name;
-		let dependencyFile = file.dependencies[name];
-		dependencies[globalName] = dependencyFile;
-		merge(dependencies, getDependencies(dependencyFile));
+	for (let dependencyName of Object.keys(file.dependencies)) {
+		let dependencyFile = file.dependencies[dependencyName];
+		dependencies[dependencyName] = convertCode(dependencyFile, true);
 	}
 	return dependencies;
 }
 
-function createRequireBlock(dependencies) {
-	let source = [];
-	for (let name of Object.keys(dependencies)) {
-		source.push(`
-			'${name}': function(module, exports, require) {
-				${convertCode(dependencies[name]).split('\n').map(line => '\t\t\t' + line).join('\n')}
+function fixDependencyImports(source, dependencies, removeReact) {
+	// Replace import statements (but react) with a dumb module loader
+	return source.replace(/^\s*import\s+(?:\*\s+as\s+)?(.*?)\s+from\s+['"]([-_a-zA-Z0-9]+)['"].*$/gm, (match, name, module) => {
+		if (name === 'React' || module === 'react') {
+			if (removeReact) {
+				return '';
 			}
-		`);
-	}
-	return dependencyTemplate.replace('$$localDependencies$$', source.join('\n,'));
+			return "import * as React from 'react'";
+		}
+		return `let ${name} = (() => {
+			${dependencies[module].replace("import * as React from 'react';", '').replace('export default ', 'return ')}
+		})();
+		`;
+	})
 }
 
