@@ -57,7 +57,7 @@ function renderCodeTemplate(source, dependencies, template, className) {
 
 function matchFirstJsxExpressionAndWrapWithReturn(source) {
 	return source
-		.replace(/(<[a-z0-9]+(?:\s+[a-z0-9]+=["{][^"}]*?["}]|\s+\{\.\.\.[^}]+\})*\s*\/?>[^]*)/gi,
+		.replace(/(<[a-z0-9]+(?:\s+[a-z0-9]+=["][^"]*?["]|\s+[a-z0-9]+=[{][^}]*?[}]|\s+\{\.\.\.[^}]+\})*\s*\/?>[^]*)/gi,
 			'return (\n$1\n);')
 }
 
