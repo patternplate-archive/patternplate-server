@@ -13,6 +13,10 @@ var _pascalCase = require('pascal-case');
 
 var _pascalCase2 = _interopRequireDefault(_pascalCase);
 
+var _lodashMerge = require('lodash.merge');
+
+var _lodashMerge2 = _interopRequireDefault(_lodashMerge);
+
 var _reactClassTmpl = require('./react-class.tmpl');
 
 var _reactClassTmpl2 = _interopRequireDefault(_reactClassTmpl);
@@ -31,6 +35,7 @@ function createReactCodeFactory(application) {
 						demo.dependencies = {
 							pattern: file
 						};
+						(0, _lodashMerge2['default'])(demo.dependencies, file.dependencies);
 						demoResult = convertCode(demo);
 
 						file.demoSource = demo.source;
@@ -106,7 +111,7 @@ function renderCodeTemplate(source, dependencies, template, className) {
 }
 
 function matchFirstJsxExpressionAndWrapWithReturn(source) {
-	return source.replace(/(<[a-z0-9]+(?:\s+[a-z0-9]+=["{][^"}]*?["}])*\s*\/?>[^]*)/gi, 'return (\n$1\n);');
+	return source.replace(/(<[a-z0-9]+(?:\s+[a-z0-9]+=["{][^"}]*?["}]|\s+\{\.\.\.[^}]+\})*\s*\/?>[^]*)/gi, 'return (\n$1\n);');
 }
 
 function convertDependencies(file) {

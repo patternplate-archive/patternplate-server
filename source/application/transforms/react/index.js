@@ -1,5 +1,6 @@
 import {join} from 'path';
 import pascalCase from 'pascal-case';
+import merge from 'lodash.merge';
 import template from './react-class.tmpl';
 
 export default function createReactCodeFactory(application) {
@@ -11,6 +12,7 @@ export default function createReactCodeFactory(application) {
 			demo.dependencies = {
 				pattern: file
 			};
+			merge(demo.dependencies, file.dependencies);
 			let demoResult = convertCode(demo);
 			file.demoSource = demo.source;
 			file.demoBuffer = new Buffer(demoResult, 'utf-8');
@@ -55,7 +57,7 @@ function renderCodeTemplate(source, dependencies, template, className) {
 
 function matchFirstJsxExpressionAndWrapWithReturn(source) {
 	return source
-		.replace(/(<[a-z0-9]+(?:\s+[a-z0-9]+=["{][^"}]*?["}])*\s*\/?>[^]*)/gi,
+		.replace(/(<[a-z0-9]+(?:\s+[a-z0-9]+=["{][^"}]*?["}]|\s+\{\.\.\.[^}]+\})*\s*\/?>[^]*)/gi,
 			'return (\n$1\n);')
 }
 
