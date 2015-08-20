@@ -1,6 +1,5 @@
 const template = `
-	import * as React from 'react';
-
+	let React = require('react');
 	$$dependencies$$
 
 	export default class $$class-name$$ extends React.Component {
