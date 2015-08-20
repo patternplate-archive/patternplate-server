@@ -15,8 +15,6 @@ var _pascalCase = require('pascal-case');
 
 var _pascalCase2 = _interopRequireDefault(_pascalCase);
 
-var _babelCore = require('babel-core');
-
 var _react = require('react');
 
 var React = _interopRequireWildcard(_react);
@@ -28,9 +26,9 @@ function createReactRendererFactory(application) {
 		return regeneratorRuntime.async(function renderReactComponent$(context$2$0) {
 			while (1) switch (context$2$0.prev = context$2$0.next) {
 				case 0:
-					file.buffer = renderMarkup(file.buffer.toString('utf-8'), config.opts);
+					file.buffer = renderMarkup(file.buffer.toString('utf-8'));
 					if (file.demoBuffer) {
-						file.demoBuffer = renderMarkup(file.demoBuffer.toString('utf-8'), config.opts);
+						file.demoBuffer = renderMarkup(file.demoBuffer.toString('utf-8'));
 					}
 					file['in'] = config.inFormat;
 					file.out = config.outFormat;
@@ -44,13 +42,10 @@ function createReactRendererFactory(application) {
 	};
 }
 
-function renderMarkup(source, opts) {
-	// Convert to es5...
-	var result = (0, _babelCore.transform)(source, opts);
-
-	// ...then 'require' module...
+function renderMarkup(source) {
+	// 'require' module...
 	var moduleScope = { exports: {} };
-	var fn = new Function('module', 'exports', 'require', result.code);
+	var fn = new Function('module', 'exports', 'require', source);
 	fn(moduleScope, moduleScope.exports, require);
 
 	// ...finally render markup
