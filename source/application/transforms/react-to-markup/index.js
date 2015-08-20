@@ -18,10 +18,10 @@ export default function createReactRendererFactory(application) {
 }
 
 function renderMarkup(source, opts) {
-	// Compile pattern...
+	// Convert to es5...
 	let result = transform(source, opts);
-	
-	// ...'require' module...
+
+	// ...then 'require' module...
 	let moduleScope = {exports:{}};
 	let fn = new Function('module', 'exports', 'require', result.code);
 	fn(moduleScope, moduleScope.exports, require);
