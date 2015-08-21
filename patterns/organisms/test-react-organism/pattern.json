@@ -1,0 +1,8 @@
+{
+	"name": "test-react",
+	"version": "0.1.0",
+	"patterns": {
+		"button": "molecules/test-react",
+		"button2": "molecules/test-react-legacy"
+	}
+}

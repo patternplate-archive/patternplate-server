@@ -36,8 +36,8 @@ function createReactCodeFactory(application) {
 		return regeneratorRuntime.async(function createReactCode$(context$2$0) {
 			while (1) switch (context$2$0.prev = context$2$0.next) {
 				case 0:
-					helpers = (0, _babelCore.buildExternalHelpers)(['interop-require-wildcard', 'interop-require-default'], 'var');
-					result = convertCode(file);
+					helpers = (0, _babelCore.buildExternalHelpers)(undefined, 'var');
+					result = convertCode(file, config.opts);
 					requireBlock = createRequireBlock(getDependencies(file));
 
 					result = helpers + requireBlock + result;
@@ -46,7 +46,7 @@ function createReactCodeFactory(application) {
 							pattern: file
 						};
 						(0, _lodashMerge2['default'])(demo.dependencies, file.dependencies);
-						demoResult = convertCode(demo);
+						demoResult = convertCode(demo, config.opts);
 						_requireBlock = createRequireBlock(getDependencies(demo));
 
 						demoResult = helpers + _requireBlock + demoResult;
@@ -67,17 +67,15 @@ function createReactCodeFactory(application) {
 	};
 }
 
-function convertCode(file) {
+function convertCode(file, opts) {
 	var source = file.buffer.toString('utf-8');
 	// TODO: This is a weak criteria to check if we have to create a wrapper
 	if (source.indexOf('extends React.Component') === -1 || source.indexOf('React.createClass') !== -1) {
 		source = createWrappedRenderFunction(file, source);
+	} else {
+		source = rewriteImportsToGlobalNames(file, source);
 	}
-	var opts = {
-		whitelist: ['es6.modules'],
-		externalHelpers: true
-	};
-	return (0, _babelCore.transform)(source, opts).code;
+	return (0, _babelCore.transform)(source, (0, _lodashMerge2['default'])({ externalHelpers: true }, opts)).code;
 }
 
 function createWrappedRenderFunction(file, source) {
@@ -136,6 +134,13 @@ var EXPR = new RegExp('(' + TAG_START + ATTRIBUTES + TAG_END + '[^]*)', 'gi');
 function matchFirstJsxExpressionAndWrapWithReturn(source) {
 	return source.replace(EXPR, function (match, jsxExpr) {
 		return 'return (\n' + jsxExpr /*.split('\n').map(line => indent + line).join('\n')*/ + '\n);\n';
+	});
+}
+
+function rewriteImportsToGlobalNames(file, source) {
+	var patterns = loadPatternJson(file.path).patterns || {};
+	return source.replace(/(import\s+(?:\* as\s)?[^\s]+\s+from\s+["'])([^"']+)(["'];)/g, function (match, before, name, after) {
+		return '' + before + (patterns[name] || name) + after;
 	});
 }
 
