@@ -9,8 +9,8 @@ export default function createReactCodeFactory(application) {
 	const config = application.configuration.transforms['react'] || {};
 
 	return async function createReactCode(file, demo) {
-		let helpers = buildExternalHelpers(['interop-require-wildcard', 'interop-require-default'], 'var');
-		let result = convertCode(file);
+		let helpers = buildExternalHelpers(undefined, 'var');
+		let result = convertCode(file, config.opts);
 		let requireBlock = createRequireBlock(getDependencies(file));
 		result = helpers + requireBlock + result;
 		if (demo) {
@@ -18,7 +18,7 @@ export default function createReactCodeFactory(application) {
 				pattern: file
 			};
 			merge(demo.dependencies, file.dependencies);
-			let demoResult = convertCode(demo);
+			let demoResult = convertCode(demo, config.opts);
 			let requireBlock = createRequireBlock(getDependencies(demo));
 			demoResult = helpers + requireBlock + demoResult;
 			file.demoSource = demo.source;
@@ -32,17 +32,15 @@ export default function createReactCodeFactory(application) {
 	}
 }
 
-function convertCode(file) {
+function convertCode(file, opts) {
 	let source = file.buffer.toString('utf-8');
 	// TODO: This is a weak criteria to check if we have to create a wrapper
 	if (source.indexOf('extends React.Component') === -1 || source.indexOf('React.createClass') !== -1)	 {
 		source = createWrappedRenderFunction(file, source);
+	} else {
+		source = rewriteImportsToGlobalNames(file, source);
 	}
-	let opts = {
-		whitelist: ['es6.modules'],
-		externalHelpers: true
-	};
-	return transform(source, opts).code;
+	return transform(source, merge({externalHelpers: true}, opts)).code;
 }
 
 function createWrappedRenderFunction(file, source) {
@@ -86,6 +84,13 @@ function loadPatternJson(path) {
 		join(
 			path.substring(0,
 				path.lastIndexOf('/')), 'pattern.json'));
+}
+
+function rewriteImportsToGlobalNames(file, source) {
+	let patterns = loadPatternJson(file.path).patterns || {};
+	return source.replace(/(import\s+(?:\* as\s)?[^\s]+\s+from\s+["'])([^"']+)(["'];)/g, (match, before, name, after) => {
+		return `${before}${patterns[name] || name}${after}`;
+	});
 }
 
 function rewriteImportsToGlobalNames(file, source) {
