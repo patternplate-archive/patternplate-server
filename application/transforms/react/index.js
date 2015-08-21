@@ -31,19 +31,24 @@ function createReactCodeFactory(application) {
 	var config = application.configuration.transforms['react'] || {};
 
 	return function createReactCode(file, demo) {
-		var result, demoResult;
+		var result, requireBlock, demoResult, _requireBlock;
+
 		return regeneratorRuntime.async(function createReactCode$(context$2$0) {
 			while (1) switch (context$2$0.prev = context$2$0.next) {
 				case 0:
 					result = convertCode(file, config.opts);
+					requireBlock = createRequireBlock(getDependencies(file), config.opts);
 
+					result = requireBlock + result;
 					if (demo) {
 						demo.dependencies = {
 							pattern: file
 						};
 						(0, _lodashMerge2['default'])(demo.dependencies, file.dependencies);
 						demoResult = convertCode(demo, config.opts);
+						_requireBlock = createRequireBlock(getDependencies(demo), config.opts);
 
+						demoResult = _requireBlock + demoResult;
 						file.demoSource = demo.source;
 						file.demoBuffer = new Buffer(demoResult, 'utf-8');
 					}
@@ -53,7 +58,7 @@ function createReactCodeFactory(application) {
 					file.out = config.outFormat;
 					return context$2$0.abrupt('return', file);
 
-				case 6:
+				case 8:
 				case 'end':
 					return context$2$0.stop();
 			}
@@ -68,8 +73,7 @@ function convertCode(file, opts) {
 		source = createWrappedRenderFunction(file, source);
 	}
 	var result = (0, _babelCore.transform)(source, opts).code;
-	var requireBlock = createRequireBlock(getDependencies(file), opts);
-	return requireBlock + result;
+	return result;
 }
 
 function createWrappedRenderFunction(file, source) {
