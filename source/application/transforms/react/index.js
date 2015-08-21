@@ -10,12 +10,16 @@ export default function createReactCodeFactory(application) {
 
 	return async function createReactCode(file, demo) {
 		let result = convertCode(file, config.opts);
+		let requireBlock = createRequireBlock(getDependencies(file), config.opts);
+		result = requireBlock + result;
 		if (demo) {
 			demo.dependencies = {
 				pattern: file
 			};
 			merge(demo.dependencies, file.dependencies);
 			let demoResult = convertCode(demo, config.opts);
+			let requireBlock = createRequireBlock(getDependencies(demo), config.opts);
+			demoResult = requireBlock + demoResult;
 			file.demoSource = demo.source;
 			file.demoBuffer = new Buffer(demoResult, 'utf-8');
 		}
@@ -34,8 +38,7 @@ function convertCode(file, opts) {
 		source = createWrappedRenderFunction(file, source);
 	}
 	let result = transform(source, opts).code;
-	let requireBlock = createRequireBlock(getDependencies(file), opts);
-	return requireBlock + result;
+	return result;
 }
 
 function createWrappedRenderFunction(file, source) {
