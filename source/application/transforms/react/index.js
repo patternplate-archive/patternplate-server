@@ -13,7 +13,6 @@ export default function createReactCodeFactory(application) {
 		let result = convertCode(file);
 		let requireBlock = createRequireBlock(getDependencies(file));
 		result = helpers + requireBlock + result;
-console.log('result\n', result);
 		if (demo) {
 			demo.dependencies = {
 				pattern: file
@@ -41,8 +40,7 @@ function convertCode(file) {
 	}
 	let opts = {
 		whitelist: ['es6.modules'],
-		externalHelpers: true,
-		metadataUsedHelpers: true
+		externalHelpers: true
 	};
 	return transform(source, opts).code;
 }
@@ -61,9 +59,10 @@ function loadPatternJson(path) {
 }
 
 function writeDependencyImports(file) {
+	let patterns = loadPatternJson(file.path).patterns || {};
 	let dependencies = [];
-	for (let dependencyName of Object.keys(file.dependencies)) {
-		dependencies.push(`import ${pascalCase(dependencyName)} from '${dependencyName}';`);
+	for (let name of Object.keys(file.dependencies)) {
+		dependencies.push(`import ${pascalCase(name)} from '${patterns[name] || name}';`);
 	}
 	return dependencies;
 }
@@ -90,10 +89,12 @@ function matchFirstJsxExpressionAndWrapWithReturn(source) {
 }
 
 function getDependencies(file) {
+	let patterns = loadPatternJson(file.path).patterns || {};
 	let dependencies = {};
-	for (let dependencyName of Object.keys(file.dependencies)) {
-		let dependencyFile = file.dependencies[dependencyName];
-		dependencies[dependencyName] = dependencyFile;
+	for (let name of Object.keys(file.dependencies)) {
+		let globalName = patterns[name] || name;
+		let dependencyFile = file.dependencies[name];
+		dependencies[globalName] = dependencyFile;
 		merge(dependencies, getDependencies(dependencyFile));
 	}
 	return dependencies;
