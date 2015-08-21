@@ -7,9 +7,9 @@ export default function createReactRendererFactory(application) {
 	const config = application.configuration.transforms['react-to-markup'] || {};
 
 	return async function renderReactComponent(file, demo) {
-		file.buffer = renderMarkup(file.buffer.toString('utf-8'));
+		file.buffer = renderMarkup(file.buffer.toString('utf-8'), config.opts);
 		if (file.demoBuffer) {
-			file.demoBuffer = renderMarkup(file.demoBuffer.toString('utf-8'))
+			file.demoBuffer = renderMarkup(file.demoBuffer.toString('utf-8'), config.opts)
 		}
 		file.in = config.inFormat;
 		file.out = config.outFormat;
@@ -17,10 +17,13 @@ export default function createReactRendererFactory(application) {
 	}
 }
 
-function renderMarkup(source) {
-	// 'require' module...
+function renderMarkup(source, opts) {
+	// Compile pattern...
+	let result = transform(source, opts);
+	
+	// ...'require' module...
 	let moduleScope = {exports:{}};
-	let fn = new Function('module', 'exports', 'require', source);
+	let fn = new Function('module', 'exports', 'require', result.code);
 	fn(moduleScope, moduleScope.exports, require);
 
 	// ...finally render markup

@@ -1,7 +1,7 @@
 import {join} from 'path';
 import pascalCase from 'pascal-case';
 import merge from 'lodash.merge';
-import {transform} from 'babel-core';
+import {transform, buildExternalHelpers} from 'babel-core';
 import template from './react-class.tmpl';
 import dependencyTemplate from './require.tmpl';
 
@@ -9,17 +9,19 @@ export default function createReactCodeFactory(application) {
 	const config = application.configuration.transforms['react'] || {};
 
 	return async function createReactCode(file, demo) {
-		let result = convertCode(file, config.opts);
-		let requireBlock = createRequireBlock(getDependencies(file), config.opts);
-		result = requireBlock + result;
+		let helpers = buildExternalHelpers(['interop-require-wildcard', 'interop-require-default'], 'var');
+		let result = convertCode(file);
+		let requireBlock = createRequireBlock(getDependencies(file));
+		result = helpers + requireBlock + result;
+console.log('result\n', result);
 		if (demo) {
 			demo.dependencies = {
 				pattern: file
 			};
 			merge(demo.dependencies, file.dependencies);
-			let demoResult = convertCode(demo, config.opts);
-			let requireBlock = createRequireBlock(getDependencies(demo), config.opts);
-			demoResult = requireBlock + demoResult;
+			let demoResult = convertCode(demo);
+			let requireBlock = createRequireBlock(getDependencies(demo));
+			demoResult = helpers + requireBlock + demoResult;
 			file.demoSource = demo.source;
 			file.demoBuffer = new Buffer(demoResult, 'utf-8');
 		}
@@ -31,14 +33,18 @@ export default function createReactCodeFactory(application) {
 	}
 }
 
-function convertCode(file, opts) {
+function convertCode(file) {
 	let source = file.buffer.toString('utf-8');
 	// TODO: This is a weak criteria to check if we have to create a wrapper
 	if (source.indexOf('extends React.Component') === -1 || source.indexOf('React.createClass') !== -1)	 {
 		source = createWrappedRenderFunction(file, source);
 	}
-	let result = transform(source, opts).code;
-	return result;
+	let opts = {
+		whitelist: ['es6.modules'],
+		externalHelpers: true,
+		metadataUsedHelpers: true
+	};
+	return transform(source, opts).code;
 }
 
 function createWrappedRenderFunction(file, source) {
@@ -93,12 +99,12 @@ function getDependencies(file) {
 	return dependencies;
 }
 
-function createRequireBlock(dependencies, opts) {
+function createRequireBlock(dependencies) {
 	let source = [];
 	for (let name of Object.keys(dependencies)) {
 		source.push(`
 			'${name}': function(module, exports, require) {
-				${convertCode(dependencies[name], opts)}
+				${convertCode(dependencies[name]).split('\n').map(line => '\t\t\t' + line).join('\n')}
 			}
 		`);
 	}
