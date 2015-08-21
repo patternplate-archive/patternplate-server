@@ -41,7 +41,6 @@ function createReactCodeFactory(application) {
 					requireBlock = createRequireBlock(getDependencies(file));
 
 					result = helpers + requireBlock + result;
-					console.log('result\n', result);
 					if (demo) {
 						demo.dependencies = {
 							pattern: file
@@ -60,7 +59,7 @@ function createReactCodeFactory(application) {
 					file.out = config.outFormat;
 					return context$2$0.abrupt('return', file);
 
-				case 10:
+				case 9:
 				case 'end':
 					return context$2$0.stop();
 			}
@@ -76,8 +75,7 @@ function convertCode(file) {
 	}
 	var opts = {
 		whitelist: ['es6.modules'],
-		externalHelpers: true,
-		metadataUsedHelpers: true
+		externalHelpers: true
 	};
 	return (0, _babelCore.transform)(source, opts).code;
 }
@@ -93,6 +91,7 @@ function loadPatternJson(path) {
 }
 
 function writeDependencyImports(file) {
+	var patterns = loadPatternJson(file.path).patterns || {};
 	var dependencies = [];
 	var _iteratorNormalCompletion = true;
 	var _didIteratorError = false;
@@ -100,9 +99,9 @@ function writeDependencyImports(file) {
 
 	try {
 		for (var _iterator = Object.keys(file.dependencies)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-			var dependencyName = _step.value;
+			var _name = _step.value;
 
-			dependencies.push('import ' + (0, _pascalCase2['default'])(dependencyName) + ' from \'' + dependencyName + '\';');
+			dependencies.push('import ' + (0, _pascalCase2['default'])(_name) + ' from \'' + (patterns[_name] || _name) + '\';');
 		}
 	} catch (err) {
 		_didIteratorError = true;
@@ -141,6 +140,7 @@ function matchFirstJsxExpressionAndWrapWithReturn(source) {
 }
 
 function getDependencies(file) {
+	var patterns = loadPatternJson(file.path).patterns || {};
 	var dependencies = {};
 	var _iteratorNormalCompletion2 = true;
 	var _didIteratorError2 = false;
@@ -148,10 +148,11 @@ function getDependencies(file) {
 
 	try {
 		for (var _iterator2 = Object.keys(file.dependencies)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-			var dependencyName = _step2.value;
+			var _name2 = _step2.value;
 
-			var dependencyFile = file.dependencies[dependencyName];
-			dependencies[dependencyName] = dependencyFile;
+			var globalName = patterns[_name2] || _name2;
+			var dependencyFile = file.dependencies[_name2];
+			dependencies[globalName] = dependencyFile;
 			(0, _lodashMerge2['default'])(dependencies, getDependencies(dependencyFile));
 		}
 	} catch (err) {
@@ -180,9 +181,9 @@ function createRequireBlock(dependencies) {
 
 	try {
 		for (var _iterator3 = Object.keys(dependencies)[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-			var _name = _step3.value;
+			var _name3 = _step3.value;
 
-			source.push('\n\t\t\t\'' + _name + '\': function(module, exports, require) {\n\t\t\t\t' + convertCode(dependencies[_name]).split('\n').map(function (line) {
+			source.push('\n\t\t\t\'' + _name3 + '\': function(module, exports, require) {\n\t\t\t\t' + convertCode(dependencies[_name3]).split('\n').map(function (line) {
 				return '\t\t\t' + line;
 			}).join('\n') + '\n\t\t\t}\n\t\t');
 		}
