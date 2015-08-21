@@ -19,6 +19,8 @@ var _react = require('react');
 
 var React = _interopRequireWildcard(_react);
 
+var _babelCore = require('babel-core');
+
 function createReactRendererFactory(application) {
 	var config = application.configuration.transforms['react-to-markup'] || {};
 
@@ -26,9 +28,9 @@ function createReactRendererFactory(application) {
 		return regeneratorRuntime.async(function renderReactComponent$(context$2$0) {
 			while (1) switch (context$2$0.prev = context$2$0.next) {
 				case 0:
-					file.buffer = renderMarkup(file.buffer.toString('utf-8'));
+					file.buffer = renderMarkup(file.buffer.toString('utf-8'), config.opts);
 					if (file.demoBuffer) {
-						file.demoBuffer = renderMarkup(file.demoBuffer.toString('utf-8'));
+						file.demoBuffer = renderMarkup(file.demoBuffer.toString('utf-8'), config.opts);
 					}
 					file['in'] = config.inFormat;
 					file.out = config.outFormat;
@@ -42,10 +44,13 @@ function createReactRendererFactory(application) {
 	};
 }
 
-function renderMarkup(source) {
-	// 'require' module...
+function renderMarkup(source, opts) {
+	// Compile pattern...
+	var result = (0, _babelCore.transform)(source, opts);
+
+	// ...'require' module...
 	var moduleScope = { exports: {} };
-	var fn = new Function('module', 'exports', 'require', source);
+	var fn = new Function('module', 'exports', 'require', result.code);
 	fn(moduleScope, moduleScope.exports, require);
 
 	// ...finally render markup

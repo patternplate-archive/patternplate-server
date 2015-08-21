@@ -31,24 +31,26 @@ function createReactCodeFactory(application) {
 	var config = application.configuration.transforms['react'] || {};
 
 	return function createReactCode(file, demo) {
-		var result, requireBlock, demoResult, _requireBlock;
+		var helpers, result, requireBlock, demoResult, _requireBlock;
 
 		return regeneratorRuntime.async(function createReactCode$(context$2$0) {
 			while (1) switch (context$2$0.prev = context$2$0.next) {
 				case 0:
-					result = convertCode(file, config.opts);
-					requireBlock = createRequireBlock(getDependencies(file), config.opts);
+					helpers = (0, _babelCore.buildExternalHelpers)(['interop-require-wildcard', 'interop-require-default'], 'var');
+					result = convertCode(file);
+					requireBlock = createRequireBlock(getDependencies(file));
 
-					result = requireBlock + result;
+					result = helpers + requireBlock + result;
+					console.log('result\n', result);
 					if (demo) {
 						demo.dependencies = {
 							pattern: file
 						};
 						(0, _lodashMerge2['default'])(demo.dependencies, file.dependencies);
-						demoResult = convertCode(demo, config.opts);
-						_requireBlock = createRequireBlock(getDependencies(demo), config.opts);
+						demoResult = convertCode(demo);
+						_requireBlock = createRequireBlock(getDependencies(demo));
 
-						demoResult = _requireBlock + demoResult;
+						demoResult = helpers + _requireBlock + demoResult;
 						file.demoSource = demo.source;
 						file.demoBuffer = new Buffer(demoResult, 'utf-8');
 					}
@@ -58,7 +60,7 @@ function createReactCodeFactory(application) {
 					file.out = config.outFormat;
 					return context$2$0.abrupt('return', file);
 
-				case 8:
+				case 10:
 				case 'end':
 					return context$2$0.stop();
 			}
@@ -66,14 +68,18 @@ function createReactCodeFactory(application) {
 	};
 }
 
-function convertCode(file, opts) {
+function convertCode(file) {
 	var source = file.buffer.toString('utf-8');
 	// TODO: This is a weak criteria to check if we have to create a wrapper
 	if (source.indexOf('extends React.Component') === -1 || source.indexOf('React.createClass') !== -1) {
 		source = createWrappedRenderFunction(file, source);
 	}
-	var result = (0, _babelCore.transform)(source, opts).code;
-	return result;
+	var opts = {
+		whitelist: ['es6.modules'],
+		externalHelpers: true,
+		metadataUsedHelpers: true
+	};
+	return (0, _babelCore.transform)(source, opts).code;
 }
 
 function createWrappedRenderFunction(file, source) {
@@ -166,7 +172,7 @@ function getDependencies(file) {
 	return dependencies;
 }
 
-function createRequireBlock(dependencies, opts) {
+function createRequireBlock(dependencies) {
 	var source = [];
 	var _iteratorNormalCompletion3 = true;
 	var _didIteratorError3 = false;
@@ -176,7 +182,9 @@ function createRequireBlock(dependencies, opts) {
 		for (var _iterator3 = Object.keys(dependencies)[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
 			var _name = _step3.value;
 
-			source.push('\n\t\t\t\'' + _name + '\': function(module, exports, require) {\n\t\t\t\t' + convertCode(dependencies[_name], opts) + '\n\t\t\t}\n\t\t');
+			source.push('\n\t\t\t\'' + _name + '\': function(module, exports, require) {\n\t\t\t\t' + convertCode(dependencies[_name]).split('\n').map(function (line) {
+				return '\t\t\t' + line;
+			}).join('\n') + '\n\t\t\t}\n\t\t');
 		}
 	} catch (err) {
 		_didIteratorError3 = true;
