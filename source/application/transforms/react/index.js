@@ -26,8 +26,6 @@ export default function createReactCodeFactory(application) {
 		}
 
 		file.buffer = result;
-		file.in = config.inFormat;
-		file.out = config.outFormat;
 		return file;
 	}
 }
