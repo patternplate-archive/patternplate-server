@@ -11,8 +11,6 @@ export default function createReactRendererFactory(application) {
 		if (file.demoBuffer) {
 			file.demoBuffer = renderMarkup(file.demoBuffer.toString('utf-8'), config.opts)
 		}
-		file.in = config.inFormat;
-		file.out = config.outFormat;
 		return file;
 	}
 }

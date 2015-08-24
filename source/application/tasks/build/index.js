@@ -21,7 +21,14 @@ async function build (application, config) {
 
 	const buildConfig = application.configuration.build || {};
 
+	// FIXME: This simple merge statement is not sufficient to reconfigure your build process (may apply to other config
+	// cases too). A better aproach would be to have a configuration model which could do the merge on a per-config-key
+	// and as side-benefit it would help reduce breaking changes.
 	const patterns = merge({}, application.configuration.patterns || {}, buildConfig.patterns || {});
+	// Update formats to the current buildFormats (this is required to e.g. reduce transformers for build)
+	for (let name of Object.keys(buildConfig.patterns.formats)) {
+		patterns.formats[name] = buildConfig.patterns.formats[name];
+	}
 	const transforms = merge({}, application.configuration.transforms || {}, buildConfig.transforms || {});
 	const patternConfig = { patterns, transforms };
 
