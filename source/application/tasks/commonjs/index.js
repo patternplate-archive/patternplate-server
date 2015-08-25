@@ -115,7 +115,7 @@ async function exportAsCommonjs(application, config) {
 					}
 
 					// Write main variant into pattern build folder, render html into layout
-					let mainBuffer = result.demoBuffer || result.buffer;
+					let mainBuffer = result.buffer;
 					let mainName = resultName.toLowerCase();
 
 					// TODO: resolve this

@@ -295,7 +295,7 @@ function exportAsCommonjs(application, config) {
 				return context$1$0.finish(109);
 
 			case 117:
-				mainBuffer = result.demoBuffer || result.buffer;
+				mainBuffer = result.buffer;
 				mainName = resultName.toLowerCase();
 
 				if (!(mainName === 'markup')) {
