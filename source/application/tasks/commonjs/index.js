@@ -136,7 +136,7 @@ async function exportAsCommonjs(application, config) {
 				name: pkg.name,
 				version,
 				dependencies: {
-					react: pkg.dependencies.react
+					react: pkg.dependencies.react || require(require.resolve('patternplate/node_modules/patternplate-server/package.json')).dependencies.react
 				}
 			};
 			await qfs.write(resolve(commonjsRoot, 'package.json'), JSON.stringify(commonjsPkg, null, '  '));
