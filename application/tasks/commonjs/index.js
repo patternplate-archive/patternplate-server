@@ -398,7 +398,7 @@ function exportAsCommonjs(application, config) {
 					name: pkg.name,
 					version: version,
 					dependencies: {
-						react: pkg.dependencies.react
+						react: pkg.dependencies.react || require(require.resolve('patternplate/node_modules/patternplate-server/package.json')).dependencies.react
 					}
 				};
 				context$1$0.next = 163;
