@@ -65,13 +65,16 @@ function renderCodeTemplate(source, dependencies, template, className) {
 		.replace('$$render-code$$', matchFirstJsxExpressionAndWrapWithReturn(source));
 }
 
-const TAG_START = '<[a-z0-9]+';
-const HTML_ATTRIBUTE = '\\s+[a-z0-9]+="[^"]*?"';
-const REACT_ATTRIBUTE = '\\s+[a-z0-9]+={[^}]*?}';
-const SPREAD_ATTRIBUTE = '\\s+\\{\\.\\.\\.[^}]+\\}';
-const ATTRIBUTES = `(?:${HTML_ATTRIBUTE}|${REACT_ATTRIBUTE}|${SPREAD_ATTRIBUTE})*`;
+const TAG_START = '<[-_a-z0-9]+';
+const ATTRIBUTE_NAME = '[-_a-z0-9]+';
+const HTML_ATTRIBUTE_VALUE = `"[^"]*"`;
+const REACT_ATTRIBUTE_VALUE = `{(?:{[^}]*}|[^}]*)}`;
+const SPREAD_ATTRIBUTE_VALUE = '{\\.\\.\\.[^}]+}';
+const ATTRIBUTE = `(?:${ATTRIBUTE_NAME}(?:\\s*=\\s*(?:${HTML_ATTRIBUTE_VALUE}|${REACT_ATTRIBUTE_VALUE}))?)|${SPREAD_ATTRIBUTE_VALUE}`;
+const ATTRIBUTES = `(?:\\s+${ATTRIBUTE})*`;
 const TAG_END = '\\s*\\/?>';
 const EXPR = new RegExp(`(${TAG_START}${ATTRIBUTES}${TAG_END}[^]*)`, 'gi');
+//console.log('EXPR', EXPR);
 
 function matchFirstJsxExpressionAndWrapWithReturn(source) {
 	return source.replace(EXPR, (match, jsxExpr) => {
