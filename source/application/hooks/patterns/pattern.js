@@ -377,13 +377,6 @@ export class Pattern {
 	toJSON() {
 		let copy = Object.assign({}, this);
 
-		if (copy.dependencies) {
-			for (let dependencyName in copy.dependencies) {
-				let dependency = copy.dependencies[dependencyName];
-				dependency = dependency.toJSON ? dependency.toJSON() : dependency;
-			}
-		}
-
 		for (let environmentName of Object.keys(copy.results)) {
 			let environmentResult = copy.results[environmentName];
 				for (let resultName of Object.keys(environmentResult)) {
