@@ -14,7 +14,7 @@
     "watch-assets": "chokidar 'assets/script/**/*' --initial --ignore '**/*.bundle.js' -c 'npm run build-assets'",
     "babel": "babel source --out-dir ./",
     "clean": "rm -rf application binary configuration library assets",
-    "publish": "npm run build && npm publish"
+    "prepublish": "npm run build"
   },
   "bin": {
     "patternplate-server": "binary/patternplate-server.js"
@@ -24,9 +24,7 @@
     "url": "sinnerschrader/patternplate-server"
   },
   "keywords": [
-    "duo",
-    "REST",
-    "JSON"
+    "patternplate"
   ],
   "author": {
     "name": "Team UX",
