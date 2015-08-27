@@ -32,3 +32,8 @@ node_modules
 # Build directories
 /build
 .cache
+/application
+/assets
+/binary
+/configuration
+/library
