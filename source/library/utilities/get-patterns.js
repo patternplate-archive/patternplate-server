@@ -57,7 +57,6 @@ async function getPatterns(options, cache = null, fail = true, isEnvironment = f
 		// Fetch all manifests
 		if (!manifests) {
 			manifests = await getPatternManifests(base);
-			console.log('mani\n', base, '\n', manifests, pattern);
 		}
 
 		// Resolve dependent patterns
