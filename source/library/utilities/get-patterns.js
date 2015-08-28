@@ -1,5 +1,6 @@
 import {resolve, join, dirname, basename} from 'path';
 import fs from 'q-io/fs';
+import getPatternManifests from './get-pattern-manifests';
 
 async function getPatterns(options, cache = null, fail = true, isEnvironment = false) {
 	let {id, base, config, factory, transforms, filters, log} = options;
@@ -25,6 +26,7 @@ async function getPatterns(options, cache = null, fail = true, isEnvironment = f
 		.map((item) => dirname(item))
 		.map((item) => fs.relativeFromDirectory(options.base, item));
 
+	let manifests;
 	let results = [];
 	let errors = [];
 
@@ -52,6 +54,24 @@ async function getPatterns(options, cache = null, fail = true, isEnvironment = f
 
 		let pattern = await factory(patternID, base, config, transforms, filters);
 		let cachedRead = cache && cache.config.read ? cache.get(readCacheID, false) : null;
+
+		// Fetch all manifests
+		if (!manifests) {
+			manifests = await getPatternManifests(base);
+		}
+
+		// Resolve dependent patterns
+		let dependentPatterns = {};
+		manifests.map((manifest) => {
+			if (manifest.patterns) {
+				for (let name of Object.keys(manifest.patterns)) {
+					if (manifest.patterns[name] === patternID) {
+						dependentPatterns[manifest.id] = manifest;
+					}
+				}
+			}
+		});
+		pattern.manifest.dependentPatterns = dependentPatterns;
 
 		if (!cachedRead) {
 			log(`Reading pattern "${patternID}"`);
