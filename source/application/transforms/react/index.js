@@ -36,17 +36,20 @@ function convertCode(file, opts) {
 	let source = file.buffer.toString('utf-8');
 	// TODO: This is a weak criteria to check if we have to create a wrapper
 	if (source.indexOf('extends React.Component') === -1 || source.indexOf('React.createClass') !== -1)	 {
-		source = createWrappedRenderFunction(file, source);
+		source = createWrappedRenderFunction(file, source, opts);
 	} else {
 		source = rewriteImportsToGlobalNames(file, source);
 	}
-	return transform(source, merge({externalHelpers: true}, opts)).code;
+	// XXX: This is required to satisfy babel but keep the option to define global vars
+	let localOpts = merge({}, opts);
+	delete localOpts.globals;
+	return transform(source, merge({externalHelpers: true}, localOpts)).code;
 }
 
-function createWrappedRenderFunction(file, source) {
+function createWrappedRenderFunction(file, source, opts) {
 	let patternJson = loadPatternJson(file.path);
 	let dependencies = writeDependencyImports(file).join('\n');
-	return renderCodeTemplate(source, dependencies, template, pascalCase(patternJson.name));
+	return renderCodeTemplate(source, dependencies, template, pascalCase(patternJson.name), opts);
 }
 
 function writeDependencyImports(file) {
@@ -58,11 +61,11 @@ function writeDependencyImports(file) {
 	return dependencies;
 }
 
-function renderCodeTemplate(source, dependencies, template, className) {
+function renderCodeTemplate(source, dependencies, template, className, opts) {
 	return template
 		.replace('$$dependencies$$', dependencies)
 		.replace('$$class-name$$', className)
-		.replace('$$render-code$$', matchFirstJsxExpressionAndWrapWithReturn(source));
+		.replace('$$render-code$$', matchFirstJsxExpressionAndWrapWithReturn(addImplicitGlobals(source, opts)));
 }
 
 const TAG_START = '<[-_a-z0-9]+';
@@ -77,6 +80,17 @@ const ATTRIBUTES = `(?:\\s+${ATTRIBUTE})*`;
 const TAG_END = '\\s*\\/?>';
 const EXPR = new RegExp(`(${TAG_START}${ATTRIBUTES}${TAG_END}[^]*)`, 'gi');
 //console.log('EXPR', EXPR);
+
+function addImplicitGlobals(source, opts) {
+	let vars = [];
+	if (opts && opts.globals) {
+		console.log('WARNING: Deprecated use of global opts');
+		for (let key of Object.keys(opts.globals)) {
+			vars.push(`this.${key} = ${JSON.stringify(opts.globals[key])};`);
+		}
+	}
+	return vars.join('\n') + '\n' + source;
+}
 
 function matchFirstJsxExpressionAndWrapWithReturn(source) {
 	return source.replace(EXPR, (match, jsxExpr) => {
