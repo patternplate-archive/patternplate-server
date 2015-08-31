@@ -68,6 +68,17 @@ function renderCodeTemplate(source, dependencies, template, className, opts) {
 		.replace('$$render-code$$', matchFirstJsxExpressionAndWrapWithReturn(addImplicitGlobals(source, opts)));
 }
 
+function addImplicitGlobals(source, opts) {
+	let vars = [];
+	if (opts && opts.globals) {
+		console.log('WARNING: Deprecated use of global opts');
+		for (let key of Object.keys(opts.globals)) {
+			vars.push(`this.${key} = ${JSON.stringify(opts.globals[key])};`);
+		}
+	}
+	return vars.join('\n') + '\n' + source;
+}
+
 const TAG_START = '<[-_a-z0-9]+';
 const ATTRIBUTE_NAME = '[-_a-z0-9]+';
 const HTML_ATTRIBUTE_VALUE = `"[^"]*"`;
@@ -81,17 +92,6 @@ const TAG_END = '\\s*\\/?>';
 const EXPR = new RegExp(`(${TAG_START}${ATTRIBUTES}${TAG_END}[^]*)`, 'gi');
 //console.log('EXPR', EXPR);
 
-function addImplicitGlobals(source, opts) {
-	let vars = [];
-	if (opts && opts.globals) {
-		console.log('WARNING: Deprecated use of global opts');
-		for (let key of Object.keys(opts.globals)) {
-			vars.push(`this.${key} = ${JSON.stringify(opts.globals[key])};`);
-		}
-	}
-	return vars.join('\n') + '\n' + source;
-}
-
 function matchFirstJsxExpressionAndWrapWithReturn(source) {
 	return source.replace(EXPR, (match, jsxExpr) => {
 		return 'return (\n' + jsxExpr/*.split('\n').map(line => indent + line).join('\n')*/ + '\n);\n'
@@ -103,13 +103,6 @@ function loadPatternJson(path) {
 		join(
 			path.substring(0,
 				path.lastIndexOf('/')), 'pattern.json'));
-}
-
-function rewriteImportsToGlobalNames(file, source) {
-	let patterns = loadPatternJson(file.path).patterns || {};
-	return source.replace(/(import\s+(?:\* as\s)?[^\s]+\s+from\s+["'])([^"']+)(["'];)/g, (match, before, name, after) => {
-		return `${before}${patterns[name] || name}${after}`;
-	});
 }
 
 function rewriteImportsToGlobalNames(file, source) {
@@ -142,4 +135,3 @@ function createRequireBlock(dependencies) {
 	}
 	return dependencyTemplate.replace('$$localDependencies$$', source.join('\n,'));
 }
-
