@@ -11,7 +11,7 @@ export default function createReactCodeFactory(application) {
 	return async function createReactCode(file, demo) {
 		let helpers = buildExternalHelpers(undefined, 'var');
 		let result = convertCode(file, config.opts);
-		let requireBlock = createRequireBlock(getDependencies(file));
+		let requireBlock = createRequireBlock(getDependencies(file), config.opts);
 		result = helpers + requireBlock + result;
 		if (demo) {
 			demo.dependencies = {
@@ -19,7 +19,7 @@ export default function createReactCodeFactory(application) {
 			};
 			merge(demo.dependencies, file.dependencies);
 			let demoResult = convertCode(demo, config.opts);
-			let requireBlock = createRequireBlock(getDependencies(demo));
+			let requireBlock = createRequireBlock(getDependencies(demo), config.opts);
 			demoResult = helpers + requireBlock + demoResult;
 			file.demoSource = demo.source;
 			file.demoBuffer = new Buffer(demoResult, 'utf-8');
@@ -122,12 +122,12 @@ function getDependencies(file) {
 	return dependencies;
 }
 
-function createRequireBlock(dependencies) {
+function createRequireBlock(dependencies, opts) {
 	let source = [];
 	for (let name of Object.keys(dependencies)) {
 		source.push(`
 			'${name}': function(module, exports, require) {
-				${convertCode(dependencies[name]).split('\n').map(line => '\t\t\t' + line).join('\n')}
+				${convertCode(dependencies[name], opts).split('\n').map(line => '\t\t\t' + line).join('\n')}
 			}
 		`);
 	}
