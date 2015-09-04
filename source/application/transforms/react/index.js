@@ -9,27 +9,33 @@ export default function createReactCodeFactory(application) {
 	const config = application.configuration.transforms['react'] || {};
 
 	return async function createReactCode(file, demo, configuration) {
-		// FIX #13: Merge the environment options with the global options
-		let opts = merge({}, config.opts, configuration.opts);
+    try {
+      // FIX #13: Merge the environment options with the global options
+      let opts = merge({}, config.opts, configuration.opts);
 
-		let helpers = buildExternalHelpers(undefined, 'var');
-		let result = convertCode(file, opts);
-		let requireBlock = createRequireBlock(getDependencies(file), opts);
-		result = helpers + requireBlock + result;
-		if (demo) {
-			demo.dependencies = {
-				pattern: file
-			};
-			merge(demo.dependencies, file.dependencies);
-			let demoResult = convertCode(demo, opts);
-			let requireBlock = createRequireBlock(getDependencies(demo), opts);
-			demoResult = helpers + requireBlock + demoResult;
-			file.demoSource = demo.source;
-			file.demoBuffer = new Buffer(demoResult, 'utf-8');
+      let helpers = buildExternalHelpers(undefined, 'var');
+      let result = convertCode(file, opts);
+      let requireBlock = createRequireBlock(getDependencies(file), opts);
+      result = helpers + requireBlock + result;
+      if (demo) {
+        demo.dependencies = {
+          pattern: file
+        };
+        merge(demo.dependencies, file.dependencies);
+        let demoResult = convertCode(demo, opts);
+        let requireBlock = createRequireBlock(getDependencies(demo), opts);
+        demoResult = helpers + requireBlock + demoResult;
+        file.demoSource = demo.source;
+        file.demoBuffer = new Buffer(demoResult, 'utf-8');
+			}
+			file.buffer = result;
+			return file;
+		} catch (error) {
+			let patternName = loadPatternJson(file.path).name;
+			application.log.warn(`Unable to run react transform for ${patternName}/${file.name}.`);
+			application.log.error(error.stack);
+			throw error;
 		}
-
-		file.buffer = result;
-		return file;
 	}
 }
 
@@ -90,7 +96,7 @@ const SPREAD_ATTRIBUTE = '{\\.\\.\\.[^}]+}';
 const ATTRIBUTE = `(?:${NAMED_ATTRIBUTE}|${SPREAD_ATTRIBUTE})`;
 const ATTRIBUTES = `(?:\\s+${ATTRIBUTE})*`;
 const TAG_END = '\\s*\\/?>';
-const EXPR = new RegExp(`(${TAG_START}${ATTRIBUTES}${TAG_END}[^]*)`, 'gi');
+const EXPR = new RegExp(`\n\s*(${TAG_START}${ATTRIBUTES}${TAG_END}[^]*)`, 'gi');
 //console.log('EXPR', EXPR);
 
 function matchFirstJsxExpressionAndWrapWithReturn(source) {
