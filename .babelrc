@@ -1,5 +1,5 @@
 {
 	"stage": 0,
 	"optional": ["asyncToGenerator"],
-  "sourceMaps": "inline"
+	"sourceMaps": "inline"
 }
