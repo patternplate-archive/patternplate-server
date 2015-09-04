@@ -8,18 +8,21 @@ import dependencyTemplate from './require.tmpl';
 export default function createReactCodeFactory(application) {
 	const config = application.configuration.transforms['react'] || {};
 
-	return async function createReactCode(file, demo) {
+	return async function createReactCode(file, demo, configuration) {
+		// FIX #13: Merge the environment options with the global options
+		let opts = merge({}, config.opts, configuration.opts);
+
 		let helpers = buildExternalHelpers(undefined, 'var');
-		let result = convertCode(file, config.opts);
-		let requireBlock = createRequireBlock(getDependencies(file), config.opts);
+		let result = convertCode(file, opts);
+		let requireBlock = createRequireBlock(getDependencies(file), opts);
 		result = helpers + requireBlock + result;
 		if (demo) {
 			demo.dependencies = {
 				pattern: file
 			};
 			merge(demo.dependencies, file.dependencies);
-			let demoResult = convertCode(demo, config.opts);
-			let requireBlock = createRequireBlock(getDependencies(demo), config.opts);
+			let demoResult = convertCode(demo, opts);
+			let requireBlock = createRequireBlock(getDependencies(demo), opts);
 			demoResult = helpers + requireBlock + demoResult;
 			file.demoSource = demo.source;
 			file.demoBuffer = new Buffer(demoResult, 'utf-8');
