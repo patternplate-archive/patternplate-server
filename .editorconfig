@@ -4,10 +4,10 @@ insert_final_newline = true
 trim_trailing_whitespace = true
 indent_style = tab
 
-[*rc]
+[.*rc]
 indent_style = space
 
-[*.json]
+[{package.json}]
 indent_style = space
 
 [*.font]

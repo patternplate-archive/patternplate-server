@@ -12,7 +12,7 @@
     "watch": "npm run build && npm run watch-assets & npm run watch-server",
     "watch-server": "npm run babel -- --watch",
     "watch-assets": "chokidar 'assets/script/**/*' --initial --ignore '**/*.bundle.js' -c 'npm run build-assets'",
-    "babel": "babel source --source-maps=inline --out-dir ./",
+    "babel": "babel source --out-dir ./",
     "clean": "rm -rf application binary configuration library assets",
     "prepublish": "npm run build"
   },
