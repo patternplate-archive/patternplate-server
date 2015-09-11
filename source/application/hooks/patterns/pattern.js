@@ -121,11 +121,13 @@ export class Pattern {
 				.filter((item) => item !== this.id);
 
 			if (this.manifest.include) {
-				list = list.filter((item) => minimatch(item, this.manifest.include.join('|')));
+				let include = Array.prototype.concat.call([], this.manifest.include, ['']);
+				list = list.filter((item) => minimatch(item, `{${include.join(',')}}` ));
 			}
 
 			if (this.manifest.exclude) {
-				list = list.filter((item) => !minimatch(item, this.manifest.exclude.join('|')));
+				let exclude = Array.prototype.concat.call([], this.manifest.exclude, ['']);
+				list = list.filter((item) => !minimatch(item, `{${exclude.join(',')}}` ));
 			}
 
 			this.manifest.patterns = list.reduce((results, item) => Object.assign(results, {[item]: `${item}@${range}`}), {});
