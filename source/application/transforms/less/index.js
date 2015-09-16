@@ -6,11 +6,7 @@ import PatternImporterPlugin from 'less-plugin-pattern-import';
 import NPMImporterPlugin from 'less-plugin-npm-import';
 
 async function render (source, config) {
-	try {
-		return await less.render(source, config);
-	} catch (lessError) {
-		throw lessError;
-	}
+	return await less.render(source, config);
 }
 
 export default function lessTransformFactory (application) {
@@ -57,24 +53,15 @@ export default function lessTransformFactory (application) {
 			source = `${injects.join('\n')}\n${source}`;
 		}
 
-		try {
-			results = await render(source, config.opts);
-		} catch (err) {
-			throw err;
-		}
+		results = await render(source, config.opts);
 
 		if (demo) {
 			let demoSource = demo.buffer.toString('utf-8');
 			let demoConfig = Object.assign({}, configuration);
 			let demoDepdendencies = Object.assign({}, dependencies, {'Pattern': file.path});
 
-			try {
-				demoConfig.opts.plugins.push(new PatternImporterPlugin({'root': patternPath, 'patterns': demoDepdendencies}));
-				demoResults = await render(demoSource, demoConfig.opts);
-			} catch (err) {
-				err.file = demo.path;
-				throw err;
-			}
+			demoConfig.opts.plugins.push(new PatternImporterPlugin({'root': patternPath, 'patterns': demoDepdendencies}));
+			demoResults = await render(demoSource, demoConfig.opts);
 
 			file.demoBuffer = new Buffer(demoResults.css || '', 'utf-8');
 			file.demoSource = demo.source;

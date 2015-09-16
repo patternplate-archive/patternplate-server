@@ -17,9 +17,7 @@ async function runBundler (bundler, config, meta) {
 	return new Promise(function bundlerResolver (resolver, rejecter) {
 		bundler.bundle(function onBundle (err, buffer) {
 			if (err) {
-				console.error('Error while bundling ' + meta.path);
-				console.error(err);
-				rejecter(err);
+				return rejecter(err);
 			}
 
 			resolver({
@@ -63,6 +61,7 @@ async function resolveDependencies (file, configuration) {
 		if (dependency.dependencies && Object.keys(dependency.dependencies).length > 0) {
 			let basedir = dirname(dependency.path);
 			let opts = {expose, basedir};
+
 			let dependencyBundler = resolveDependencies(dependency, Object.assign(
 				{}, configuration.opts, opts,
 				{ 'standalone': expose }
@@ -71,7 +70,7 @@ async function resolveDependencies (file, configuration) {
 			try {
 				transformed = await runBundler(dependencyBundler, configuration, dependency);
 			} catch (err) {
-				throw (err);
+				throw err;
 			}
 
 			dependency.buffer = transformed.buffer.toString('utf-8');
