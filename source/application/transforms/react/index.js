@@ -1,4 +1,4 @@
-import {join} from 'path';
+import {join, dirname} from 'path';
 import pascalCase from 'pascal-case';
 import merge from 'lodash.merge';
 import {transform, buildExternalHelpers} from 'babel-core';
@@ -106,10 +106,7 @@ function matchFirstJsxExpressionAndWrapWithReturn(source) {
 }
 
 function loadPatternJson(path) {
-	return require(
-		join(
-			path.substring(0,
-				path.lastIndexOf('/')), 'pattern.json'));
+	return require(join(dirname(path), 'pattern.json'));
 }
 
 function rewriteImportsToGlobalNames(file, source) {
