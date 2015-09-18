@@ -75,7 +75,7 @@ export default function patternRouteFactory (application, configuration) {
 				}
 			};
 
-			patternResults = await getPatterns(patternConfig, application.cache, true);
+			patternResults = await getPatterns(patternConfig, application.cache);
 		} catch (err) {
 			this.throw(500, err);
 		}

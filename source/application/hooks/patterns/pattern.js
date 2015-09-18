@@ -333,13 +333,13 @@ export class Pattern {
 							let configuration = merge({}, applicationConfig, environmentConfig);
 
 							try {
-								file = await fn(Object.assign({}, file), demo, configuration, forced);
+								file = await fn({...file}, demo, configuration, forced);
 								if (this.cache && this.cache.config.transform && !this.isEnvironment) {
 									this.cache.set(cacheID, mtime, file);
 								}
 							} catch (error) {
 								error.pattern = this.id;
-								error.file = error.file || file.path;
+								error.file = error.file || error.fileName || file.path;
 								error.transform = transform;
 								console.error(`Error while transforming file "${error.file}" of pattern "${error.pattern}" with transform "${error.transform}".`);
 								throw error;

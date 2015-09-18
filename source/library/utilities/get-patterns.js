@@ -1,12 +1,28 @@
-import {resolve, join, dirname, basename} from 'path';
+import {resolve, dirname, basename} from 'path';
 import fs from 'q-io/fs';
 import getPatternManifests from './get-pattern-manifests';
 
-async function getPatterns(options, cache = null, fail = true, isEnvironment = false) {
-	let {id, base, config, factory, transforms, filters, log} = options;
+const defaults = {
+	isEnvironment: false,
+	filters: {},
+	log: function() {}
+};
+
+async function getPatterns(options, cache = null) {
+	const settings = {...defaults, ...options};
+	const {
+		id,
+		base,
+		config,
+		factory,
+		transforms,
+		filters,
+		log,
+		isEnvironment
+	} = settings;
+
 	let path = resolve(base, id);
 	let search = resolve(path, 'pattern.json');
-	log = log || function() {};
 
 	// No patterns to find here
 	if (!await fs.exists(path)) {
@@ -74,12 +90,7 @@ async function getPatterns(options, cache = null, fail = true, isEnvironment = f
 
 		if (!cachedRead) {
 			log(`Reading pattern "${patternID}"`);
-			try {
-				await pattern.read();
-			} catch (err) {
-				if (fail) throw err;
-				errors.push(err);
-			}
+			await pattern.read();
 		} else {
 			log(`Using cached pattern read "${readCacheID}"`);
 			pattern = cachedRead;
@@ -89,12 +100,7 @@ async function getPatterns(options, cache = null, fail = true, isEnvironment = f
 			cache.set(readCacheID, pattern.mtime, pattern);
 		}
 
-		try {
-			results.push(await pattern.transform(!isEnvironment, isEnvironment));
-		} catch (err) {
-			if (fail) throw err;
-			errors.push(err);
-		}
+		results.push(await pattern.transform(!isEnvironment, isEnvironment));
 	}
 
 	results = results.map((result) => {

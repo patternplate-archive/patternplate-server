@@ -69,11 +69,10 @@ async function build (application, config) {
 			'config': patternConfig,
 			'factory': application.pattern.factory,
 			'transforms': application.transforms,
-			'filters': {},
 			'log': function(...args) {
 				application.log.debug(...['[console:run]', ...args]);
 			}
-		}, application.cache, false, false);
+		}, application.cache);
 
 		if (application.cache) {
 			application.cache.config.static = true;
@@ -226,11 +225,11 @@ async function build (application, config) {
 				'config': patternConfig,
 				'factory': application.pattern.factory,
 				'transforms': application.transforms,
-				'filters': {},
+				'isEnvironment': true,
 				'log': function(...args) {
 					application.log.debug(...['[console:run]', ...args]);
 				}
-			}, application.cache, false, true);
+			}, application.cache);
 
 			builds.push(pattern[0]);
 		}
