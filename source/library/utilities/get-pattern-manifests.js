@@ -1,4 +1,4 @@
-import { resolve, join, dirname, basename } from 'path';
+import { join, dirname, basename, sep } from 'path';
 import fs from 'q-io/fs';
 
 const defaultManifest = {
@@ -20,7 +20,8 @@ async function loadPatterns (path) {
 		.filter((item) => basename(item) === 'pattern.json')
 		.filter((item) => !item.includes('@environments'))
 		.map((item) => dirname(item))
-		.map((item) => fs.relativeFromDirectory(path, item));
+		.map((item) => fs.relativeFromDirectory(path, item))
+		.map((item) => item.split(sep).join('/'));
 
 	let manifests = Promise.all(patternIDs.map(id => loadManifest(path, id)));
 	return await manifests;

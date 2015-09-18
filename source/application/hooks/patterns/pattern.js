@@ -1,4 +1,4 @@
-import {resolve, basename, extname, dirname, join} from 'path';
+import {resolve, basename, extname, dirname, join, sep} from 'path';
 
 import qfs from 'q-io/fs';
 import semver from 'semver';
@@ -24,7 +24,9 @@ export class Pattern {
 	results = {};
 	mtime = null;
 
-	constructor(id, base, config = {}, transforms = {}, filters = {}, cache = null) {
+	constructor(patternPath, base, config = {}, transforms = {}, filters = {}, cache = null) {
+		const id = patternPath.split(sep).join('/');
+
 		Object.assign(this, {
 			id, base, cache, config, transforms, filters,
 			path: Pattern.resolve(base, id),
