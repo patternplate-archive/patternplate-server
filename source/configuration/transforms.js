@@ -39,7 +39,7 @@ export default {
 				}
 			},
 			'unreachable-branch-transform': {
-				'enabled': true,
+				'enabled': false,
 				'opts': {
 					'global': true
 				}
