@@ -7,11 +7,17 @@ export default {
 	'react': {
 		'inFormat': 'jsx',
 		'outFormat': 'jsx',
+		'resolveDependencies': true,
 		'opts': {}
 	},
 	'react-to-markup': {
 		'inFormat': 'jsx',
 		'outFormat': 'html',
+		'opts': {}
+	},
+	'babel': {
+		'inFormat': 'js',
+		'outFormat': 'js',
 		'opts': {}
 	},
 	'browserify': {
