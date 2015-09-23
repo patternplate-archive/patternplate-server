@@ -9,24 +9,36 @@ export default function createReactCodeFactory(application) {
 	const config = application.configuration.transforms['react'] || {};
 
 	return async function createReactCode(file, demo, configuration) {
-    try {
-      // FIX #13: Merge the environment options with the global options
-      let opts = merge({}, config.opts, configuration.opts);
+		try {
+			// FIX #13: Merge the environment options with the global options
+			let opts = merge({}, config.opts, configuration.opts);
 
-      let helpers = buildExternalHelpers(undefined, 'var');
-      let result = convertCode(file, opts);
-      let requireBlock = createRequireBlock(getDependencies(file), opts);
-      result = helpers + requireBlock + result;
-      if (demo) {
-        demo.dependencies = {
-          pattern: file
-        };
-        merge(demo.dependencies, file.dependencies);
-        let demoResult = convertCode(demo, opts);
-        let requireBlock = createRequireBlock(getDependencies(demo), opts);
-        demoResult = helpers + requireBlock + demoResult;
-        file.demoSource = demo.source;
-        file.demoBuffer = new Buffer(demoResult, 'utf-8');
+			let result = convertCode(file, configuration.resolveDependencies !== false, opts);
+			let helpers;
+			let requireBlock;
+			if (configuration.resolveDependencies !== false) {
+				helpers = buildExternalHelpers(undefined, 'var');
+				requireBlock = createRequireBlock(getDependencies(file), true, opts);
+			} else {
+				helpers = '';
+				requireBlock = '';
+			}
+			result = helpers + requireBlock + result;
+			if (demo) {
+				demo.dependencies = {
+					pattern: file
+				};
+				merge(demo.dependencies, file.dependencies);
+				let demoResult = convertCode(demo, configuration.resolveDependencies !== false, opts);
+				let requireBlock;
+				if (configuration.resolveDependencies !== false) {
+					requireBlock = createRequireBlock(getDependencies(demo), true, opts);
+				} else {
+					requireBlock = '';
+				}
+				demoResult = helpers + requireBlock + demoResult;
+				file.demoSource = demo.source;
+				file.demoBuffer = new Buffer(demoResult, 'utf-8');
 			}
 			file.buffer = result;
 			return file;
@@ -39,7 +51,7 @@ export default function createReactCodeFactory(application) {
 	}
 }
 
-function convertCode(file, opts) {
+function convertCode(file, externalHelpers, opts) {
 	let source = file.buffer.toString('utf-8');
 	// TODO: This is a weak criteria to check if we have to create a wrapper
 	if (source.indexOf('extends React.Component') === -1 || source.indexOf('React.createClass') !== -1)	 {
@@ -50,7 +62,7 @@ function convertCode(file, opts) {
 	// XXX: This is required to satisfy babel but keep the option to define global vars
 	let localOpts = merge({}, opts);
 	delete localOpts.globals;
-	return transform(source, merge({externalHelpers: true}, localOpts)).code;
+	return transform(source, merge({externalHelpers: externalHelpers}, localOpts)).code;
 }
 
 function createWrappedRenderFunction(file, source, opts) {
@@ -128,12 +140,12 @@ function getDependencies(file) {
 	return dependencies;
 }
 
-function createRequireBlock(dependencies, opts) {
+function createRequireBlock(dependencies, externalHelpers, opts) {
 	let source = [];
 	for (let name of Object.keys(dependencies)) {
 		source.push(`
 			'${name}': function(module, exports, require) {
-				${convertCode(dependencies[name], opts).split('\n').map(line => '\t\t\t' + line).join('\n')}
+				${convertCode(dependencies[name], externalHelpers, opts).split('\n').map(line => '\t\t\t' + line).join('\n')}
 			}
 		`);
 	}
