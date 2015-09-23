@@ -51,18 +51,18 @@ export default function createReactCodeFactory(application) {
 	}
 }
 
-function convertCode(file, externalHelpers, opts) {
+function convertCode(file, resolveDependencies, opts) {
 	let source = file.buffer.toString('utf-8');
 	// TODO: This is a weak criteria to check if we have to create a wrapper
 	if (source.indexOf('extends React.Component') === -1 || source.indexOf('React.createClass') !== -1)	 {
 		source = createWrappedRenderFunction(file, source, opts);
-	} else {
+	} else if (resolveDependencies) {
 		source = rewriteImportsToGlobalNames(file, source);
 	}
 	// XXX: This is required to satisfy babel but keep the option to define global vars
 	let localOpts = merge({}, opts);
 	delete localOpts.globals;
-	return transform(source, merge({externalHelpers: externalHelpers}, localOpts)).code;
+	return transform(source, merge({externalHelpers: resolveDependencies}, localOpts)).code;
 }
 
 function createWrappedRenderFunction(file, source, opts) {
