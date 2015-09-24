@@ -1,6 +1,6 @@
 {
   "name": "patternplate-server",
-  "version": "0.13.5",
+  "version": "0.13.6",
   "description": "Programmatically serve atomic patterns via a REST API",
   "main": "library/",
   "scripts": {
@@ -57,7 +57,7 @@
     "babel-runtime": "^5.8.24",
     "babelify": "^6.0.2",
     "bluebird": "^2.9.25",
-    "boilerplate-server": "^0.9.5",
+    "boilerplate-server": "~0.10.0",
     "browserify": "^10.2.4",
     "btoa": "^1.1.2",
     "core-util-is": "^1.0.1",
