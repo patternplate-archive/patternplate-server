@@ -7,11 +7,17 @@ export default {
 	'react': {
 		'inFormat': 'jsx',
 		'outFormat': 'jsx',
+		'resolveDependencies': true,
 		'opts': {}
 	},
 	'react-to-markup': {
 		'inFormat': 'jsx',
 		'outFormat': 'html',
+		'opts': {}
+	},
+	'babel': {
+		'inFormat': 'js',
+		'outFormat': 'js',
 		'opts': {}
 	},
 	'browserify': {
@@ -101,5 +107,13 @@ export default {
 				}
 			}
 		}
+	},
+	'rewrite-includes': {
+		'outFormat': 'less',
+		'resolve': '%(outputName)s/%(patternId)s/index.%(extension)s'
+	},
+	'rewrite-imports': {
+		'outFormat': 'js',
+		'resolve': '%(outputName)s/%(patternId)s/index.%(extension)s'
 	}
 };

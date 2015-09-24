@@ -211,7 +211,8 @@ export class Pattern {
 					'format': ext.replace('.', ''),
 					'fs': stat,
 					'path': file,
-					'source': buffer
+					'source': buffer,
+					'pattern': this
 				};
 
 				if (this.cache) {
@@ -294,7 +295,6 @@ export class Pattern {
 
 			for (let fileName of Object.keys(this.files)) {
 				let file = this.files[fileName];
-
 				if (file.basename === 'demo') {
 					continue;
 				}
@@ -379,24 +379,23 @@ export class Pattern {
 	}
 
 	toJSON() {
-		let copy = Object.assign({}, this);
+		const copy = {...this};
 
-		for (let environmentName of Object.keys(copy.results)) {
-			let environmentResult = copy.results[environmentName];
-				for (let resultName of Object.keys(environmentResult)) {
-					let result = environmentResult[resultName];
+		Object.entries(copy.results).forEach(([environmentName, environmentResult]) => {
+			Object.entries(environmentResult).forEach(resultEntry => {
+				const [resultName, result] = resultEntry;
 
-					copy.results[environmentName][resultName] = {
-						'name': resultName,
-						'source': result.source.toString('utf-8'),
-						'demoSource': result.demoSource ? result.demoSource.toString('utf-8') : '',
-						'buffer': result.buffer.toString('utf-8'),
-						'demoBuffer': result.demoBuffer ? result.demoBuffer.toString('utf-8') : '',
-						'in': result.in,
-						'out': result.out
-					};
-				}
-		}
+				copy.results[environmentName][resultName] = {
+					'name': resultName,
+					'source': result.source.toString('utf-8'),
+					'demoSource': result.demoSource ? result.demoSource.toString('utf-8') : '',
+					'buffer': result.buffer.toString('utf-8'),
+					'demoBuffer': result.demoBuffer ? result.demoBuffer.toString('utf-8') : '',
+					'in': result.in,
+					'out': result.out
+				};
+			});
+		});
 
 		delete copy.cache;
 		delete copy.files;

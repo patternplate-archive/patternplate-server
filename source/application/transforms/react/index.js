@@ -13,37 +13,28 @@ export default function createReactCodeFactory(application) {
 			// FIX #13: Merge the environment options with the global options
 			let opts = merge({}, config.opts, configuration.opts);
 
-			let result = convertCode(file, configuration.resolveDependencies !== false, opts);
-			let helpers;
-			let requireBlock;
-			if (configuration.resolveDependencies !== false) {
-				helpers = buildExternalHelpers(undefined, 'var');
-				requireBlock = createRequireBlock(getDependencies(file), true, opts);
-			} else {
-				helpers = '';
-				requireBlock = '';
-			}
+			let result = convertCode(file, configuration.resolveDependencies, opts);
+			const helpers = configuration.resolveDependencies ? buildExternalHelpers(undefined, 'var') : '';
+			const requireBlock = configuration.resolveDependencies ? createRequireBlock(getDependencies(file), configuration.resolveDependencies, opts) : '';
+
 			result = helpers + requireBlock + result;
+
 			if (demo) {
 				demo.dependencies = {
 					pattern: file
 				};
 				merge(demo.dependencies, file.dependencies);
-				let demoResult = convertCode(demo, configuration.resolveDependencies !== false, opts);
-				let requireBlock;
-				if (configuration.resolveDependencies !== false) {
-					requireBlock = createRequireBlock(getDependencies(demo), true, opts);
-				} else {
-					requireBlock = '';
-				}
-				demoResult = helpers + requireBlock + demoResult;
+				let demoResult = convertCode(demo, configuration.resolveDependencies, opts);
+				const demoRequireBlock = configuration.resolveDependencies ? createRequireBlock(getDependencies(demo), configuration.resolveDependencies, opts) : '';
+
+				demoResult = helpers + demoRequireBlock + demoResult;
 				file.demoSource = demo.source;
 				file.demoBuffer = new Buffer(demoResult, 'utf-8');
 			}
 			file.buffer = result;
 			return file;
 		} catch (error) {
-			let patternName = loadPatternJson(file.path).name;
+			const patternName = loadPatternJson(file.path).name;
 			application.log.warn(`Unable to run react transform for ${patternName}/${file.name}.`);
 			application.log.error(error.stack);
 			throw error;
@@ -55,7 +46,7 @@ function convertCode(file, resolveDependencies, opts) {
 	let source = file.buffer.toString('utf-8');
 	// TODO: This is a weak criteria to check if we have to create a wrapper
 	if (source.indexOf('extends React.Component') === -1 || source.indexOf('React.createClass') !== -1)	 {
-		source = createWrappedRenderFunction(file, source, opts);
+		source = createWrappedRenderFunction(file, source, resolveDependencies, opts);
 	} else if (resolveDependencies) {
 		source = rewriteImportsToGlobalNames(file, source);
 	}
@@ -65,17 +56,19 @@ function convertCode(file, resolveDependencies, opts) {
 	return transform(source, merge({externalHelpers: resolveDependencies}, localOpts)).code;
 }
 
-function createWrappedRenderFunction(file, source, opts) {
+function createWrappedRenderFunction(file, source, resolveDependencies, opts) {
 	let patternJson = loadPatternJson(file.path);
-	let dependencies = writeDependencyImports(file).join('\n');
+	let dependencies = writeDependencyImports(file, resolveDependencies).join('\n');
 	return renderCodeTemplate(source, dependencies, template, pascalCase(patternJson.name), opts);
 }
 
-function writeDependencyImports(file) {
-	let patterns = loadPatternJson(file.path).patterns || {};
-	let dependencies = [];
-	for (let name of Object.keys(file.dependencies)) {
-		dependencies.push(`import ${pascalCase(name)} from '${patterns[name] || name}';`);
+function writeDependencyImports(file, resolveDependencies) {
+	const patterns = loadPatternJson(file.path).patterns || {};
+	const dependencies = [];
+
+	for (const localName of Object.keys(file.dependencies)) {
+		const name = resolveDependencies ? (patterns[localName] || localName) : localName;
+		dependencies.push(`import ${pascalCase(localName)} from '${name}';`);
 	}
 	return dependencies;
 }
