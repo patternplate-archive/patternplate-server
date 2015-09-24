@@ -1,9 +1,15 @@
 import {resolve, join, dirname} from 'path';
-
-import qfs from 'q-io/fs';
+import {promisify} from 'bluebird';
+import {writeFile as writeFileNodeback} from 'fs';
+const writeFile = promisify(writeFileNodeback);
+import ncpNodeback from 'ncp';
+const copy = promisify(ncpNodeback);
+import mkdirpNodeback from 'mkdirp';
+const mkdirp = promisify(mkdirpNodeback);
+import pathExists from 'path-exists';
 import merge from 'lodash.merge';
-
 import getPatterns from '../../../library/utilities/get-patterns';
+import resolvePathFormatString from '../../../library/resolve-utilities/resolve-path-format-string';
 
 const pkg = require(resolve(process.cwd(), 'package.json'));
 
@@ -14,7 +20,6 @@ async function exportAsCommonjs(application) {
 	const patternRoot = resolve(application.runtime.patterncwd || application.runtime.cwd, patternHook.configuration.path);
 	const staticRoot = resolve(application.runtime.patterncwd || application.runtime.cwd, 'static');
 	const commonjsConfig = application.configuration.commonjs || {};
-	const resolveResultPath = commonjsConfig.resolveResultPath;
 
 	// FIXME: This simple merge statement is not sufficient to reconfigure your build process (may apply to other config
 	// cases too). A better aproach would be to have a configuration model which could do the merge on a per-config-key
@@ -28,13 +33,9 @@ async function exportAsCommonjs(application) {
 
 	const transforms = merge({}, application.configuration.transforms || {}, commonjsConfig.transforms || {});
 
-	for (const transformName of Object.keys(transforms)) {
-		transforms[transformName] = { resolve: resolveResultPath, ...transforms[transformName] };
-	}
-
 	const patternConfig = { patterns, transforms };
-	application.configuration.patterns = {...application.configuration.patterns, ...patterns};
-	application.configuration.transforms = {...application.configuration.transforms, ...transforms};
+//	application.configuration.patterns = {...application.configuration.patterns, ...patterns};
+//	application.configuration.transforms = {...application.configuration.transforms, ...transforms};
 
 	const built = new Date();
 	const environment = application.runtime.env;
@@ -42,6 +43,7 @@ async function exportAsCommonjs(application) {
 	const version = pkg.version;
 
 	const commonjsRoot = resolve(application.runtime.patterncwd || application.runtime.cwd, 'distribution');
+	const manifestPath = resolve(commonjsRoot, 'package.json');
 
 	const patternList = await getPatterns({
 		'id': '.',
@@ -62,13 +64,16 @@ async function exportAsCommonjs(application) {
 	for (const patternItem of patternList) {
 		const resultEnvironment = patternItem.results.index;
 
+		// Read pathFormatString from matching trasnform config for now,
+		// will be fed from pattern result meta information when we approach the new transform system
+		const pathFormatString = commonjsConfig.resolve;
+
 		for (const resultName of Object.keys(resultEnvironment)) {
 			const result = resultEnvironment[resultName];
-			const resultPath = join(...[commonjsRoot, ...resolveResultPath(patternItem.id, resultName, result.out)]);
-			const resultDirectory = dirname(resultPath);
-
-			await qfs.makeTree(resultDirectory);
-			await qfs.write(resultPath, result.buffer);
+			const resultPath = join(commonjsRoot,
+				resolvePathFormatString(pathFormatString, patternItem.id, resultName, result.out));
+			await mkdirp(dirname(resultPath));
+			await writeFile(resultPath, result.buffer);
 		}
 
 		const commonjsPkg = {
@@ -89,13 +94,13 @@ async function exportAsCommonjs(application) {
 			},
 			...commonjsConfig.pkg
 		};
-		await qfs.write(resolve(commonjsRoot, 'package.json'), JSON.stringify(commonjsPkg, null, '  '));
+
+		await writeFile(manifestPath, JSON.stringify(commonjsPkg, null, '  '));
 	}
 
-	if (await qfs.exists(staticRoot)) {
+	if (await pathExists(staticRoot)) {
 		application.log.info(`[console:run] Copy asset files from "${staticRoot}" to ${commonjsRoot} ...`);
-		await qfs.makeTree(resolve(commonjsRoot, 'static'));
-		await qfs.copyTree(staticRoot, resolve(commonjsRoot, 'static'));
+		await copy(staticRoot, resolve(commonjsRoot, 'static'), {});
 	} else {
 		application.log.info(`[console:run] No asset files at "${staticRoot}"`);
 	}

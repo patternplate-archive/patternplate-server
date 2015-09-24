@@ -379,11 +379,9 @@ export class Pattern {
 	}
 
 	toJSON() {
-		let copy = {...this};
-		Object.values(copy.files).forEach(file => delete file.pattern);
+		const copy = {...this};
 
-		Object.entries(copy.results).forEach(environmentEntry => {
-			const [environmentName, environmentResult] = environmentEntry;
+		Object.entries(copy.results).forEach(([environmentName, environmentResult]) => {
 			Object.entries(environmentResult).forEach(resultEntry => {
 				const [resultName, result] = resultEntry;
 

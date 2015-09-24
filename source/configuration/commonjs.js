@@ -1,4 +1,3 @@
-
 module.exports = {
 	'tasks': {
 		'bundles': true,
@@ -6,9 +5,7 @@ module.exports = {
 		'static': true,
 		'cache': false
 	},
-	'resolveResultPath': function(id, resultName, formatName) {
-		return [resultName, id, `index.${formatName}`];
-	},
+	'resolve': '%(outputName)s/%(patternId)s/index.%(extension)s',
 	'pkg': {
 		'style': 'style'
 	},
@@ -50,12 +47,6 @@ module.exports = {
 		'react': {
 			'outFormat': 'js',
 			'resolveDependencies': false
-		},
-		'rewrite-includes': {
-			'outFormat': 'less'
-		},
-		'rewrite-imports': {
-			'outFormat': 'js'
 		}
 	}
 };

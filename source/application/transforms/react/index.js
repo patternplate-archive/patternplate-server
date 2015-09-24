@@ -67,7 +67,7 @@ function writeDependencyImports(file, resolveDependencies) {
 	const dependencies = [];
 
 	for (const localName of Object.keys(file.dependencies)) {
-		const name = resolveDependencies ? patterns[localName] || localName : localName;
+		const name = resolveDependencies ? (patterns[localName] || localName) : localName;
 		dependencies.push(`import ${pascalCase(localName)} from '${name}';`);
 	}
 	return dependencies;

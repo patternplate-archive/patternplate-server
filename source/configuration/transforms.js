@@ -107,5 +107,13 @@ export default {
 				}
 			}
 		}
+	},
+	'rewrite-includes': {
+		'outFormat': 'less',
+		'resolve': '%(outputName)s/%(patternId)s/index.%(extension)s'
+	},
+	'rewrite-imports': {
+		'outFormat': 'js',
+		'resolve': '%(outputName)s/%(patternId)s/index.%(extension)s'
 	}
 };
