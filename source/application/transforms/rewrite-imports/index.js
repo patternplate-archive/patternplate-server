@@ -1,3 +1,4 @@
+import {sep} from 'path';
 import getPatternIdRegistry from '../../../library/resolve-utilities/get-pattern-id-registry';
 import resolvePatternFilePath from '../../../library/resolve-utilities/resolve-pattern-file-path';
 
@@ -18,7 +19,10 @@ export default function createRewriteImportsTransform (application) {
 				name, file.pattern.path);
 
 			if (resolvedPath) {
-				result = result.replace(name, resolvedPath);
+				result = result
+					.replace(name, resolvedPath)
+					.split(sep)
+					.join('/');
 			} else {
 				require.resolve(name);
 				console.warn(`Ignored script dependency "${name}" not found in dependencies of "${file.pattern.id}", probably should be included in package.json.`);

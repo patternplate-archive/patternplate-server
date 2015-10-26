@@ -1,3 +1,4 @@
+import {sep} from 'path';
 import getPatternIdRegistry from '../../../library/resolve-utilities/get-pattern-id-registry';
 import resolvePatternFilePath from '../../../library/resolve-utilities/resolve-pattern-file-path';
 
@@ -14,9 +15,11 @@ export default function createWriteIncludesTransform (application, transformConf
 			let result = match;
 
 			const resolvedPath = resolvePatternFilePath(
-				registry, resolve,
-				resultName, configuration.outFormat,
-				name, file.pattern.path);
+					registry, resolve,
+					resultName, configuration.outFormat,
+					name, file.pattern.path)
+				.split(sep)
+				.join('/');
 
 			const fromNPM = name.includes('npm://') || name.includes('node_modules/');
 
