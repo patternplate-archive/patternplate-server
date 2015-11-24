@@ -50,7 +50,8 @@ export default {
 					'global': true
 				}
 			}
-		}
+		},
+		'external': []
 	},
 	'uglify': {
 		'inFormat': 'js',
