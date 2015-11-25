@@ -51,7 +51,9 @@ export default {
 				}
 			}
 		},
-		'external': []
+		'external': [],
+		'exclude': [],
+		'ignore': []
 	},
 	'uglify': {
 		'inFormat': 'js',

@@ -115,15 +115,15 @@ function browserifyTransformFactory (application) {
 			return results;
 		}, {});
 
-		const externalBundles = configuration.external;
-		const externalBundlesNames = (bundles, fn) => {
-				if (bundles[0] === undefined ) {
-					return;
-				}
-				bundles.map(bundleName => {
-					fn.external(bundleName);
-				});
-				return bundles;
+		const bundlerConfigNames = ['external', 'exclude', 'ignore'];
+		const applyBundlerConfig = (bundler, method, config) => {
+			if (config[0] === undefined) {
+				return;
+			}
+			config.map(file => {
+				bundler[method](file);
+			});
+			return bundler;
 		};
 
 		if (!demo) {
@@ -145,7 +145,9 @@ function browserifyTransformFactory (application) {
 				}
 			}
 
-			let external = externalBundlesNames(externalBundles, bundler);
+			let bundlerConfig = bundlerConfigNames.forEach(bundleOpt => {
+				applyBundlerConfig(bundler, bundleOpt, configuration[bundleOpt]);
+			});
 			let mtime = getLatestMTime(file);
 			let transformed = application.cache && application.cache.get(`browserify:${file.path}`, mtime);
 
