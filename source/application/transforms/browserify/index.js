@@ -117,10 +117,7 @@ function browserifyTransformFactory (application) {
 
 		const bundlerConfigNames = ['external', 'exclude', 'ignore'];
 		const applyBundlerConfig = (bundler, method, config) => {
-			if (config[0] === undefined) {
-				return;
-			}
-			config.map(file => {
+			config.forEach(file => {
 				bundler[method](file);
 			});
 			return bundler;
