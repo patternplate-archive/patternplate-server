@@ -115,6 +115,14 @@ function browserifyTransformFactory (application) {
 			return results;
 		}, {});
 
+		const bundlerConfigNames = ['external', 'exclude', 'ignore'];
+		const applyBundlerConfig = (bundler, method, config) => {
+			config.forEach(file => {
+				bundler[method](file);
+			});
+			return bundler;
+		};
+
 		if (!demo) {
 			let bundler;
 
@@ -134,6 +142,9 @@ function browserifyTransformFactory (application) {
 				}
 			}
 
+			let bundlerConfig = bundlerConfigNames.forEach(bundleOpt => {
+				applyBundlerConfig(bundler, bundleOpt, configuration[bundleOpt]);
+			});
 			let mtime = getLatestMTime(file);
 			let transformed = application.cache && application.cache.get(`browserify:${file.path}`, mtime);
 
