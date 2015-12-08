@@ -8,6 +8,8 @@ function resolvePatternFilePath(registry, formatString, resultName, outFormat, l
 		const relativePath = relative(patternPath, path);
 		return join(relativePath, basename(treePath));
 	}
+
+	return '';
 }
 
 export default resolvePatternFilePath;
