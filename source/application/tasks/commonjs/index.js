@@ -39,7 +39,7 @@ const checksumFile = denodeify(checksum.file);
 
 async function getArtifactMtimes(search, patterns) {
 	const types = Object.keys(patterns.formats)
-		.map(key => patterns.formats[key].name);
+		.map(extension => patterns.formats[extension].name);
 
 	const typedFiles = await* [...new Set(types)].map(async type => {
 		const files = await fs.listTree(resolve(search, 'distribution', type));
@@ -109,9 +109,9 @@ function getPatternsToBuild(artifacts, patterns) {
 		const types = [...new Set(pattern.files
 			.map(path => extname(path).slice(1))
 			.filter(Boolean)
-			.map(key => patterns.formats[key])
+			.map(extension => patterns.formats[extension])
 			.filter(Boolean)
-			.map(config => config.name))];
+			.map(format => format.name))];
 
 		// Build if types do not match
 		if (
