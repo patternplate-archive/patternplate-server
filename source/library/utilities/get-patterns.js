@@ -70,10 +70,7 @@ async function getPatterns(options, cache = null) {
 		let pattern = await factory(patternID, base, config, transforms, filters);
 		let cachedRead = cache && cache.config.read ? cache.get(readCacheID, false) : null;
 
-		// Fetch all manifests
-		if (!manifests) {
-			manifests = await getPatternManifests(base);
-		}
+		const manifests = await getPatternManifests(base);
 
 		// Resolve dependent patterns
 		let dependentPatterns = {};
@@ -88,6 +85,11 @@ async function getPatterns(options, cache = null) {
 		});
 		pattern.manifest.dependentPatterns = dependentPatterns;
 
+		if (options.task === 'meta') {
+			results.push(pattern);
+			continue;
+		}
+
 		if (!cachedRead) {
 			log(`Reading pattern "${patternID}"`);
 			await pattern.read();
@@ -100,7 +102,11 @@ async function getPatterns(options, cache = null) {
 			cache.set(readCacheID, pattern.mtime, pattern);
 		}
 
-		results.push(await pattern.transform(!isEnvironment, isEnvironment));
+		if (options.task === 'read') {
+			results.push(pattern);
+		} else {
+			results.push(await pattern.transform(!isEnvironment, isEnvironment));
+		}
 	}
 
 	results = results.map((result) => {
