@@ -6,7 +6,9 @@ import minimist from 'minimist';
 
 import patternServer from '../';
 
-var args = minimist(process.argv.slice(1));
+var args = minimist(process.argv.slice(1), {
+	'boolean': ['run']
+});
 
 async function start (options = {}) {
 	let application;
@@ -18,28 +20,38 @@ async function start (options = {}) {
 		throw new Error(err);
 	}
 
-	try {
-		await application.start();
-	} catch(err) {
-		application.log.error(err);
-		throw new Error(err);
-	}
-
-	async function stop () {
+	if (options.run) {
 		try {
-			await application.stop();
-			process.exit( 0 );
-		} catch ( err ) {
-			application.log.error( err );
-			process.exit( 1 );
+			const command = options._[1];
+			await application.run(command, options);
+		} catch(err) {
+			application.log.error(err);
+			throw new Error(err);
 		}
-	}
+	} else {
+		try {
+			await application.start();
+		} catch(err) {
+			application.log.error(err);
+			throw new Error(err);
+		}
 
-	process.on( 'SIGINT', () => stop( 'SIGINT' ) );
-	process.on( 'SIGHUP', () => stop( 'SIGHUP' ) );
-	process.on( 'SIGQUIT', () => stop( 'SIGQUIT' ) );
-	process.on( 'SIGABRT', () => stop( 'SIGABRT' ) );
-	process.on( 'SIGTERM', () => stop( 'SIGTERM' ) );
+		async function stop () {
+			try {
+				await application.stop();
+				process.exit( 0 );
+			} catch ( err ) {
+				application.log.error( err );
+				process.exit( 1 );
+			}
+		}
+
+		process.on( 'SIGINT', () => stop( 'SIGINT' ) );
+		process.on( 'SIGHUP', () => stop( 'SIGHUP' ) );
+		process.on( 'SIGQUIT', () => stop( 'SIGQUIT' ) );
+		process.on( 'SIGABRT', () => stop( 'SIGABRT' ) );
+		process.on( 'SIGTERM', () => stop( 'SIGTERM' ) );
+	}
 }
 
 start(args);
