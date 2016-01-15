@@ -1,4 +1,4 @@
-import { join, dirname, basename, sep, resolve } from 'path';
+import { join, dirname, basename, sep } from 'path';
 import fs from 'q-io/fs';
 
 const defaultManifest = {
@@ -14,7 +14,7 @@ async function loadManifest (path, id) {
 }
 
 async function loadPatterns (path) {
-	let paths = await fs.listTree(resolve('patterns', path));
+	let paths = await fs.listTree(path);
 
 	let patternIDs = paths
 		.filter((item) => basename(item) === 'pattern.json')
