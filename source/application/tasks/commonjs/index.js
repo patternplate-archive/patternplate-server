@@ -328,9 +328,71 @@ async function exportAsCommonjs(application) {
 	// build patterns in parallel
 	const buildStart = new Date();
 	const building = Promise.all(patternsToBuild.map(throat(5, async pattern => {
+		const filterStart = new Date();
+		application.log.info(wait`Checking for files of ${pattern.id} to exclude from transform.`);
+
+		const filters = {...application.configuration.filters};
+		let changedFiles = [];
+
+		// enhance filters config to build only files that are modified
+		const artifact = find(artifactMtimes, {id: pattern.id});
+
+		if (artifact) {
+			// build up mtime registry for pattern files
+			const filesMtimes = pattern.files.reduce((results, file, index) => {
+				return {...results, [file]: pattern.mtimes[index]};
+			}, {});
+
+			// build up registry for artifact files
+			const artifactFilesMtimes = artifact.files.reduce((results, file, index) => {
+				const path = relative(commonjsRoot, file);
+				return {...results, [path]: artifact.mtimes[index]};
+			}, {});
+
+			// find pattern files with newer mtime than
+			// - their artifact
+			// - their folder
+			// - their pattern.json
+			changedFiles = pattern.files.filter(file => {
+				const formatKey = extname(file).slice(1);
+				const format = application.configuration.patterns.formats[formatKey];
+				if (!format) {
+					return false;
+				}
+				const transformNames = format.transforms || [];
+				const lastTransformName = transformNames[transformNames.length - 1];
+				const lastTransform = application.configuration.transforms[lastTransformName] || {};
+				const targetExtension = lastTransform.outFormat || formatKey;
+				const targetFile = resolvePathFormatString(
+					application.configuration.commonjs.resolve,
+					pattern.id,
+					format.name,
+					targetExtension
+				);
+
+				const targetFileMtime = artifactFilesMtimes[targetFile] || 0;
+				const fileMtime = filesMtimes[file];
+				const dirMtime = filesMtimes[dirname(file)];
+				const metaMtime = filesMtimes[join(dirname(file), 'pattern.json')];
+
+				return fileMtime > targetFileMtime ||
+					dirMtime > targetFileMtime ||
+					metaMtime > targetFileMtime;
+			})
+			.filter(Boolean);
+		}
+
+		if (artifact) {
+			filters.formats = changedFiles.map(file => extname(file).slice(1));
+			const formats = chalk.grey(`[${filters.formats.join(', ')}]`);
+			application.log.info(
+				ok`Building ${filters.formats.length} files for ${pattern.id} ${formats} ${filterStart}`);
+		} else {
+			application.log.info(ok`Building all files for ${pattern.id} ${filterStart}`);
+		}
+
 		const transformStart = new Date();
 		application.log.info(wait`Transforming pattern ${pattern.id}`);
-
 		// obtain transformed pattern by id
 		const patternList = await getPatterns({
 			id: pattern.id,
@@ -338,7 +400,7 @@ async function exportAsCommonjs(application) {
 			config: application.configuration,
 			factory: application.pattern.factory,
 			transforms: application.transforms,
-			filters: application.configuration.filters
+			filters
 		}, application.cache);
 
 		application.log.info(ok`Transformed pattern ${pattern.id} ${transformStart}`);
