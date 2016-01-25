@@ -10,6 +10,7 @@ import {
 } from 'path';
 
 import {
+	readFile as readFileNodeback,
 	writeFile as writeFileNodeback,
 	stat as statNodeback,
 	createReadStream,
@@ -18,11 +19,13 @@ import {
 
 import mkdirpNodeback from 'mkdirp';
 import merge from 'lodash.merge';
+import {omit} from 'lodash';
 import fs from 'q-io/fs';
 import {find, difference} from 'lodash';
 import throat from 'throat';
 import chalk from 'chalk';
 import rimraf from 'rimraf';
+import exists from 'path-exists';
 
 import resolvePathFormatString from '../../../library/resolve-utilities/resolve-path-format-string';
 import getPatterns from '../../../library/utilities/get-patterns';
@@ -30,6 +33,7 @@ import getPatternMtimes from '../../../library/utilities/get-pattern-mtimes';
 
 const pkg = require(resolve(process.cwd(), 'package.json'));
 const mkdirp = denodeify(mkdirpNodeback);
+const readFile = denodeify(readFileNodeback);
 const writeFile = denodeify(writeFileNodeback);
 const stat = denodeify(statNodeback);
 
@@ -78,18 +82,10 @@ function ready(strings, ...values) {
 	return `${sign}    ${getMessage(strings, values)}`;
 }
 
-function getPackageString(data, override) {
-	const {
-		devDependencies,
-		...allowed
-	} = data;
-
-	const packageDefinition = {
-		...allowed,
-		...override
-	};
-
-	return JSON.stringify(packageDefinition, null, '  ');
+function getPackageString(dependencies, data, ...overrides) {
+	const definition = merge(...[data, ...overrides]);
+	definition.dependencies = dependencies;
+	return JSON.stringify(definition, null, '  ');
 }
 
 async function getArtifactMtimes(search, patterns) {
@@ -315,15 +311,27 @@ async function exportAsCommonjs(application) {
 	const artifactMtimes = await readingArtifactMtimes;
 	application.log.info(ok`Read artifact modification times ${artifactMtimesStart}`);
 
+	// check if package.json is in distribution
+	const hasManifest = await exists(resolve(commonjsRoot, 'package.json'));
+
 	// obtain patterns we have to build
 	const selectionStart = new Date();
 	application.log.info(wait`Calculating pattern collection to build`);
-	const patternsToBuild = patternMtimes
-		.filter(getPatternsToBuild(artifactMtimes, application.configuration.patterns))
-		.sort((a, b) => b.mtime.getTime() - a.mtime.getTime());
+	const patternsToBuild = hasManifest ?
+		patternMtimes
+			.filter(getPatternsToBuild(artifactMtimes, application.configuration.patterns))
+			.sort((a, b) => b.mtime.getTime() - a.mtime.getTime()) :
+		patternMtimes;
 
 		application.log.info(ok`Calculated pattern collection to build ${selectionStart}`);
 		application.log.info(wait`Building ${patternsToBuild.length} of ${patternMtimes.length} patterns`);
+
+	if (!hasManifest) {
+		application.log.info(ok`Target folder has no manifest file, building all patterns`);
+	}
+
+	// dependency registry
+	let externalDependencies = [];
 
 	// build patterns in parallel
 	const buildStart = new Date();
@@ -403,14 +411,22 @@ async function exportAsCommonjs(application) {
 			filters
 		}, application.cache);
 
+
 		application.log.info(ok`Transformed pattern ${pattern.id} ${transformStart}`);
+
+		// Extract dependency information
+		patternList.forEach(patternItem => {
+			const meta = patternItem.meta || {};
+			const itemDependencies = meta.dependencies;
+			externalDependencies = [...externalDependencies, ...itemDependencies];
+		});
 
 		const writeStart = new Date();
 		application.log.info(ok`Writing artifacts of ${pattern.id}`);
 
+		// Write results to disk
 		const writingArtifacts = Promise.all(patternList.map(async patternItem => {
 			const resultEnvironment = patternItem.results.index;
-
 			// Read pathFormatString from matching transform config for now,
 			// will be fed from pattern result meta information when we approach the new transform system
 			const pathFormatString = application.configuration.resolve;
@@ -441,20 +457,14 @@ async function exportAsCommonjs(application) {
 	const pruneStart = new Date();
 	application.log.info(wait`Pruning ${artifactsToPrune.length} artifacts`);
 	const pruning = Promise.all(artifactsToPrune.map(path => {
-		// for now we can assume the folder has to be nixed
+		// for now we can assume the whole folder has to be nixed
 		rm(dirname(path));
 	}));
 
-	const pkgStart = new Date();
-	application.log.info(wait`Writing package.json`);
-	const writingPkg = writeSafe(manifestPath, getPackageString(pkg, application.configuration.pkg));
 
 	const copyStart = new Date();
 	application.log.info(wait`Copying static files`);
 	const copying = copyDirectory(staticRoot, resolve(commonjsRoot, 'static'));
-
-	await writingPkg;
-	application.log.info(ready`Wrote package.json ${pkgStart}`);
 
 	const copied = await copying;
 	application.log.info(ready`Copied ${copied.length} static files. ${copyStart}`);
@@ -464,6 +474,30 @@ async function exportAsCommonjs(application) {
 
 	const built = await building;
 	application.log.info(ready`Built ${built.length} from ${patternsToBuild.length} planned and ${patternMtimes.length} artifacts overall ${buildStart}`);
+
+	const pkgStart = new Date();
+	application.log.info(wait`Writing package.json`);
+
+	const previousPkg = hasManifest ?
+		JSON.parse(await readFile(manifestPath)) :
+		{};
+
+	const dependencies = externalDependencies.reduce((results, dependencyName) => {
+		return {...results, [dependencyName]: pkg.dependencies[dependencyName] || '*'};
+	}, {});
+
+	const writingPkg = writeSafe(
+		manifestPath,
+		getPackageString(
+			dependencies,
+			previousPkg,
+			omit(pkg, ['devDependencies', 'scripts', 'config', 'main']),
+			application.configuration.commonjs.pkg
+		)
+	);
+
+	await writingPkg;
+	application.log.info(ready`Wrote package.json ${pkgStart}`);
 	application.log.info(ready`Task completed ${taskStart}`);
 }
 

@@ -212,7 +212,10 @@ export class Pattern {
 					'fs': stat,
 					'path': file,
 					'source': buffer,
-					'pattern': this
+					'pattern': this,
+					'meta': {
+						dependencies: []
+					}
 				};
 
 				if (this.cache) {
@@ -396,6 +399,16 @@ export class Pattern {
 				};
 			});
 		});
+
+		copy.meta = Object.entries(copy.files).reduce((results, entry) => {
+			const [, file] = entry;
+			const meta = file.meta || {};
+			const dependencies = meta.dependencies || [];
+			return {
+				...results,
+				dependencies: [...(results.dependencies || []), ...dependencies]
+			};
+		}, {});
 
 		delete copy.cache;
 		delete copy.files;

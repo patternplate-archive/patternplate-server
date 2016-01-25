@@ -1,6 +1,7 @@
 import {sep} from 'path';
 import getPatternIdRegistry from '../../../library/resolve-utilities/get-pattern-id-registry';
 import resolvePatternFilePath from '../../../library/resolve-utilities/resolve-pattern-file-path';
+const detect = /(?:import(?:.+?)from\s+|require\()['"]([^'"]+)['"]\)?;/g;
 
 export default function createRewriteImportsTransform (application) {
 	return async function rewriteImportsTransform (file, demo, configuration) {
@@ -10,7 +11,7 @@ export default function createRewriteImportsTransform (application) {
 		const registry = getPatternIdRegistry(file.dependencies);
 		const resolve = configuration.resolve;
 
-		const rewritten = source.replace(/(?:import(?:.+?)from\s+|require\()['"]([^'"]+)['"]\)?;/g, function(match, name){
+		const rewritten = source.replace(detect, function(match, name){
 			let result = match;
 
 			const resolvedPath = resolvePatternFilePath(
@@ -25,7 +26,7 @@ export default function createRewriteImportsTransform (application) {
 					.join('/');
 			} else {
 				require.resolve(name);
-				console.warn(`Ignored script dependency "${name}" not found in dependencies of "${file.pattern.id}", probably should be included in package.json.`);
+				file.meta.dependencies.push(name.split('/')[0]);
 			}
 
 			return result;
