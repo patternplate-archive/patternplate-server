@@ -20,11 +20,13 @@ module.exports = {
 		'formats': {
 			'jsx': {
 				'name': 'component',
-				'transforms': ['react', 'rewrite-imports']
+				'transforms': ['react', 'rewrite-imports'],
+				'dependencies': ['react']
 			},
 			'html': {
 				'name': 'component',
-				'transforms': ['react', 'rewrite-imports']
+				'transforms': ['react', 'rewrite-imports'],
+				'dependencies': ['react']
 			},
 			'js': {
 				'name': 'script',
@@ -32,11 +34,19 @@ module.exports = {
 			},
 			'less': {
 				'name': 'style',
-				'transforms': ['rewrite-includes']
+				'transforms': ['rewrite-includes'],
+				'dependencies': [
+					'less',
+					'less-plugin-npm-import'
+				]
 			},
 			'css': {
 				'name': 'style',
-				'transforms': ['rewrite-includes']
+				'transforms': ['rewrite-includes'],
+				'dependencies': [
+					'less',
+					'less-plugin-npm-import'
+				]
 			},
 			'md': {
 				'name': 'documentation',

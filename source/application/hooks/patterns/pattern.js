@@ -214,7 +214,8 @@ export class Pattern {
 					'source': buffer,
 					'pattern': this,
 					'meta': {
-						dependencies: []
+						dependencies: [],
+						devDependencies: []
 					}
 				};
 
@@ -308,8 +309,14 @@ export class Pattern {
 					continue;
 				}
 
-				let transforms = formatConfig.transforms || [];
+				const formatDependencies = formatConfig.dependencies || [];
+				const transforms = formatConfig.transforms || [];
 				let lastTransform = this.config.transforms[transforms[transforms.length - 1]] || {};
+
+				file.meta.devDependencies = [
+					...file.meta.devDependencies,
+					...formatDependencies
+				];
 
 				// Skip file transform if format filters present and not matching
 				if (!this.filters.formats || !this.filters.formats.length || this.filters.formats.includes(lastTransform.outFormat)) {
@@ -404,9 +411,11 @@ export class Pattern {
 			const [, file] = entry;
 			const meta = file.meta || {};
 			const dependencies = meta.dependencies || [];
+			const devDependencies = meta.devDependencies || [];
 			return {
 				...results,
-				dependencies: [...(results.dependencies || []), ...dependencies]
+				dependencies: [...(results.dependencies || []), ...dependencies],
+				devDependencies: [...(results.devDependencies || []), ...devDependencies]
 			};
 		}, {});
 

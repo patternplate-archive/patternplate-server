@@ -276,7 +276,7 @@ async function exportAsCommonjs(application) {
 	const commonjsRoot = resolve(cwd, 'distribution');
 
 	const manifestPath = resolve(commonjsRoot, 'package.json');
-	merge(application.configuration, application.configuration.commonjs);
+	application.configuration = merge({}, application.configuration, application.configuration.commonjs);
 
 	// Reconfigure the cache
 	application.cache.config = merge({},
@@ -332,6 +332,7 @@ async function exportAsCommonjs(application) {
 
 	// dependency registry
 	let externalDependencies = [];
+	let externalDevDependencies = [];
 
 	// build patterns in parallel
 	const buildStart = new Date();
@@ -418,7 +419,9 @@ async function exportAsCommonjs(application) {
 		patternList.forEach(patternItem => {
 			const meta = patternItem.meta || {};
 			const itemDependencies = meta.dependencies;
+			const itemDevDependencies = meta.devDependencies;
 			externalDependencies = [...externalDependencies, ...itemDependencies];
+			externalDevDependencies = [...externalDevDependencies, ...itemDevDependencies];
 		});
 
 		const writeStart = new Date();
@@ -483,15 +486,30 @@ async function exportAsCommonjs(application) {
 		{};
 
 	const dependencies = externalDependencies.reduce((results, dependencyName) => {
-		return {...results, [dependencyName]: pkg.dependencies[dependencyName] || '*'};
-	}, {});
+		return {...results,
+			[dependencyName]: pkg.dependencies[dependencyName] || pkg.devDependencies[dependencyName] || '*'};
+	}, previousPkg.dependencies);
+
+	const devDependencies = omit(externalDevDependencies.reduce((results, dependencyName) => {
+		return {...results,
+			[dependencyName]: pkg.dependencies[dependencyName] || pkg.devDependencies[dependencyName] || '*'};
+	}, previousPkg.devDependencies), Object.keys(dependencies));
 
 	const writingPkg = writeSafe(
 		manifestPath,
 		getPackageString(
-			dependencies,
+			omit(
+				dependencies,
+				application.configuration.commonjs.ignoredDependencies || []
+			),
 			previousPkg,
-			omit(pkg, ['devDependencies', 'scripts', 'config', 'main']),
+			{
+				devDependencies: omit(
+					devDependencies,
+					application.configuration.commonjs.ignoredDevDependencies || []
+				)
+			},
+			omit(pkg, ['dependencies', 'devDependencies', 'scripts', 'config', 'main']),
 			application.configuration.commonjs.pkg
 		)
 	);
