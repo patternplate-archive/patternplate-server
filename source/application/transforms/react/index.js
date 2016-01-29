@@ -2,6 +2,7 @@ import {join, dirname} from 'path';
 import pascalCase from 'pascal-case';
 import merge from 'lodash.merge';
 import {transform, buildExternalHelpers} from 'babel-core';
+import chalk from 'chalk';
 import template from './react-class.tmpl';
 import dependencyTemplate from './require.tmpl';
 
@@ -10,8 +11,7 @@ export default function createReactCodeFactory(application) {
 
 	return async function createReactCode(file, demo, configuration) {
 		try {
-			// FIX #13: Merge the environment options with the global options
-			let opts = merge({}, config.opts, configuration.opts);
+			const opts = merge({}, config.opts, configuration.opts);
 
 			let result = convertCode(file, configuration.resolveDependencies, opts);
 			const helpers = configuration.resolveDependencies ? buildExternalHelpers(undefined, 'var') : '';
@@ -19,13 +19,21 @@ export default function createReactCodeFactory(application) {
 
 			result = helpers + requireBlock + result;
 
+			if (opts.globals && Object.keys(opts.globals).length > 0) {
+				application.log.warn(
+					`${chalk.yellow('[ ⚠  Deprecation ⚠ ]')}    "transforms.react.opts.globals" is deprecated and will be removed in version 1.0  ${chalk.grey('[transforms.react]')}`
+				);
+			}
+
 			if (demo) {
 				demo.dependencies = {
 					pattern: file
 				};
 				merge(demo.dependencies, file.dependencies);
 				let demoResult = convertCode(demo, configuration.resolveDependencies, opts);
-				const demoRequireBlock = configuration.resolveDependencies ? createRequireBlock(getDependencies(demo), configuration.resolveDependencies, opts) : '';
+				const demoRequireBlock = configuration.resolveDependencies ?
+					createRequireBlock(getDependencies(demo), configuration.resolveDependencies, opts) :
+					'';
 
 				demoResult = helpers + demoRequireBlock + demoResult;
 				file.demoSource = demo.source;
@@ -35,7 +43,7 @@ export default function createReactCodeFactory(application) {
 			return file;
 		} catch (error) {
 			const patternName = loadPatternJson(file.path).name;
-			application.log.warn(`Unable to run react transform for ${patternName}/${file.name}.`);
+			application.log.error(`Unable to run react transform for ${patternName}/${file.name}.`);
 			application.log.error(error.stack);
 			throw error;
 		}
@@ -83,7 +91,6 @@ function renderCodeTemplate(source, dependencies, template, className, opts) {
 function addImplicitGlobals(source, opts) {
 	let vars = [];
 	if (opts && opts.globals) {
-		console.log('WARNING: Deprecated use of global opts');
 		for (let key of Object.keys(opts.globals)) {
 			vars.push(`this.${key} = ${JSON.stringify(opts.globals[key])};`);
 		}
@@ -102,7 +109,6 @@ const ATTRIBUTE = `(?:${NAMED_ATTRIBUTE}|${SPREAD_ATTRIBUTE})`;
 const ATTRIBUTES = `(?:\\s+${ATTRIBUTE})*`;
 const TAG_END = '\\s*\\/?>';
 const EXPR = new RegExp(`\n\s*(${TAG_START}${ATTRIBUTES}${TAG_END}[^]*)`, 'gi');
-//console.log('EXPR', EXPR);
 
 function matchFirstJsxExpressionAndWrapWithReturn(source) {
 	return source.replace(EXPR, (match, jsxExpr) => {

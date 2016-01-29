@@ -4,6 +4,7 @@ import {createWriteStream} from 'fs';
 import qfs from 'q-io/fs';
 import archiver from 'archiver';
 import merge from 'lodash.merge';
+import throat from 'throat';
 
 import getPatterns from '../../../library/utilities/get-patterns';
 import getWrapper from '../../../library/utilities/get-wrapper';
@@ -13,7 +14,7 @@ import layout from '../../layouts';
 
 const pkg = require(resolve(process.cwd(), 'package.json'));
 
-async function build (application, config) {
+async function build (application) {
 	const patternHook = application.hooks.filter((hook) => hook.name === 'patterns')[0];
 	const patternRoot = resolve(application.runtime.patterncwd || application.runtime.cwd, patternHook.configuration.path);
 	const staticRoot = resolve(application.runtime.patterncwd || application.runtime.cwd, 'static');
@@ -64,14 +65,12 @@ async function build (application, config) {
 		}
 
 		let patternList = await getPatterns({
-			'id': '.',
-			'base': patternRoot,
-			'config': patternConfig,
-			'factory': application.pattern.factory,
-			'transforms': application.transforms,
-			'log': function(...args) {
-				application.log.debug(...['[console:run]', ...args]);
-			}
+			id: '.',
+			base: patternRoot,
+			config: patternConfig,
+			factory: application.pattern.factory,
+			transforms: application.transforms,
+			log: application.log
 		}, application.cache);
 
 		if (application.cache) {
@@ -108,7 +107,7 @@ async function build (application, config) {
 						{ 'name': 'demo', 'buffer': result.demoBuffer },
 						{ 'name': '', 'buffer': result.buffer }
 					];
-					variants = variants.filter((item) => item.buffer.length > 0);
+					variants = variants.filter((item) => item.buffer.length > 0); // eslint-disable-line no-loop-func
 
 					// Write all variants into snippets
 					for (let variant of variants) {
@@ -118,7 +117,7 @@ async function build (application, config) {
 							variants.length > 1 ? variant.name : ''
 						];
 
-						fragments = fragments.filter((item) => item);
+						fragments = fragments.filter((item) => item); // eslint-disable-line no-loop-func
 
 						let resultFileBaseName = `${fragments.join('-')}.${result.out}`;
 						let resultFile = resolve(patternSnippetsDirectory, resultFileBaseName);
@@ -150,14 +149,14 @@ async function build (application, config) {
 				'style': [],
 				'script': [],
 				'markup': [],
-				'route': (name, params) => {
+				'route': (name, params) => { // eslint-disable-line no-loop-func
 					// TODO: Generalize this
 					let id = params.id || params.path;
 					id = id === 'content.js' ? 'content.bundle.js' : id;
 					name = name === 'script' ? '_assets/script' : name;
 
 					let fragments = [name, id];
-					fragments = fragments.filter((item) => item);
+					fragments = fragments.filter((item) => item); // eslint-disable-line no-loop-func
 
 					return '/' + fragments.join('/');
 				}
@@ -216,53 +215,44 @@ async function build (application, config) {
 			environments = ['index'];
 		}
 
-		let builds = [];
-
-		for (let environment of environments) {
-			let pattern = await getPatterns({
-				'id': qfs.relativeFromDirectory(patternRoot, environment),
-				'base': patternRoot,
-				'config': patternConfig,
-				'factory': application.pattern.factory,
-				'transforms': application.transforms,
-				'isEnvironment': true,
-				'log': function(...args) {
-					application.log.debug(...['[console:run]', ...args]);
-				}
-			}, application.cache);
-
-			builds.push(pattern[0]);
-		}
+		const builds = await* environments.map(throat(5, async environment => { // eslint-disable-line no-shadow
+			return (await getPatterns({
+				id: qfs.relativeFromDirectory(patternRoot, environment),
+				base: patternRoot,
+				config: patternConfig,
+				factory: application.pattern.factory,
+				transforms: application.transforms,
+				isEnvironment: true,
+				log: application.log
+			}, application.cache))[0];
+		}));
 
 		await qfs.makeTree(patternBuildDirectory);
-		let writes = [];
 
-		for (let build of builds) {
-			let target = build.manifest.name;
+		await* builds.map(throat(5, async build => { // eslint-disable-line no-shadow
+			const target = build.manifest.name;
 
-			let info = Object.assign({}, information, { version, target });
-			let fragments = ['/**!'];
+			const info = Object.assign({}, information, { version, target });
+			const fragments = ['/**!'];
 
-			let comment = Object.keys(info).reduce((results, fragmentName) => {
-				let name = `${fragmentName[0].toUpperCase()}${fragmentName.slice(1)}`;
-				let value = info[fragmentName];
+			const comment = Object.keys(info).reduce((results, fragmentName) => { // eslint-disable-line no-loop-func, no-shadow
+				const name = `${fragmentName[0].toUpperCase()}${fragmentName.slice(1)}`;
+				const value = info[fragmentName];
 				results.push(` * ${name}: ${value}`);
 				return results;
 			}, fragments).concat(['**/']).join('\n');
 
-			let results = build.results[target];
+			const results = build.results[target];
 
-			for (let resultName of Object.keys(results)) {
-				let result = results[resultName];
-				let contents = `${comment}\n${result.buffer.toString('utf-8')}`;
-				let ext = result.out;
-				let fileName = resolve(buildDirectory, [build.manifest.name, ext].join('.'));
+			return await* Object.entries(results).map(throat(5, async resultEntry => {
+				const [resultName, result] = resultEntry;
+				const contents = [comment, results.buffer.toString('utf-8')].join('\n');
+				const ext = result.out;
+				const fileName = resolve(buildDirectory, [build.manifest.name, ext].join('.'));
 				application.log.info(`[console:run] Writing "${resultName}" for configuration "${build.manifest.name}" to ${fileName} ...`);
-				writes.push(qfs.write(fileName, contents));
-			}
-		}
-
-		await Promise.all(writes);
+				return qfs.write(fileName, contents);
+			}));
+		}));
 	}
 
 	if (buildConfig.tasks.static) {

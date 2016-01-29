@@ -66,13 +66,13 @@ export default function patternRouteFactory (application, configuration) {
 
 		try {
 			let patternConfig = {
-				id, config, filters,
-				'base': basePath,
-				'factory': application.pattern.factory,
-				'transforms': application.transforms,
-				'log': function(...args) {
-					application.log.debug(...['[routes:pattern:getpattern]', ...args]);
-				}
+				id,
+				config,
+				filters,
+				base: basePath,
+				factory: application.pattern.factory,
+				transforms: application.transforms,
+				log: application.log
 			};
 
 			patternResults = await getPatterns(patternConfig, application.cache);
@@ -106,54 +106,80 @@ export default function patternRouteFactory (application, configuration) {
 				this.body = file.demoBuffer || file.buffer;
 				break;
 			default: // html/text
-				let hostName = application.configuration.server.host;
-				let port = application.configuration.server.port;
-				let host = `${hostName}:${port}`;
-				let prefix = '';
-
-				let templateData = {
-					'title': id,
-					'style': [],
-					'script': [],
-					'markup': [],
-					'route': (name, params) => {
-						name = name || 'pattern';
-						let route = application.router.url(name, params);
-
-						if (this.host !== host) {
-							host = `${this.host}`;
-							if (route.indexOf('/api') < 0) {
-								prefix = '/api';
-							}
-						}
-
-						let url = [host, prefix, route]
-							.filter((item) => item)
-							.map((item) => decodeURI(item).replace(/\*|\%2B|\?/g, ''));
-						return encodeURI(`//${url.join('')}`);
-					}
+				const template = {
+					title: id
 				};
 
-				for (let environmentName of Object.keys(result.results || {})) {
-					let environment = result.results[environmentName];
-					let envConfig = result.environments[environmentName].manifest || {};
-					let wrapper = getWrapper(envConfig['conditional-comment']);
-					let blueprint = {'environment': environmentName, 'content': '', wrapper};
+				const sectionSeed = Object.values(application.configuration.patterns.formats)
+					.reduce((seed, format) => {
+						return {...seed, [format.name.toLowerCase()]: []};
+					}, {});
 
-					for (let resultType of Object.keys(environment)) {
-						let result = environment[resultType];
-						let templateKey = resultType.toLowerCase();
-						let content = result.demoBuffer || result.buffer;
-						let uri = `${this.params.id}/${environmentName}.${result.out}`;
-						let templateSectionData = Object.assign({}, blueprint, {content, uri});
+				const templateContentData = Object.entries(result.results)
+					.reduce((results, environmentEntry) => {
+						const [environmentName, environmentContent] = environmentEntry;
+						const environmentConfig = environmentContent.manifest || {};
+						const wrapper = getWrapper(environmentConfig['conditional-comment']);
+						const blueprint = {
+							environment: environmentName,
+							content: '',
+							wrapper
+						};
 
-						templateData[templateKey] = Array.isArray(templateData[templateKey]) ?
-							templateData[templateKey].concat([templateSectionData]) :
-							[templateSectionData];
-					}
-				}
+						const section = Object.entries(environmentContent)
+							.reduce((templateSection, templateSectionResult) => {
+								const [sectionName, sectionResult] = templateSectionResult;
+								const name = sectionName.toLowerCase();
 
-				this.body = layout(templateData);
+								templateSection[name].push({
+									...blueprint,
+									content: sectionResult.demoBuffer || sectionResult.buffer
+								});
+
+								return templateSection;
+							}, sectionSeed);
+
+						return {...results, ...section};
+					}, sectionSeed);
+
+				const templateReferenceData = Object.entries(result.results)
+					.reduce((results, environmentEntry) => {
+						const [environmentName, environmentContent] = environmentEntry;
+						const environmentConfig = environmentContent.manifest || {};
+						const wrapper = getWrapper(environmentConfig['conditional-comment']);
+						const blueprint = {
+							environment: environmentName,
+							content: '',
+							wrapper
+						};
+
+						const section = result.outFormats
+							.reduce((referenceSection, outFormat) => {
+								referenceSection[outFormat.type].push({
+									...blueprint,
+									uri: application.router.url('pattern', {
+										id: `${this.params.id}/${environmentName}.${outFormat.extension}`
+									}).replace('%2B', '') // workaround for stuff router appends
+								});
+								return referenceSection;
+							}, sectionSeed);
+
+						// Append content script for iframe resizing
+						section.script.push({
+							...blueprint,
+							uri: application.router.url('script', {
+								path: 'content.js'
+							}).replace('%2B', '') // workaround for stuff router appends
+						});
+
+						return {...results, ...section};
+					}, sectionSeed);
+
+				this.body = layout({
+					...template,
+					content: templateContentData,
+					reference: templateReferenceData
+				});
 				break;
 		}
 	};

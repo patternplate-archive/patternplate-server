@@ -1,19 +1,47 @@
-import {resolve, basename, extname, dirname, join, sep} from 'path';
+import {resolve, basename, extname, dirname, sep} from 'path';
 
 import qfs from 'q-io/fs';
-import semver from 'semver';
 import merge from 'lodash.merge';
+import {flattenDeep, uniq, find} from 'lodash';
 import minimatch from 'minimatch';
+import chalk from 'chalk';
+import memoize from 'memoize-promise';
+import throat from 'throat';
 
-// Find the newest mtime of a file dependency tree
-function getLastModified(file) {
-	let mtimes = [file.fs.node.mtime];
+async function getPatternManifests(base, patterns = {}, fs = qfs) {
+	return await* Object.values(patterns).map(async id => {
+		const json = await fs.read(resolve(base, id, 'pattern.json'));
+		const manifest = {...JSON.parse(json), __id: id};
+		const subManifests = await getPatternManifests(base, manifest.patterns, fs);
+		return [manifest, ...subManifests];
+	});
+}
 
-	for (let dependencyName of Object.keys(file.dependencies)) {
-		mtimes.push(getLastModified(file.dependencies[dependencyName]));
-	}
+function getDependenciesToRead(patterns = {}, pool = []) {
+	return Object
+		.values(patterns)
+		.reduce((result, id) => {
+			const dependency = find(pool, {id});
+			const sub = getDependenciesToRead(dependency.manifest.patterns, pool);
+			const add = [...sub, id].filter(item => result.indexOf(item) === -1);
+			return [...result, ...add];
+		}, []);
+}
 
-	return mtimes.sort((a, b) => b - a)[0];
+function constructDependencies(patterns = {}, pool = []) {
+	return Object
+		.entries(patterns)
+		.reduce((result, entry) => {
+			const [name, id] = entry;
+			const dependency = find(pool, {id});
+			return {
+				...result,
+				[name]: {
+					...dependency,
+					dependencies: constructDependencies(dependency.manifest.patterns, pool)
+				}
+			};
+		}, {});
 }
 
 export class Pattern {
@@ -23,19 +51,79 @@ export class Pattern {
 	dependencies = {};
 	results = {};
 	mtime = null;
+	filters = {
+		environments: [],
+		formats: []
+	};
+	log = {
+		error: function(...args) {
+			console.error(...args);
+		},
+		warn: function(...args) {
+			console.warn(...args);
+		},
+		info: function(...args) {
+			console.log(...args);
+		},
+		debug: function(...args) {
+			console.log(...args);
+		},
+		silly: function(...args) {
+			console.log(...args);
+		}
+	};
+	cache = {
+		get() {
+			return null;
+		},
+		set() {
+			return null;
+		}
+	};
 
 	constructor(patternPath, base, config = {}, transforms = {}, filters = {}, cache = null) {
 		const id = patternPath.split(sep).join('/');
 
-		Object.assign(this, {
-			id, base, cache, config, transforms, filters,
+		const list = memoize(qfs.listTree).bind(qfs);
+		const stat = memoize(qfs.stat).bind(qfs);
+		const exists = memoize(qfs.exists).bind(qfs);
+		const read = async file => {
+			const stats = await stat(file);
+			const cached = this.cache.get(file, stats.node.mtime);
+			if (cached) {
+				return cached;
+			} else {
+				const content = qfs.read(file);
+				this.cache.set(file, stats.node.mtime, content);
+				return content;
+			}
+		};
+
+		merge(this, {
+			id,
+			base,
+			cache,
+			transforms,
+			filters,
 			path: Pattern.resolve(base, id),
 			environments: {
 				'index': {
 					'manifest': { 'name': 'index' }
 				}
 			},
-			isEnvironment: id.includes('@environment')
+			isEnvironment: id.includes('@environment'),
+			fs: {
+				list,
+				stat,
+				exists,
+				read,
+				...(this.config.fs || {})
+			},
+			config: {
+				parents: [],
+				...config
+			},
+			log: config.log
 		});
 	}
 
@@ -78,173 +166,212 @@ export class Pattern {
 		return results;
 	}
 
-	async readManifest(path = this.path, fs = qfs) {
-		fs.exists = fs.exists.bind(fs);
+	async readManifest(path = this.path, fs = this.fs) {
+		if (this.config.parents.length === 0) {
+			const manifestPath = resolve(this.path, 'pattern.json');
 
-		if ( await fs.exists(path) !== true ) {
-			throw new Error(`Can not read pattern from ${this.path}, it does not exist.`, {
-				'fileName': this.path,
-				'pattern': this.id
-			});
-		}
-
-		let manifestPath = resolve(this.path, 'pattern.json');
-
-		if (!await fs.exists(manifestPath)) {
-			throw new Error(`Can not read pattern.json from ${this.path}, it does not exist.`, {
-				'fileName': this.path,
-				'pattern': this.id
-			});
-		}
-
-		try {
-			let manifestData = JSON.parse(await fs.read(manifestPath));
-			this.manifest = Object.assign({}, {
-				'version': '0.1.0',
-				'build': true,
-				'display': true
-			}, this.manifest, manifestData);
-		} catch (error) {
-			throw new Error(`Error while reading pattern.json from ${this.path}`, {
-				'file': this.path,
-				'pattern': this.id,
-				'stack': error.stack
-			});
-		}
-
-		if (this.isEnvironment && !this.manifest.patterns) {
-			let list = await qfs.listTree(this.base);
-			let range = this.manifest.range || '*';
-
-			list = list
-				.filter((item) => basename(item) === 'pattern.json')
-				.filter((item) => !item.includes('@environment'))
-				.map((item) => qfs.relativeFromDirectory(this.base, dirname(item)))
-				.filter((item) => item !== this.id);
-
-			if (this.manifest.include) {
-				let include = Array.prototype.concat.call([], this.manifest.include, ['']);
-				list = list.filter((item) => minimatch(item, `{${include.join(',')}}` ));
-			}
-
-			if (this.manifest.exclude) {
-				let exclude = Array.prototype.concat.call([], this.manifest.exclude, ['']);
-				list = list.filter((item) => !minimatch(item, `{${exclude.join(',')}}` ));
-			}
-
-			this.manifest.patterns = list.reduce((results, item) => Object.assign(results, {[item]: `${item}@${range}`}), {});
-		}
-
-		for (let patternName of Object.keys(this.manifest.patterns || {})) {
-			let patternIDString = this.manifest.patterns[patternName];
-			let patternBaseName = basename(patternIDString);
-			let patternBaseNameFragments = patternBaseName.split('@');
-			let patternRange = semver.validRange(patternBaseNameFragments[1]) || '*';
-
-			if (!patternRange) {
-				throw new Error(`${patternBaseNameFragments[1]} in ${patternIDString} is no valid semver range.`, {
-					'file': this.path,
+			if (!await this.fs.exists(manifestPath)) {
+				throw new Error(`Can not read pattern.json from ${this.path}, it does not exist.`, {
+					'fileName': this.path,
 					'pattern': this.id
 				});
 			}
 
-			let patternID = join(dirname(patternIDString), patternBaseNameFragments[0]);
-			let pattern = new Pattern(patternID, this.base, this.config, this.transforms, this.filters, this.cache);
-
-			this.dependencies[patternName] = await pattern.read(pattern.path);
-
-			if (!semver.satisfies(pattern.manifest.version, patternRange)) {
-				if (!this.isEnvironment) {
-					throw new Error(`${pattern.id} at version ${pattern.manifest.version} does not satisfy range ${patternRange} specified by ${this.id}.`, {
-						'file': pattern.path,
-						'pattern': this.id
-					});
-				} else {
-					delete this.dependencies[patternName];
-					console.warn(`Omitting ${pattern.id} at version ${pattern.manifest.version} from build. It does not satisfy range ${patternRange} specified by ${this.id}.`);
-				}
+			try {
+				const manifestString = await this.fs.read(manifestPath);
+				const manifestData = JSON.parse(manifestString);
+				this.manifest = {
+					'version': '0.1.0',
+					'build': true,
+					'display': true,
+					...this.manifest,
+					...manifestData
+				};
+			} catch (error) {
+				throw new Error(`Error while reading pattern.json from ${this.path}: ${error.message}`, {
+					'file': this.path,
+					'pattern': this.id,
+					'stack': error.stack
+				});
 			}
+
+			if (this.isEnvironment && !this.manifest.patterns) {
+				let list = await this.fs.list(this.base);
+				let range = this.manifest.range || '*';
+
+				list = list
+					.filter((item) => basename(item) === 'pattern.json')
+					.filter((item) => !item.includes('@environment'))
+					.map((item) => qfs.relativeFromDirectory(this.base, dirname(item)))
+					.filter((item) => item !== this.id);
+
+				if (this.manifest.include) {
+					let include = Array.prototype.concat.call([], this.manifest.include, ['']);
+					list = list.filter((item) => minimatch(item, `{${include.join(',')}}` ));
+				}
+
+				if (this.manifest.exclude) {
+					let exclude = Array.prototype.concat.call([], this.manifest.exclude, ['']);
+					list = list.filter((item) => !minimatch(item, `{${exclude.join(',')}}` ));
+				}
+
+				this.manifest.patterns = list
+					.reduce((results, item) => Object.assign(results, {[item]: `${item}@${range}`}), {});
+			}
+
+			const manifests = await getPatternManifests(this.base, this.manifest.patterns, this.fs);
+			const dependencies = uniq(flattenDeep(manifests), '__id');
+			const dependencyPatterns = dependencies
+				.map(manifest => {
+					const {__id: id} = manifest;
+					const config = {
+						...this.config,
+						parents: [...this.config.parents, this.id]
+					};
+					const pattern = new Pattern(
+							id,
+							this.base,
+							config,
+							this.transforms,
+							this.filters,
+							this.cache
+						);
+					pattern.manifest = manifest;
+					return pattern;
+				});
+
+			const dependenciesToRead = getDependenciesToRead(this.manifest.patterns, dependencyPatterns);
+			const readDependencies = await* dependenciesToRead.map(async id => {
+				return find(dependencyPatterns, {id}).read(this.path, fs);
+			});
+
+			this.dependencies = constructDependencies(this.manifest.patterns, readDependencies);
 		}
 
-		await this.getLastModified();
 		return this;
 	}
 
-	async read(path = this.path, fs = qfs) {
-		let readCacheID = `pattern:read:${this.id}`;
+	async read(path = this.path, fs = this.fs) {
+		const readStart = new Date();
+		this.log.silly(`Reading files for ${this.id}`);
 
-		// Use the fast-track read cache from get-patterns if applicable
-		if (this.cache && this.cache.config.read && !this.isEnvironment) {
-			let cached = this.cache.get(readCacheID, false);
+		// determine the current mtimes for this pattern
+		const fileList = await this.fs.list(path);
+		this.log.silly(`Listed files for ${this.id} ${chalk.grey('[' + (new Date() - readStart) + 'ms]')}`);
 
-			if (cached) {
-				Object.assign(this, cached);
-				return this;
-			}
+		// use filter, use all formats if none given
+		const formats = this.filters.formats.length > 0 ?
+			this.filters.formats :
+			Object.keys(this.config.patterns.formats);
+
+		// determine requested in formats
+		const inFormats = formats
+			.map(format => {
+				const formatConfig = this.config.patterns.formats[format] || {};
+				const transformNames = formatConfig.transforms || [];
+				const firstTransform = this.config.transforms[transformNames[0]] || [];
+				return firstTransform.inFormat || format;
+			})
+			.filter(Boolean);
+
+		// get the relevant pattern files
+		const files = fileList
+			.filter(file => {
+				const fileExtension = extname(file);
+				const fileRumpName = basename(file, fileExtension);
+				return fileExtension && ['index', 'demo'].indexOf(fileRumpName) > -1;
+			})
+			.filter(Boolean);
+
+		// determine the formats available for request
+		const outFormats = files
+			.map(file => {
+				const inFileFormat = extname(file).slice(1);
+				const formatConfig = this.config.patterns.formats[inFileFormat] || {};
+				const transformNames = formatConfig.transforms || [];
+				const lastTransform = this.config.transforms[transformNames[transformNames.length - 1]] || {};
+
+				return {
+					name: formatConfig.name,
+					type: formatConfig.name.toLowerCase(),
+					extension: lastTransform.outFormat || inFileFormat
+				};
+			});
+
+		this.outFormats = outFormats;
+		this.inFormats = inFormats;
+
+		// get the files matching our current filter
+		const matchingFiles = files
+			.filter(file =>
+				inFormats.indexOf(extname(file).slice(1)) > -1
+			);
+
+		if (matchingFiles.length) {
+			this.log.silly(`Using ${matchingFiles.length} of ${files.length} files for ${this.id}: ${chalk.grey('[' + matchingFiles.map(file => basename(file)) + ']')}`);
 		}
 
+		const manifestStart = new Date();
 		await this.readManifest(path, fs);
 
-		let files = await fs.listTree(path);
-
-		files = files.filter(function(fileName){
-			let ext = extname(fileName);
-			return ext && ['index', 'demo', 'pattern'].indexOf(basename(fileName, ext)) > -1;
-		});
-
-		for (let file of files) {
-			let stat = await fs.stat(file);
-			let mtime = stat.node.mtime;
-			let name = basename(file);
-
-			let data = this.cache ? this.cache.get(file, mtime) : null;
-
-			if (!data) {
-				let ext = extname(file);
-				let buffer = await fs.read(file);
-
-				data = {
-					buffer,
-					name,
-					'basename': basename(name, ext),
-					'ext': ext,
-					'format': ext.replace('.', ''),
-					'fs': stat,
-					'path': file,
-					'source': buffer,
-					'pattern': this,
-					'meta': {
-						dependencies: [],
-						devDependencies: []
-					}
-				};
-
-				if (this.cache) {
-					this.cache.set(file, mtime, data);
-				}
-			}
-
-			this.files[name] = data;
+		// read manifest information
+		if (this.config.parents.length === 0) {
+			this.log.silly(`Read manifest for ${this.id} ${chalk.grey('[' + (new Date() - manifestStart) + 'ms]')}`);
 		}
 
-		for ( let fileName in this.files ) {
-			let file = this.files[fileName];
-			file.dependencies = {};
+		// read in relevant file information
+		const fileData = await* matchingFiles.map(throat(5, async file => {
+			const fileFs = await this.fs.stat(file);
+			const fileExt = extname(file);
+			const fileBaseName = basename(file);
+			const fileRumpName = basename(file, fileExt);
+			const fileFormat = fileExt.slice(1);
 
-			if ( file.basename === 'demo' ) {
-				continue;
-			}
+			// check if the format/transform config requires us to fetch the buffer
+			const formatConfig = this.config.patterns.formats[fileFormat] || {};
+			const transformNames = formatConfig.transforms || [];
+			const transforms = transformNames.map(name => this.config.transforms[name] || {});
+			const resolveDependencies = transforms.some(transform => transform.resolveDependencies !== false);
+			const isRoot = this.config.parents.length === 0;
+			// const fileContents = isRoot || resolveDependencies ? await this.fs.read(file) : new Buffer('');
+			const fileContents = await this.fs.read(file);
 
-			for (let dependencyName in this.dependencies) {
-				let dependencyFile = this.dependencies[dependencyName].files[file.name];
-
-				if (dependencyFile) {
-					file.dependencies[dependencyName] = dependencyFile;
+			// collect data in format expected by transforms
+			const data = {
+				buffer: fileContents,
+				source: fileContents,
+				name: fileBaseName,
+				basename: fileRumpName,
+				ext: fileExt,
+				format: fileFormat,
+				fs: fileFs,
+				path: file,
+				pattern: this,
+				meta: {
+					dependencies: [],
+					devDependencies: []
 				}
-			}
-		}
+			};
 
+			// determine dependencies on file level, currently only for index.*
+			const dependencies = Object.entries(this.dependencies)
+				.reduce((results, entry) => {
+					const [dependencyName, dependencyPattern] = entry;
+					const dependencyFile = dependencyPattern.files[data.name] || {};
+					return dependencyFile.path ? {...results, [dependencyName]: dependencyFile} : {...results};
+				}, {});
+
+			return {...data, dependencies};
+		}));
+
+		// convert to consumable format
+		this.files = fileData.reduce((results, data) => {
+			return {...results, [data.name]: data};
+		}, {});
+
+		// read last-modified
 		this.getLastModified();
+		this.log.silly(`Read files for ${this.id}. ${chalk.grey('[' + new Date() - readStart + ']')}`);
 		return this;
 	}
 
@@ -318,43 +445,22 @@ export class Pattern {
 					...formatDependencies
 				];
 
-				// Skip file transform if format filters present and not matching
-				if (!this.filters.formats || !this.filters.formats.length || this.filters.formats.includes(lastTransform.outFormat)) {
-					for (let transform of transforms) {
-						let cacheID = `file:transform:${file.path}:${environmentName}:${transform}`;
-						let cached;
-						let demo = demos[formatConfig.name];
-						let mtime = getLastModified(file);
+				for (let transform of transforms) {
+					let demo = demos[formatConfig.name];
 
-						// Use latest demo or file mtime
-						if (demo) {
-							mtime = Math.max(mtime, getLastModified(demo));
-						}
+					let fn = this.transforms[transform];
+					let environmentConfig = environment[transform] || {};
+					let applicationConfig = this.config.transforms[transform] || {};
+					let configuration = merge({}, applicationConfig, environmentConfig);
 
-						if (this.cache && this.cache.config.transform) {
-							cached = this.cache.get(cacheID, mtime);
-							file = cached || file;
-						}
-
-						if (!cached) {
-							let fn = this.transforms[transform];
-							let environmentConfig = environment[transform] || {};
-							let applicationConfig = this.config.transforms[transform] || {};
-							let configuration = merge({}, applicationConfig, environmentConfig);
-
-							try {
-								file = await fn({...file}, demo, configuration, forced);
-								if (this.cache && this.cache.config.transform && !this.isEnvironment) {
-									this.cache.set(cacheID, mtime, file);
-								}
-							} catch (error) {
-								error.pattern = this.id;
-								error.file = error.file || error.fileName || file.path;
-								error.transform = transform;
-								console.error(`Error while transforming file "${error.file}" of pattern "${error.pattern}" with transform "${error.transform}".`);
-								throw error;
-							}
-						}
+					try {
+						file = await fn({...file}, demo, configuration, forced);
+					} catch (error) {
+						error.pattern = this.id;
+						error.file = error.file || error.fileName || file.path;
+						error.transform = transform;
+						this.log.error(`Error while transforming file "${error.file}" of pattern "${error.pattern}" with transform "${error.transform}".`);
+						throw error;
 					}
 				}
 
@@ -370,22 +476,11 @@ export class Pattern {
 	}
 
 	getLastModified() {
-		let mtimes = [];
+		const fileMtimes = Object.values(this.files || {})
+			.map(file => new Date(file.fs.node.mtime));
 
-		// Already read
-		if ( this.dependencies ) {
-			for (let dependency in this.dependencies) {
-				mtimes.push(this.dependencies[dependency].getLastModified());
-			}
-		}
-
-		for (let fileName in this.files) {
-			let file = this.files[fileName];
-			mtimes.push(new Date(file.fs.node.mtime));
-		}
-
-		this.mtime = mtimes.sort((a, b) => b - a)[0];
-		return this.mtime;
+		this.mtime = fileMtimes.sort((a, b) => b - a)[0];
+		return this;
 	}
 
 	toJSON() {

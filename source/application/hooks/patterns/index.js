@@ -24,10 +24,12 @@ async function populate(application) {
 	let start = Date.now();
 
 	await getPatterns({
-		id, config, base, factory, transforms,
-		'log': function(...args) {
-			application.log.silly(...['[cache:pattern:getpattern]', ...args]);
-		}
+		id,
+		config,
+		base,
+		factory,
+		transforms,
+		log: application.log
 	}, application.cache);
 
 	let delta = Date.now() - start / 1000;

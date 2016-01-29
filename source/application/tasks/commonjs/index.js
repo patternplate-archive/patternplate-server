@@ -402,6 +402,7 @@ async function exportAsCommonjs(application) {
 
 		const transformStart = new Date();
 		application.log.info(wait`Transforming pattern ${pattern.id}`);
+
 		// obtain transformed pattern by id
 		const patternList = await getPatterns({
 			id: pattern.id,
@@ -409,17 +410,17 @@ async function exportAsCommonjs(application) {
 			config: application.configuration,
 			factory: application.pattern.factory,
 			transforms: application.transforms,
+			log: application.log,
 			filters
 		}, application.cache);
-
 
 		application.log.info(ok`Transformed pattern ${pattern.id} ${transformStart}`);
 
 		// Extract dependency information
 		patternList.forEach(patternItem => {
 			const meta = patternItem.meta || {};
-			const itemDependencies = meta.dependencies;
-			const itemDevDependencies = meta.devDependencies;
+			const itemDependencies = meta.dependencies || [];
+			const itemDevDependencies = meta.devDependencies || [];
 			externalDependencies = [...externalDependencies, ...itemDependencies];
 			externalDevDependencies = [...externalDevDependencies, ...itemDevDependencies];
 		});
@@ -429,7 +430,7 @@ async function exportAsCommonjs(application) {
 
 		// Write results to disk
 		const writingArtifacts = Promise.all(patternList.map(async patternItem => {
-			const resultEnvironment = patternItem.results.index;
+			const resultEnvironment = patternItem.results.index || {};
 			// Read pathFormatString from matching transform config for now,
 			// will be fed from pattern result meta information when we approach the new transform system
 			const pathFormatString = application.configuration.resolve;
