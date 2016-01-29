@@ -155,6 +155,9 @@ export default function patternRouteFactory (application, configuration) {
 
 						const section = result.outFormats
 							.reduce((referenceSection, outFormat) => {
+								if (!outFormat.type) {
+									return referenceSection;
+								}
 								referenceSection[outFormat.type].push({
 									...blueprint,
 									uri: application.router.url('pattern', {

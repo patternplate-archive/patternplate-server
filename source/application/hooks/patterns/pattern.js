@@ -2,7 +2,12 @@ import {resolve, basename, extname, dirname, sep} from 'path';
 
 import qfs from 'q-io/fs';
 import merge from 'lodash.merge';
-import {flattenDeep, uniq, find} from 'lodash';
+import {
+	flattenDeep,
+	uniq,
+	find,
+	invert
+} from 'lodash';
 import minimatch from 'minimatch';
 import chalk from 'chalk';
 import memoize from 'memoize-promise';
@@ -34,13 +39,28 @@ function constructDependencies(patterns = {}, pool = []) {
 		.reduce((result, entry) => {
 			const [name, id] = entry;
 			const dependency = find(pool, {id});
-			return {
-				...result,
-				[name]: {
-					...dependency,
-					dependencies: constructDependencies(dependency.manifest.patterns, pool)
-				}
-			};
+			dependency.dependencies = constructDependencies(dependency.manifest.patterns, pool);
+			result[name] = dependency;
+			return result;
+		}, {});
+}
+
+function constructFileDependencies(dependencies, search) {
+	return Object
+		.entries(dependencies)
+		.reduce((results, entry) => {
+			const [dependencyName, dependencyPattern] = entry;
+			const searchResults = Object.keys(dependencyPattern.files)
+				.filter(file => {
+					return search.indexOf(file) > -1;
+				});
+			const dependencyFileName = searchResults[0];
+			const dependencyFile = dependencyPattern.files[dependencyFileName] || {};
+			if (dependencyFile.path) {
+				dependencyFile.dependencies = constructFileDependencies(dependencyPattern.dependencies, search);
+				results[dependencyName] = dependencyFile;
+			}
+			return results;
 		}, {});
 }
 
@@ -219,8 +239,11 @@ export class Pattern {
 					.reduce((results, item) => Object.assign(results, {[item]: `${item}@${range}`}), {});
 			}
 
+			this.manifest.patterns.Pattern = this.id; // should be set for demos only?
+
 			const manifests = await getPatternManifests(this.base, this.manifest.patterns, this.fs);
 			const dependencies = uniq(flattenDeep(manifests), '__id');
+
 			const dependencyPatterns = dependencies
 				.map(manifest => {
 					const {__id: id} = manifest;
@@ -233,7 +256,10 @@ export class Pattern {
 							this.base,
 							config,
 							this.transforms,
-							this.filters,
+							{
+								...this.filters,
+								baseNames: ['index'] // dependencies are index-only
+							},
 							this.cache
 						);
 					pattern.manifest = manifest;
@@ -241,8 +267,16 @@ export class Pattern {
 				});
 
 			const dependenciesToRead = getDependenciesToRead(this.manifest.patterns, dependencyPatterns);
+
+			this.log.silly(`Determined dependency chain for ${this.id}`);
+
+			dependenciesToRead.forEach(item => {
+				const name = invert(this.manifest.patterns)[item];
+				this.log.silly(`↳  ${chalk.bold(name)} → ${item}`);
+			});
+
 			const readDependencies = await* dependenciesToRead.map(async id => {
-				return find(dependencyPatterns, {id}).read(this.path, fs);
+				return find(dependencyPatterns, {id}).read();
 			});
 
 			this.dependencies = constructDependencies(this.manifest.patterns, readDependencies);
@@ -256,8 +290,8 @@ export class Pattern {
 		this.log.silly(`Reading files for ${this.id}`);
 
 		// determine the current mtimes for this pattern
-		const fileList = await this.fs.list(path);
-		this.log.silly(`Listed files for ${this.id} ${chalk.grey('[' + (new Date() - readStart) + 'ms]')}`);
+		const fileList = await qfs.list(path);
+		this.log.silly(`Listed ${fileList.length} files for ${this.id} ${chalk.grey('[' + (new Date() - readStart) + 'ms]')}`);
 
 		// use filter, use all formats if none given
 		const formats = this.filters.formats.length > 0 ?
@@ -266,20 +300,46 @@ export class Pattern {
 
 		// determine requested in formats
 		const inFormats = formats
-			.map(format => {
-				const formatConfig = this.config.patterns.formats[format] || {};
-				const transformNames = formatConfig.transforms || [];
-				const firstTransform = this.config.transforms[transformNames[0]] || [];
-				return firstTransform.inFormat || format;
-			})
-			.filter(Boolean);
+			.reduce((result, format) => {
+				const transforms = Object.entries(this.config.transforms)
+					.map(entry => {
+						const [name, config] = entry;
+						return config.outFormat === format ? name : null;
+					})
+					.filter(Boolean);
+
+				const formatNames = Object.entries(this.config.patterns.formats)
+					.map(entry => {
+						const [name, config] = entry;
+						return transforms.indexOf(
+							config.transforms[config.transforms.length - 1]) > -1 ?
+								name : null;
+					})
+					.filter(Boolean);
+
+				return [...result, ...formatNames];
+			}, []);
+
+		this.log.silly(`${this.id} has ${inFormats.length} formats available: ${chalk.grey(JSON.stringify(this.filters))}`);
+
+		// determine which basenames to read
+		const baseNames = this.filters.baseNames && this.filters.baseNames.length > 0 ? this.filters.baseNames : ['index', 'demo'];
 
 		// get the relevant pattern files
-		const files = fileList
+		const rawFiles = fileList
 			.filter(file => {
+				// filter for allowed basenames, this will be configurable in the future
 				const fileExtension = extname(file);
 				const fileRumpName = basename(file, fileExtension);
-				return fileExtension && ['index', 'demo'].indexOf(fileRumpName) > -1;
+				return fileExtension && baseNames.indexOf(fileRumpName) > -1;
+			});
+
+		const files = rawFiles
+			.filter(file => {
+				// only use demos for any format if there is an index-demo pair
+				const fileExtension = extname(file);
+				const fileRumpName = basename(file, fileExtension);
+				return fileRumpName === 'demo' || rawFiles.indexOf(resolve(dirname(file), `demo${fileExtension}`)) === -1;
 			})
 			.filter(Boolean);
 
@@ -288,12 +348,13 @@ export class Pattern {
 			.map(file => {
 				const inFileFormat = extname(file).slice(1);
 				const formatConfig = this.config.patterns.formats[inFileFormat] || {};
+				const name = formatConfig.name || '';
 				const transformNames = formatConfig.transforms || [];
 				const lastTransform = this.config.transforms[transformNames[transformNames.length - 1]] || {};
 
 				return {
-					name: formatConfig.name,
-					type: formatConfig.name.toLowerCase(),
+					name,
+					type: name.toLowerCase(),
 					extension: lastTransform.outFormat || inFileFormat
 				};
 			});
@@ -305,11 +366,10 @@ export class Pattern {
 		const matchingFiles = files
 			.filter(file =>
 				inFormats.indexOf(extname(file).slice(1)) > -1
-			);
+			)
+			.map(file => resolve(this.base, this.id, file));
 
-		if (matchingFiles.length) {
-			this.log.silly(`Using ${matchingFiles.length} of ${files.length} files for ${this.id}: ${chalk.grey('[' + matchingFiles.map(file => basename(file)) + ']')}`);
-		}
+		this.log.silly(`Using ${matchingFiles.length} of ${files.length} files for ${this.id}: ${chalk.grey('[' + matchingFiles.map(file => basename(file)) + ']')}`);
 
 		const manifestStart = new Date();
 		await this.readManifest(path, fs);
@@ -333,8 +393,11 @@ export class Pattern {
 			const transforms = transformNames.map(name => this.config.transforms[name] || {});
 			const resolveDependencies = transforms.some(transform => transform.resolveDependencies !== false);
 			const isRoot = this.config.parents.length === 0;
-			// const fileContents = isRoot || resolveDependencies ? await this.fs.read(file) : new Buffer('');
-			const fileContents = await this.fs.read(file);
+			const fileContents = isRoot || resolveDependencies ? await this.fs.read(file) : new Buffer('');
+
+			if (isRoot === false && resolveDependencies) {
+				this.log.silly(`Reading ${this.id} as dependeny of ${this.config.parents[this.config.parents.length - 1]}`);
+			}
 
 			// collect data in format expected by transforms
 			const data = {
@@ -353,15 +416,11 @@ export class Pattern {
 				}
 			};
 
-			// determine dependencies on file level, currently only for index.*
-			const dependencies = Object.entries(this.dependencies)
-				.reduce((results, entry) => {
-					const [dependencyName, dependencyPattern] = entry;
-					const dependencyFile = dependencyPattern.files[data.name] || {};
-					return dependencyFile.path ? {...results, [dependencyName]: dependencyFile} : {...results};
-				}, {});
-
-			return {...data, dependencies};
+			const dependencies = constructFileDependencies(this.dependencies, [`index${data.ext}`]);
+			return {
+				...data,
+				dependencies
+			};
 		}));
 
 		// convert to consumable format
@@ -371,54 +430,12 @@ export class Pattern {
 
 		// read last-modified
 		this.getLastModified();
-		this.log.silly(`Read files for ${this.id}. ${chalk.grey('[' + new Date() - readStart + ']')}`);
+		this.log.silly(`Read files for ${this.id}. ${chalk.grey('[' + (new Date() - readStart) + 'ms]')}`);
 		return this;
 	}
 
 	async transform( withDemos = true, forced = false ) {
 		await this.readEnvironments();
-
-		let demos = {};
-
-		if (forced) {
-			// Add fake/virtual files if forced
-			let fs = await qfs.mock(this.path);
-			await fs.makeTree(this.path);
-
-			let list = await fs.listTree('/');
-
-			for (let listItem of list) {
-				if (await fs.isFile(listItem)) {
-					await fs.rename(listItem, fs.join(this.path, fs.base(listItem)));
-				}
-			}
-
-			for (let formatName of Object.keys(this.config.patterns.formats)) {
-				if ( this.config.patterns.formats[formatName].build) {
-					await fs.write(resolve(this.path, ['index', formatName].join('.')), '\n');
-				}
-			}
-
-			await this.read(this.path, fs);
-		}
-
-		if (withDemos) {
-			for ( let fileName in this.files ) {
-				let file = this.files[fileName];
-
-				if ( file.basename !== 'demo' ) {
-					continue;
-				}
-
-				let formatConfig = this.config.patterns.formats[file.format];
-
-				if (typeof formatConfig !== 'object') {
-					continue;
-				}
-
-				demos[formatConfig.name] = file;
-			}
-		}
 
 		for (let environmentName of Object.keys(this.environments)) {
 			let environmentData = this.environments[environmentName];
@@ -426,10 +443,6 @@ export class Pattern {
 
 			for (let fileName of Object.keys(this.files)) {
 				let file = this.files[fileName];
-				if (file.basename === 'demo') {
-					continue;
-				}
-
 				let formatConfig = this.config.patterns.formats[file.format];
 
 				if (typeof formatConfig !== 'object') {
@@ -446,15 +459,32 @@ export class Pattern {
 				];
 
 				for (let transform of transforms) {
-					let demo = demos[formatConfig.name];
+					const transformStart = new Date();
+					const signet = chalk.yellow('[⚠ Faulty transform ⚠ ]');
+					const transformName = `"${chalk.bold(transform)}"`;
+					const fileBaseName = `"${chalk.bold(file.name)}"`;
+					const patternName = `"${chalk.bold(this.id)}"`;
 
 					let fn = this.transforms[transform];
 					let environmentConfig = environment[transform] || {};
 					let applicationConfig = this.config.transforms[transform] || {};
 					let configuration = merge({}, applicationConfig, environmentConfig);
 
+					this.log.silly(`Transforming ${fileBaseName} of ${patternName} via ${transformName}`);
 					try {
-						file = await fn({...file}, demo, configuration, forced);
+						const result = await fn(file, null, configuration, forced);
+						if (result) {
+							// backwards compatibility
+							file.in = configuration.inFormat;
+							file.out = configuration.outFormat;
+							if (basename(file, extname(file)) === 'demo') {
+								file.demoBuffer = result.buffer;
+							} else {
+								file.buffer = result.buffer;
+							}
+						} else {
+							this.log.warn(`${signet}    Transform ${transformName} did not return a file object for ${fileBaseName} of ${patternName}`);
+						}
 					} catch (error) {
 						error.pattern = this.id;
 						error.file = error.file || error.fileName || file.path;
@@ -462,6 +492,9 @@ export class Pattern {
 						this.log.error(`Error while transforming file "${error.file}" of pattern "${error.pattern}" with transform "${error.transform}".`);
 						throw error;
 					}
+
+					const stamp = chalk.grey(`[${new Date() - transformStart}ms]`);
+					this.log.silly(`Transformed ${fileBaseName} of ${patternName} via ${transformName} ${stamp}`);
 				}
 
 				if (!this.results[environmentName]) {
