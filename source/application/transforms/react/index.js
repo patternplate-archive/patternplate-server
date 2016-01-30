@@ -1,7 +1,7 @@
 /* eslint-disable no-use-before-define, no-loop-func */
 import merge from 'lodash.merge';
 import pascalCase from 'pascal-case';
-import {kebabCase, find, uniq} from 'lodash';
+import {kebabCase, find, uniq, omit} from 'lodash';
 import {transform, buildExternalHelpers} from 'babel-core';
 import chalk from 'chalk';
 import template from './react-class.tmpl';
@@ -29,19 +29,25 @@ export default function createReactCodeFactory(application) {
 
 			if (opts.globals && Object.keys(opts.globals).length > 0) {
 				application.log.warn(
-					`${chalk.yellow('[ ⚠  Deprecation ⚠ ]')}    "transforms.react.opts.globals" is deprecated and will be removed in version 1.0  ${chalk.grey('[transforms.react]')}`
+					[
+						`${chalk.yellow('[ ⚠  Deprecation ⚠ ]')}   `,
+						'"transforms.react.opts.globals" is deprecated',
+						'and will be removed in version 1.0 ',
+						`${chalk.grey('[transforms.react]')}`
+					].join(' ')
 				);
 			}
 
 			file.buffer = convertCode(file, configuration.resolveDependencies, opts);
 			const helpers = configuration.resolveDependencies ? buildExternalHelpers(undefined, 'var') : '';
 			const requireBlock = configuration.resolveDependencies ? createRequireBlock(file, configuration.resolveDependencies, opts) : '';
+
 			file.buffer = [
 				helpers,
 				requireBlock,
 				file.buffer
 			].join('\n');
-			//console.log(file.buffer);
+
 			return file;
 		} catch (error) {
 			const patternName = file.pattern.id;
@@ -52,19 +58,20 @@ export default function createReactCodeFactory(application) {
 	};
 
 	function convertCode(file, resolveDependencies, opts) {
-		let source = file.buffer.toString('utf-8');
+		const source = file.buffer.toString('utf-8');
+		const local = omit(merge({}, opts, {externalHelpers: resolveDependencies}), 'globals');
+
 		// TODO: This is a weak criteria to check if we have to create a wrapper
 		// perhaps we could check for dangling jsx expressions on the last line instead?
-		if (source.indexOf('extends React.Component') === -1 || source.indexOf('React.createClass') !== -1) {
-			application.log.debug(`Detected plain jsx file ${file.pattern.id}/${file.name}`);
-			source = createWrappedRenderFunction(file, source, resolveDependencies, opts);
-		} else if (resolveDependencies) {
-			application.log.debug(`Detected jsx file ${file.pattern.id}/${file.name} with React class`);
-			source = rewriteImportsToGlobalNames(file, source);
-		}
-		const localOpts = merge({}, opts);
-		delete localOpts.globals;
-		return transform(source, merge({externalHelpers: resolveDependencies}, localOpts)).code;
+		const isPlain = source.indexOf('extends React.Component') === -1 || source.indexOf('React.createClass') !== -1;
+
+		// wrap in a render function if plain jsx
+		file.buffer = isPlain ? createWrappedRenderFunction(file, source, resolveDependencies, opts) : source;
+
+		// rewrite imports to global names
+		file.buffer = rewriteImportsToGlobalNames(file, file.buffer);
+		file.buffer = transform(file.buffer, local).code;
+		return file.buffer;
 	}
 
 	function createWrappedRenderFunction(file, source, resolveDependencies, opts) {
@@ -89,7 +96,7 @@ export default function createReactCodeFactory(application) {
 		return vars.join('\n') + '\n' + source;
 	}
 
-	function writeDependencyImports(file, resolveDependencies) {
+	function writeDependencyImports(file) {
 		/**
 		 * Instead of deprecating the simple jsx templates altogether
 		 * we could require the user to provide an import block
@@ -107,18 +114,23 @@ export default function createReactCodeFactory(application) {
 		const externalTagNames = [...new Set(externalTagOccurences)];
 
 		return externalTagNames.map(tagName => {
-			const localName = tagName !== 'Pattern' ? kebabCase(tagName) : tagName;		const dependency = file.dependencies[localName];
+			const localName = tagName !== 'Pattern' ? kebabCase(tagName) : tagName;
+			const dependency = file.dependencies[localName];
 
 			if (!dependency) {
-				const err = new Error('Could not resolve dependency ${localName} introduced by implicit import for <${tagName}/> in ${file.path}. Only pattern imports are supported with plain jsx files');
+				const err = new Error(
+					[
+						'Could not resolve dependency ${localName}',
+						'introduced by implicit import for <${tagName}/>',
+						'in ${file.path}. Only pattern imports',
+						'are supported with plain jsx files'
+					].join(' ')
+				);
 				err.fileName = file.path;
 				err.file = file.path;
 			}
 
-			const name = resolveDependencies ?
-				dependency.pattern.id :
-				localName;
-			return `import ${tagName} from '${name}';`;
+			return `import ${tagName} from '${localName}';`;
 		});
 	}
 
@@ -147,7 +159,7 @@ export default function createReactCodeFactory(application) {
 			} else {
 				// rewrite to global pattern name
 				const dependencyName = dependencyFile.pattern.id;
-				return `${before}${dependencyName}${after}`;
+			return `${before}${dependencyName}${after}`;
 			}
 		});
 	}
@@ -196,7 +208,11 @@ export default function createReactCodeFactory(application) {
 					try {
 						require.resolve(importName);
 					} catch (err) {
-						err.message = [err.message, `It was not found in ${file.pattern.id}'s pattern.json and could not be resolved from npm`].join(' ');
+						err.message = [
+							err.message,
+							`It was not found in ${file.pattern.id}'s pattern.json`,
+							'and could not be resolved from npm'
+						].join(' ');
 						err.file = file.path;
 						err.pattern = file.pattern.id;
 						err.fileName = file.path;
