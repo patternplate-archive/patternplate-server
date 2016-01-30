@@ -163,9 +163,10 @@ export default function createReactCodeFactory(application) {
 		);
 	}
 
-	function getRequiredDependencies(file, pool, externalHelpers, opts) {
+	function getRequiredDependencies(file, externalHelpers, opts) {
 		// search for actual imports
 		const code = file.buffer;
+		const pool = getSquashedDependencies(file);
 		const rawImportNames = [];
 		let match;
 
@@ -210,17 +211,14 @@ export default function createReactCodeFactory(application) {
 					return {
 						...results,
 						[importName]: dependencyFile.buffer,
-						...getRequiredDependencies(dependencyFile, pool, externalHelpers, opts)
+						...getRequiredDependencies(dependencyFile, externalHelpers, opts)
 					};
 				}
 			}, {});
 	}
 
 	function createRequireBlock(file, externalHelpers, opts) {
-		const dependencyFiles = getSquashedDependencies(file);
-		const requiredDependencies = getRequiredDependencies(file, dependencyFiles, externalHelpers, opts);
-
-		console.log(Object.keys(requiredDependencies));
+		const requiredDependencies = getRequiredDependencies(file, externalHelpers, opts);
 
 		const results = Object.entries(requiredDependencies)
 			.map(requiredEntry => {

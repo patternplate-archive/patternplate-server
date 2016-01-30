@@ -1,6 +1,6 @@
 /* eslint-disable no-use-before-define */
 import * as React from 'react';
-import {transform} from 'babel-core';
+// import {transform} from 'babel-core';
 
 export default function createReactRendererFactory(application) {
 	const config = application.configuration.transforms['react-to-markup'] || {};
@@ -11,13 +11,13 @@ export default function createReactRendererFactory(application) {
 	};
 }
 
-function renderMarkup(source, opts) {
+function renderMarkup(source) {
 	// Compile pattern...
-	let result = transform(source, opts);
+	// let result = transform(source, opts);
 
 	// ...'require' module...
 	let moduleScope = {exports: {}};
-	let fn = new Function('module', 'exports', 'require', result.code); //eslint-disable-line no-new-func
+	let fn = new Function('module', 'exports', 'require', source); //eslint-disable-line no-new-func
 	fn(moduleScope, moduleScope.exports, require);
 
 	// ...finally render markup
