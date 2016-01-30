@@ -186,7 +186,7 @@ export class Pattern {
 		return results;
 	}
 
-	async readManifest(path = this.path, fs = this.fs) {
+	async readManifest() {
 		if (this.config.parents.length === 0) {
 			const manifestPath = resolve(this.path, 'pattern.json');
 
@@ -335,12 +335,15 @@ export class Pattern {
 				return fileExtension && baseNames.indexOf(fileRumpName) > -1;
 			});
 
+		// only use demos for any format if there is an index-demo pair
 		const files = rawFiles
 			.filter(file => {
-				// only use demos for any format if there is an index-demo pair
 				const fileExtension = extname(file);
 				const fileRumpName = basename(file, fileExtension);
-				return fileRumpName === 'demo' || rawFiles.indexOf(resolve(dirname(file), `demo${fileExtension}`)) === -1;
+				const correspondingDemo = `demo${fileExtension}`;
+				const isDemo = fileRumpName === 'demo';
+				const hasDemo = rawFiles.indexOf(correspondingDemo) > -1;
+				return isDemo || !hasDemo;
 			})
 			.filter(Boolean);
 
@@ -360,6 +363,7 @@ export class Pattern {
 				};
 			});
 
+		// provide meta data about formats
 		this.outFormats = outFormats;
 		this.inFormats = inFormats;
 
@@ -438,13 +442,13 @@ export class Pattern {
 	async transform( withDemos = true, forced = false ) {
 		await this.readEnvironments();
 
-		for (let environmentName of Object.keys(this.environments)) {
-			let environmentData = this.environments[environmentName];
-			let environment = environmentData.manifest.environment || {};
+		for (const environmentName of Object.keys(this.environments)) {
+			const environmentData = this.environments[environmentName];
+			const environment = environmentData.manifest.environment || {};
 
-			for (let fileName of Object.keys(this.files)) {
-				let file = this.files[fileName];
-				let formatConfig = this.config.patterns.formats[file.format];
+			for (const fileName of Object.keys(this.files)) {
+				const file = this.files[fileName];
+				const formatConfig = this.config.patterns.formats[file.format];
 
 				if (typeof formatConfig !== 'object') {
 					continue;
@@ -452,37 +456,53 @@ export class Pattern {
 
 				const formatDependencies = formatConfig.dependencies || [];
 				const transforms = formatConfig.transforms || [];
-				let lastTransform = this.config.transforms[transforms[transforms.length - 1]] || {};
+				const lastTransform = this.config.transforms[transforms[transforms.length - 1]] || {};
 
+				// Blend file dependencies with
+				// formatDependencies
 				file.meta.devDependencies = [
 					...file.meta.devDependencies,
 					...formatDependencies
 				];
 
-				for (let transform of transforms) {
+				for (const transform of transforms) {
 					const transformStart = new Date();
 					const signet = chalk.yellow('[⚠ Faulty transform ⚠ ]');
 					const transformName = `"${chalk.bold(transform)}"`;
 					const fileBaseName = `"${chalk.bold(file.name)}"`;
 					const patternName = `"${chalk.bold(this.id)}"`;
 
-					let fn = this.transforms[transform];
-					let environmentConfig = environment[transform] || {};
-					let applicationConfig = this.config.transforms[transform] || {};
-					let configuration = merge({}, applicationConfig, environmentConfig);
+					const transformFunction = this.transforms[transform];
+					const environmentConfig = environment[transform] || {};
+					const applicationConfig = this.config.transforms[transform] || {};
+					const configuration = merge({}, applicationConfig, environmentConfig);
 
-					this.log.silly(`Transforming ${fileBaseName} of ${patternName} via ${transformName}`);
+					this.log.debug(`Transforming ${fileBaseName} of ${patternName} via ${transformName}`);
 					try {
-						const result = await fn(file, null, configuration, forced);
+						const result = await transformFunction(file, null, configuration, forced);
 						if (result) {
+							// deprecate the use of file.demoBuffer
+							if (result.demoBuffer) {
+								const deprecation = chalk.yellow('[Deprecation]');
+								this.log.warn(`${deprecation}    Transform ${transformName} uses ${chalk.bold('file.demoBuffer')}, which is deprecated.`);
+							}
 							// backwards compatibility
-							file.in = configuration.inFormat;
-							file.out = configuration.outFormat;
+							// - transforms do not receive demo buffers anymore
+							// - instead they receive the demo as file.buffer, too
+							// - when the basename is demo, map buffer to demoBuffer
 							if (basename(file, extname(file)) === 'demo') {
-								file.demoBuffer = result.buffer;
+								this.log.debug(`Using the results of ${transformName} for ${fileBaseName} of ${patternName} as demo`);
+								file.demoBuffer = result.demoBuffer || result.buffer;
 							} else {
 								file.buffer = result.buffer;
+								this.log.debug(`Using the results of ${transformName} for ${fileBaseName} of ${patternName} as index`);
 							}
+							// set the in and out format for transforms
+							// this makes the corresponding lines in transforms obsolete
+							file.in = configuration.inFormat;
+							file.out = configuration.outFormat;
+							// make sure we pass a string to the outer world
+							file.buffer = file.buffer instanceof Buffer ? file.buffer.toString('utf-8') : file.buffer;
 						} else {
 							this.log.warn(`${signet}    Transform ${transformName} did not return a file object for ${fileBaseName} of ${patternName}`);
 						}
