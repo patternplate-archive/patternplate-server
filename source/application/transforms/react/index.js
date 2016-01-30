@@ -1,6 +1,7 @@
 /* eslint-disable no-use-before-define, no-loop-func */
 import merge from 'lodash.merge';
 import pascalCase from 'pascal-case';
+import {kebabCase} from 'lodash';
 import {transform, buildExternalHelpers} from 'babel-core';
 import chalk from 'chalk';
 import template from './react-class.tmpl';
@@ -83,18 +84,30 @@ const TAG_END = '\\s*\\/?>';
 const EXPR = new RegExp(`\n\s*(${TAG_START}${ATTRIBUTES}${TAG_END}[^]*)`, 'gi');
 
 function writeDependencyImports(file, resolveDependencies) {
+	/**
+	 * Instead of deprecating the simple jsx templates altogether
+	 * we could require the user to provide an import block
+	 * to do away with the implicit imports
+	 **/
 	const tagExpression = /<([A-Z][a-zA-Z0-9]+?)(?:\s|\/|>)/g;
 	const source = file.buffer.toString('utf-8');
-	const externalTagNames = [];
+	const externalTagOccurences = [];
 	let match;
 
 	while((match = tagExpression.exec(source)) !== null) {
-		externalTagNames.push(match[1]);
+		externalTagOccurences.push(match[1]);
 	}
 
+	const externalTagNames = [...new Set(externalTagOccurences)];
+
 	return externalTagNames.map(tagName => {
-		const localName = tagName !== 'Pattern' ? tagName.toLowerCase() : tagName;
-		const dependency = file.dependencies[localName];
+		const localName = tagName !== 'Pattern' ? kebabCase(tagName) : tagName;		const dependency = file.dependencies[localName];
+
+		if (!dependency) {
+			const err = new Error('Could not resolve dependency ${localName} introduced by implicit import caused by tag ${tagName} in ${file.path}. Only pattern imports are supported with plain jsx files');
+			err.fileName = file.path;
+			err.file = file.path;
+		}
 
 		const name = resolveDependencies ?
 			dependency.pattern.id :
@@ -111,7 +124,15 @@ function matchFirstJsxExpressionAndWrapWithReturn(source) {
 
 function rewriteImportsToGlobalNames(file, source) {
 	return source.replace(/(import\s+(?:\* as\s)?[^\s]+\s+from\s+["'])([^"']+)(["'];)/g, (match, before, name, after) => {
-		return `${before}${file.dependencies[name] || name}${after}`;
+		const dependencyFile = file.dependencies[name];
+		// must be npm
+		if (!dependencyFile) {
+			require.resolve(name);
+			return `${before}${name}${after}`;
+		} else {
+			const dependencyName = dependencyFile.pattern.id;
+			return `${before}${dependencyName}${after}`;
+		}
 	});
 }
 

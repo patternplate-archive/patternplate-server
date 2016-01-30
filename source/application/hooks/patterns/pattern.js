@@ -204,6 +204,7 @@ export class Pattern {
 					'version': '0.1.0',
 					'build': true,
 					'display': true,
+					'patterns': {},
 					...this.manifest,
 					...manifestData
 				};
