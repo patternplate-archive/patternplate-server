@@ -77,7 +77,7 @@ export default function createReactCodeFactory(application) {
 
 	function createWrappedRenderFunction(file, source, resolveDependencies, opts) {
 		const dependencies = writeDependencyImports(file).join('\n');
-		return renderCodeTemplate(source, dependencies, template, pascalCase(file.pattern.id), opts);
+		return renderCodeTemplate(source, dependencies, template, pascalCase(file.pattern.manifest.name), opts);
 	}
 
 	function renderCodeTemplate(source, dependencies, templateCode, className, opts) {
