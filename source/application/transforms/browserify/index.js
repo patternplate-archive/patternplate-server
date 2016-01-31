@@ -3,17 +3,7 @@ import {dirname} from 'path';
 import browserify from 'browserify';
 import omit from 'lodash.omit';
 
-function getLatestMTime(file) {
-	let mtimes = Object.keys(file.dependencies || {}).reduce(function(results, dependencyName){
-		let dependency = file.dependencies[dependencyName];
-		results.push(dependency.fs.node.mtime);
-		return results;
-	}, [file.fs.node.mtime]);
-
-	return mtimes.sort((a, b) => b - a)[0];
-}
-
-async function runBundler (bundler, config, meta) {
+async function runBundler (bundler, config) {
 	return new Promise(function bundlerResolver (resolver, rejecter) {
 		bundler.bundle(function onBundle (err, buffer) {
 			if (err) {
@@ -115,86 +105,27 @@ function browserifyTransformFactory (application) {
 			return results;
 		}, {});
 
-		if (!demo) {
-			let bundler;
+		const bundler = await resolveDependencies(file, configuration, application.cache);
 
-			try {
-				bundler = await resolveDependencies(file, configuration, application.cache);
-			} catch (err) {
-				throw err;
+		console.log(file.buffer);
+
+		for (const transformName of Object.keys(transforms)) {
+			const [transformFn, transformConfig] = transforms[transformName];
+			if (typeof transformFn.configure === 'function') {
+				bundler.transform(transformFn.configure(transformConfig));
+			} else {
+				bundler.transform(...transforms[transformName]);
 			}
-
-			for (let transformName of Object.keys(transforms)) {
-				let [transformFn, transformConfig] = transforms[transformName];
-
-				if (typeof transformFn.configure === 'function') {
-					bundler.transform(transformFn.configure(transformConfig));
-				} else {
-					bundler.transform(...transforms[transformName]);
-				}
-			}
-
-			let mtime = getLatestMTime(file);
-			let transformed = application.cache && application.cache.get(`browserify:${file.path}`, mtime);
-
-			if (!transformed) {
-				try {
-					let bundled = await runBundler(bundler, configuration, file);
-					transformed = bundled ? bundled.buffer : file.buffer;
-					if (application.cache) {
-						application.cache.set(`browserify:${file.path}`, mtime, transformed.buffer);
-					}
-				} catch (err) {
-					err.file = file.path || err.fileName;
-					throw err;
-				}
-			}
-
-			Object.assign(file, {
-				'buffer': transformed,
-				'in': configuration.inFormat,
-				'out': configuration.outFormat
-			});
 		}
 
-		if (demo) {
-			demo.dependencies = { 'Pattern': file };
-			let demoBundler;
-
-			try {
-				demoBundler = await resolveDependencies(demo, configuration, application.cache);
-			} catch (err) {
-				throw err;
-			}
-
-			for (let transformName of Object.keys(transforms)) {
-				let [transformFn, transformConfig] = transforms[transformName];
-
-				if (typeof transformFn.configure === 'function') {
-					demoBundler.transform(transformFn.configure(transformConfig));
-				} else {
-					demoBundler.transform(...transforms[transformName]);
-				}
-			}
-
-			let demoTransformed;
-
-			try {
-				demoTransformed = await runBundler(demoBundler, configuration, demo);
-			} catch (err) {
-				err.file = err.file || demo.path || err.fileName;
-				throw err;
-			}
-
-			Object.assign(file, {
-				'demoSource': demo.source,
-				'demoBuffer': demoTransformed ? demoTransformed.buffer : demo.buffer,
-				'in': configuration.inFormat,
-				'out': configuration.outFormat
-			});
+		try {
+			const bundled = await runBundler(bundler, configuration, file);
+			const {buffer} = bundled;
+			return {...file, buffer: buffer.toString('utf-8') };
+		} catch (err) {
+			err.file = file.path || err.fileName;
+			throw err;
 		}
-
-		return file;
 	};
 }
 
