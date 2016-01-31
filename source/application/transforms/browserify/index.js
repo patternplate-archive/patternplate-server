@@ -107,8 +107,6 @@ function browserifyTransformFactory (application) {
 
 		const bundler = await resolveDependencies(file, configuration, application.cache);
 
-		console.log(file.buffer);
-
 		for (const transformName of Object.keys(transforms)) {
 			const [transformFn, transformConfig] = transforms[transformName];
 			if (typeof transformFn.configure === 'function') {
