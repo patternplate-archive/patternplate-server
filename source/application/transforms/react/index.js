@@ -67,7 +67,10 @@ export default function createReactCodeFactory(application) {
 		application.log.silly(`${file.pattern.id}:${file.name} is plain jsx ${signature}`);
 
 		// rewrite imports to global names
-		file.buffer = rewriteImportsToGlobalNames(file, file.buffer);
+		if (resolveDependencies) {
+			file.buffer = rewriteImportsToGlobalNames(file, file.buffer);
+		}
+
 		file.buffer = transform(file.buffer, local).code;
 		return file.buffer;
 	}
