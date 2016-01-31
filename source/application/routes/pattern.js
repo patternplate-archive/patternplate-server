@@ -42,7 +42,7 @@ export default function patternRouteFactory (application, configuration) {
 
 		let filters = {
 			'environments': [],
-			'formats': []
+			'outFormats': []
 		};
 
 		switch(type) {
@@ -51,14 +51,14 @@ export default function patternRouteFactory (application, configuration) {
 				break;
 			case 'css':
 				filters.environments.push(base);
-				filters.formats.push(type);
+				filters.outFormats.push(type);
 				break;
 			case 'js':
 				filters.environments.push(base);
-				filters.formats.push(type);
+				filters.outFormats.push(type);
 				break;
 			default: // html/text
-				filters.formats.push(type);
+				filters.outFormats.push(type);
 				break;
 		}
 
@@ -115,7 +115,7 @@ export default function patternRouteFactory (application, configuration) {
 						return {...seed, [format.name.toLowerCase()]: []};
 					}, {});
 
-				const templateContentData = Object.entries(result.results)
+				const templateContentData = Object.entries(result.results || {})
 					.reduce((results, environmentEntry) => {
 						const [environmentName, environmentContent] = environmentEntry;
 						const environmentConfig = environmentContent.manifest || {};
@@ -142,7 +142,7 @@ export default function patternRouteFactory (application, configuration) {
 						return {...results, ...section};
 					}, sectionSeed);
 
-				const templateReferenceData = Object.entries(result.results)
+				const templateReferenceData = Object.entries(result.results || {})
 					.reduce((results, environmentEntry) => {
 						const [environmentName, environmentContent] = environmentEntry;
 						const environmentConfig = environmentContent.manifest || {};

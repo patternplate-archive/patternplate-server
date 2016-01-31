@@ -392,10 +392,10 @@ async function exportAsCommonjs(application) {
 		}
 
 		if (artifact) {
-			filters.formats = changedFiles.map(file => extname(file).slice(1));
-			const formats = chalk.grey(`[${filters.formats.join(', ')}]`);
+			filters.inFormats = changedFiles.map(file => extname(file).slice(1));
+			const formats = chalk.grey(`[${filters.inFormats.join(', ')}]`);
 			application.log.info(
-				ok`Building ${filters.formats.length} files for ${pattern.id} ${formats} ${filterStart}`);
+				ok`Building ${filters.inFormats.length} files for ${pattern.id} ${formats} ${filterStart}`);
 		} else {
 			application.log.info(ok`Building all files for ${pattern.id} ${filterStart}`);
 		}
@@ -484,7 +484,7 @@ async function exportAsCommonjs(application) {
 
 	const previousPkg = hasManifest ?
 		JSON.parse(await readFile(manifestPath)) :
-		{};
+		{dependencies: {}, devDependencies: {}};
 
 	const dependencies = externalDependencies.reduce((results, dependencyName) => {
 		return {...results,

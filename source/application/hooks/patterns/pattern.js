@@ -73,7 +73,8 @@ export class Pattern {
 	mtime = null;
 	filters = {
 		environments: [],
-		formats: []
+		inFormats: [],
+		outFormats: []
 	};
 	log = {
 		error: function(...args) {
@@ -295,12 +296,48 @@ export class Pattern {
 		this.log.silly(`Listed ${fileList.length} files for ${this.id} ${chalk.grey('[' + (new Date() - readStart) + 'ms]')}`);
 
 		// use filter, use all formats if none given
-		const formats = this.filters.formats.length > 0 ?
-			this.filters.formats :
+		const inFormats = this.filters.inFormats.length > 0 ?
+			this.filters.inFormats :
 			Object.keys(this.config.patterns.formats);
 
-		// determine requested in formats
-		const inFormats = formats
+		// determine available requested out formats
+		const outFormats = inFormats
+			.reduce((result, format) => {
+				// if there are no transforms configured
+				// fall back to formatName
+				const formatConfig = this.config.patterns.formats[format] || {};
+				if (formatConfig.transforms && formatConfig.transforms.length === 0) {
+					return [...result, format];
+				}
+
+				const transforms = Object.entries(this.config.transforms)
+					.map(entry => {
+						const [name, config] = entry;
+						return config.outFormat === format ? name : null;
+					})
+					.filter(Boolean);
+
+				const formatNames = Object.entries(this.config.patterns.formats)
+					.map(entry => {
+						const [name, config] = entry;
+						return transforms.indexOf(
+							config.transforms[config.transforms.length - 1]) > -1 ?
+								name : null;
+					})
+					.filter(Boolean);
+
+				return [...result, ...formatNames];
+			}, [])
+			.filter(outFormat => {
+				if (this.filters.outFormats.length === 0) {
+					return true;
+				} else {
+					return this.filters.outFormats.indexOf(outFormat) > -1;
+				}
+			});
+
+		// determine in formats for available out formats
+		const inOutFormats = outFormats
 			.reduce((result, format) => {
 				const transforms = Object.entries(this.config.transforms)
 					.map(entry => {
@@ -321,7 +358,10 @@ export class Pattern {
 				return [...result, ...formatNames];
 			}, []);
 
-		this.log.silly(`${this.id} has ${inFormats.length} formats available: ${chalk.grey(JSON.stringify(this.filters))}`);
+		const filteredFormats = this.filters.outFormats.length > 0 ?
+			inOutFormats : inFormats;
+
+		this.log.silly(`${this.id} has ${filteredFormats.length} formats available: ${chalk.grey(filteredFormats)}`);
 
 		// determine which basenames to read
 		const baseNames = this.filters.baseNames && this.filters.baseNames.length > 0 ? this.filters.baseNames : ['index', 'demo'];
@@ -348,7 +388,7 @@ export class Pattern {
 			.filter(Boolean);
 
 		// determine the formats available for request
-		const outFormats = files
+		const out = files
 			.map(file => {
 				const inFileFormat = extname(file).slice(1);
 				const formatConfig = this.config.patterns.formats[inFileFormat] || {};
@@ -364,13 +404,13 @@ export class Pattern {
 			});
 
 		// provide meta data about formats
-		this.outFormats = outFormats;
+		this.outFormats = out;
 		this.inFormats = inFormats;
 
 		// get the files matching our current filter
 		const matchingFiles = files
 			.filter(file =>
-				inFormats.indexOf(extname(file).slice(1)) > -1
+				filteredFormats.indexOf(extname(file).slice(1)) > -1
 			)
 			.map(file => resolve(this.base, this.id, file));
 

@@ -10,8 +10,8 @@ module.exports = {
 		'style': 'style'
 	},
 	'filters': {
-		'formats': ['less', 'css', 'js', 'jsx', 'html'],
-		'basenames': ['index']
+		'inFormats': ['less', 'css', 'js', 'jsx', 'html', 'md'],
+		'baseNames': ['index']
 	},
 	'patterns': {
 		'cache': {
