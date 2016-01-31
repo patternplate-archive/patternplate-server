@@ -19,25 +19,6 @@ async function getDependentPatterns(id, base) {
 	}, {});
 }
 
-async function getStaticCached(patternID, cache, log) {
-	if (cache && cache.config.static && cache.staticRoot) {
-		if (await fs.exists(cache.staticRoot)) {
-			const cachedPatternPath = resolve(cache.staticRoot, patternID, 'build.json');
-			log.debug(`Searching ${patternID} static cache at ${cachedPatternPath}`);
-
-			if (await fs.exists(cachedPatternPath)) {
-				try {
-					log.debug(`Static cache hit for ${patternID} at ${cachedPatternPath}. Profit!`);
-					return JSON.parse(await fs.read(cachedPatternPath));
-				} catch (err) {
-					log.debug(`Error reading static cache version of ${patternID} at ${cachedPatternPath}`, err);
-				}
-			}
-			log.debug(`Static cache miss for ${patternID} at ${cachedPatternPath}, falling back to dynamic version`);
-		}
-	}
-}
-
 async function getPatterns(options, cache = null) {
 	const settings = {...defaults, ...options};
 	const {
@@ -71,12 +52,6 @@ async function getPatterns(options, cache = null) {
 
 	// read and transform patterns at a concurrency of 5
 	return await* patternIDs.map(throat(5, async patternID => {
-		const cached = await getStaticCached(patternID, cache, log);
-
-		if (cached) {
-			return cached;
-		}
-
 		const initStart = new Date();
 		const filterString = JSON.stringify(filters);
 		log.info(`Initializing pattern "${patternID}" with filters: ${chalk.grey('[' + filterString + ']')}`);

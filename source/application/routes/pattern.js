@@ -1,8 +1,7 @@
-import {resolve, dirname, basename, extname} from 'path';
+import {resolve, dirname, extname} from 'path';
+import {merge} from 'lodash';
 
 import getPatterns from '../../library/utilities/get-patterns';
-import getWrapper from '../../library/utilities/get-wrapper';
-
 import layout from '../layouts';
 
 export default function patternRouteFactory (application, configuration) {
@@ -15,7 +14,6 @@ export default function patternRouteFactory (application, configuration) {
 		let basePath = resolve(cwd, config.patterns.path);
 		let id = this.params.id;
 
-		let base;
 		let resultName;
 		let type = this.accepts('text', 'json', 'html');
 		let extension = extname(this.path);
@@ -25,7 +23,6 @@ export default function patternRouteFactory (application, configuration) {
 		}
 
 		if (extension) {
-			base = basename(this.path, extension);
 			let format = config.patterns.formats[type] || {};
 			resultName = format.name || '';
 
@@ -41,20 +38,16 @@ export default function patternRouteFactory (application, configuration) {
 		}
 
 		let filters = {
-			'environments': [],
 			'outFormats': []
 		};
 
 		switch(type) {
 			case 'json':
-				filters.environments.push('index');
 				break;
 			case 'css':
-				filters.environments.push(base);
 				filters.outFormats.push(type);
 				break;
 			case 'js':
-				filters.environments.push(base);
 				filters.outFormats.push(type);
 				break;
 			default: // html/text
@@ -65,7 +58,7 @@ export default function patternRouteFactory (application, configuration) {
 		let patternResults;
 
 		try {
-			let patternConfig = {
+			const patternConfig = {
 				id,
 				config,
 				filters,
@@ -81,23 +74,30 @@ export default function patternRouteFactory (application, configuration) {
 		}
 
 		patternResults = patternResults || [];
-		let result = patternResults.length === 1 ? patternResults[0] : patternResults;
+		const result = patternResults.length === 1 ? patternResults[0] : patternResults;
 
 		this.type = type;
 
 		switch(type) {
 			case 'json':
-				this.body = result;
+				// backwards compatibility for client
+				// this can be removed when the client requests
+				// pattern meta data seperately
+				let copyResult;
+
+				if (!Array.isArray(result)) {
+					copyResult = merge({}, result, {results: {index: result.results}});
+				} else {
+					copyResult = patternResults.map(pattern => {
+						return merge({}, pattern, {results: {index: pattern.results}});
+					});
+				}
+
+				this.body = copyResult;
 				break;
 			case 'css':
 			case 'js':
-				let environment = result.results[base];
-
-				if (!environment) {
-					this.throw(404);
-				}
-
-				let file = environment[resultName];
+				const file = result.results[resultName];
 
 				if (!file) {
 					this.throw(404);
@@ -116,67 +116,37 @@ export default function patternRouteFactory (application, configuration) {
 					}, {});
 
 				const templateContentData = Object.entries(result.results || {})
-					.reduce((results, environmentEntry) => {
-						const [environmentName, environmentContent] = environmentEntry;
-						const environmentConfig = environmentContent.manifest || {};
-						const wrapper = getWrapper(environmentConfig['conditional-comment']);
-						const blueprint = {
-							environment: environmentName,
-							content: '',
-							wrapper
-						};
+					.reduce((templateSection, templateSectionResult) => {
+							const [sectionName, sectionResult] = templateSectionResult;
+							const name = sectionName.toLowerCase();
 
-						const section = Object.entries(environmentContent)
-							.reduce((templateSection, templateSectionResult) => {
-								const [sectionName, sectionResult] = templateSectionResult;
-								const name = sectionName.toLowerCase();
+							templateSection[name].push({
+								content: sectionResult.demoBuffer || sectionResult.buffer
+							});
 
-								templateSection[name].push({
-									...blueprint,
-									content: sectionResult.demoBuffer || sectionResult.buffer
-								});
+							return templateSection;
+						}, sectionSeed);
 
-								return templateSection;
-							}, sectionSeed);
-
-						return {...results, ...section};
-					}, sectionSeed);
-
-				const templateReferenceData = Object.entries(result.results || {})
-					.reduce((results, environmentEntry) => {
-						const [environmentName, environmentContent] = environmentEntry;
-						const environmentConfig = environmentContent.manifest || {};
-						const wrapper = getWrapper(environmentConfig['conditional-comment']);
-						const blueprint = {
-							environment: environmentName,
-							content: '',
-							wrapper
-						};
-
-						const section = result.outFormats
-							.reduce((referenceSection, outFormat) => {
-								if (!outFormat.type) {
-									return referenceSection;
-								}
-								referenceSection[outFormat.type].push({
-									...blueprint,
-									uri: application.router.url('pattern', {
-										id: `${this.params.id}/${environmentName}.${outFormat.extension}`
-									}).replace('%2B', '') // workaround for stuff router appends
-								});
-								return referenceSection;
-							}, sectionSeed);
-
-						// Append content script for iframe resizing
-						section.script.push({
-							...blueprint,
-							uri: application.router.url('script', {
-								path: 'content.js'
+				const templateReferenceData = result.outFormats
+					.reduce((referenceSection, outFormat) => {
+						if (!outFormat.type) {
+							return referenceSection;
+						}
+						referenceSection[outFormat.type].push({
+							uri: application.router.url('pattern', {
+								id: `${this.params.id}/index.${outFormat.extension}`
 							}).replace('%2B', '') // workaround for stuff router appends
 						});
-
-						return {...results, ...section};
+						return referenceSection;
 					}, sectionSeed);
+
+				// Append content script for iframe resizing
+				// TODO: remove this when the new client arrives
+				templateReferenceData.script.push({
+					uri: application.router.url('script', {
+						path: 'content.js'
+					}).replace('%2B', '') // workaround for stuff router appends
+				});
 
 				this.body = layout({
 					...template,

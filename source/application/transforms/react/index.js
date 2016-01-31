@@ -34,7 +34,7 @@ export default function createReactCodeFactory(application) {
 				[
 					deprecation,
 					`${chalk.bold('"transforms.react.opts.globals"')} is deprecated`,
-					'and will be removed in version 1.0 ',
+					'and will be removed in version 1.0. Use static properties on a common root component instead.',
 					signature
 				].join(' ')
 			);
