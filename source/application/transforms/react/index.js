@@ -23,37 +23,34 @@ export default function createReactCodeFactory(application) {
 	const IMPORT = /(import\s+(?:\* as\s)?[^\s]+\s+from\s+["'])([^"']+)(["'];)/g;
 	const REQUIRE = /require\(["'](.+?)["']\)/g;
 
+	const signature = chalk.grey('[transform:react]');
+	const deprecation = chalk.yellow('[ ⚠  Deprecation ⚠ ]');
+
 	return async function createReactCode(file, demo, configuration) {
-		try {
-			const opts = merge({}, config.opts, configuration.opts);
+		const opts = merge({}, config.opts, configuration.opts);
 
-			if (opts.globals && Object.keys(opts.globals).length > 0) {
-				application.log.warn(
-					[
-						`${chalk.yellow('[ ⚠  Deprecation ⚠ ]')}   `,
-						'"transforms.react.opts.globals" is deprecated',
-						'and will be removed in version 1.0 ',
-						`${chalk.grey('[transforms.react]')}`
-					].join(' ')
-				);
-			}
-
-			file.buffer = convertCode(file, configuration.resolveDependencies, opts);
-			const helpers = configuration.resolveDependencies ? buildExternalHelpers(undefined, 'var') : '';
-			const requireBlock = configuration.resolveDependencies ? createRequireBlock(file, configuration.resolveDependencies, opts) : '';
-
-			file.buffer = [
-				helpers,
-				requireBlock,
-				file.buffer
-			].join('\n');
-			return file;
-		} catch (error) {
-			const patternName = file.pattern.id;
-			application.log.error(`Unable to run react transform for ${patternName}/${file.name}.`);
-			application.log.error(error.stack);
-			throw error;
+		if (opts.globals && Object.keys(opts.globals).length > 0) {
+			application.log.warn(
+				[
+					deprecation,
+					`${chalk.bold('"transforms.react.opts.globals"')} is deprecated`,
+					'and will be removed in version 1.0 ',
+					signature
+				].join(' ')
+			);
 		}
+
+		file.buffer = convertCode(file, configuration.resolveDependencies, opts);
+		const helpers = configuration.resolveDependencies ? buildExternalHelpers(undefined, 'var') : '';
+		const requireBlock = configuration.resolveDependencies ? createRequireBlock(file, configuration.resolveDependencies, opts) : '';
+
+		file.buffer = [
+			helpers,
+			requireBlock,
+			file.buffer
+		].join('\n');
+
+		return file;
 	};
 
 	function convertCode(file, resolveDependencies, opts) {
@@ -67,6 +64,7 @@ export default function createReactCodeFactory(application) {
 
 		// wrap in a render function if plain jsx
 		file.buffer = isPlain ? createWrappedRenderFunction(file, source, resolveDependencies, opts) : source;
+		application.log.silly(`${file.pattern.id}:${file.name} is plain jsx ${signature}`);
 
 		// rewrite imports to global names
 		file.buffer = rewriteImportsToGlobalNames(file, file.buffer);
@@ -75,15 +73,19 @@ export default function createReactCodeFactory(application) {
 	}
 
 	function createWrappedRenderFunction(file, source, resolveDependencies, opts) {
-		const dependencies = writeDependencyImports(file, resolveDependencies).join('\n');
+		const dependencies = writeDependencyImports(file).join('\n');
 		return renderCodeTemplate(source, dependencies, template, pascalCase(file.pattern.id), opts);
 	}
 
 	function renderCodeTemplate(source, dependencies, templateCode, className, opts) {
+		const injected = addImplicitGlobals(source, opts);
+		const wrapped = matchFirstJsxExpressionAndWrapWithReturn(injected);
+		const stripped = stripImports(wrapped);
+
 		return templateCode
 			.replace('$$dependencies$$', dependencies)
 			.replace('$$class-name$$', className)
-			.replace('$$render-code$$', matchFirstJsxExpressionAndWrapWithReturn(addImplicitGlobals(source, opts)));
+			.replace('$$render-code$$', stripped);
 	}
 
 	function addImplicitGlobals(source, opts) {
@@ -96,42 +98,129 @@ export default function createReactCodeFactory(application) {
 		return vars.join('\n') + '\n' + source;
 	}
 
+	function stripImports(source) {
+		return source.replace(IMPORT, '');
+	}
+
 	function writeDependencyImports(file) {
-		/**
-		 * Instead of deprecating the simple jsx templates altogether
-		 * we could require the user to provide an import block
-		 * to do away with the implicit imports
-		 **/
 		const tagExpression = /<([A-Z][a-zA-Z0-9]+?)(?:\s|\/|>)/g;
 		const source = file.buffer.toString('utf-8');
 		const externalTagOccurences = [];
-		let match;
+		const importOccurences = [];
 
+		// Find all non-DOM tags
+		let match;
 		while((match = tagExpression.exec(source)) !== null) {
 			externalTagOccurences.push(match[1]);
 		}
 
+		// Find all explicit import statements
+		let importMatch;
+		while((importMatch = IMPORT.exec(source)) !== null) {
+			importOccurences.push({
+				match: importMatch[0],
+				localName: importMatch[2]
+			});
+		}
+
+		// Dedupe matches
 		const externalTagNames = [...new Set(externalTagOccurences)];
+		const imports = [...new Set(importOccurences)];
 
-		return externalTagNames.map(tagName => {
-			const localName = tagName !== 'Pattern' ? kebabCase(tagName) : tagName;
-			const dependency = file.dependencies[localName];
+		// Extract explicit dependencies
+		const explicitDependencies = imports
+			.map(importStatement => {
+				return importStatement.match;
+			});
 
-			if (!dependency) {
-				const err = new Error(
-					[
-						'Could not resolve dependency ${localName}',
-						'introduced by implicit import for <${tagName}/>',
-						'in ${file.path}. Only pattern imports',
-						'are supported with plain jsx files'
-					].join(' ')
-				);
-				err.fileName = file.path;
-				err.file = file.path;
-			}
+		// Process non-DOM tags
+		const implicitDependencies = externalTagNames
+			.map(tagName => {
+				// Infer the localName in pattern.json
+				const localName = tagName !== 'Pattern' ? kebabCase(tagName) : tagName;
+				const tag = `<${tagName}/>`;
+				const importStatement = `import ${tagName} from '${localName}';`;
 
-			return `import ${tagName} from '${localName}';`;
-		});
+				// Check if there is a match in the explicit imports
+				const hasExplicitImport = typeof find(imports, {localName}) !== 'undefined';
+
+				if (hasExplicitImport === false) {
+					// implicit imports are deprecated
+					application.log.warn(
+						[
+							deprecation,
+							`Implicit import "${chalk.bold(localName)}" for ${chalk.bold(tag)}`,
+							`detected in ${chalk.bold([file.pattern.id, file.name].join(':'))}.`,
+							'Implicit imports are deprecated and should be replaced with explicit ones.',
+							'Implicit imports will be removed in version 1.0.',
+							`Place "${chalk.bold(importStatement)}" at the top of ${file.path}.`
+						].join(' ')
+					);
+				} else {
+					// skip
+					return '';
+				}
+
+				// Lookup on the dependency.
+				const dependency = file.dependencies[localName];
+
+				// Implicit imports do support patterns only
+				if (typeof dependency === 'undefined' && hasExplicitImport === false) {
+					const err = new Error(
+						[
+							'Could not resolve dependency ${localName}',
+							'introduced by implicit import for <${tagName}/>',
+							'in ${file.path}. Only pattern imports',
+							'are supported with plain jsx files'
+						].join(' ')
+					);
+					err.fileName = file.path;
+					err.file = file.path;
+				}
+
+				return importStatement;
+			});
+
+		// Search the other way round for implicit dependencies used as class
+		// e.g. ReactClass.someStaticProp
+		const implicitClassDependencies = Object.keys(file.dependencies)
+			.reduce((results, localName) => {
+				const className = pascalCase(localName);
+				const importStatement = `import ${className} from '${localName}';`;
+
+				// if the localName is included already, skip
+				if (
+						implicitDependencies.indexOf(importStatement) > -1 ||
+						explicitDependencies.indexOf(importStatement) > -1
+					) {
+						return results;
+					}
+
+				const hasUsage = source.indexOf(`${className}.`) > -1 || source.indexOf(`(${className}`);
+
+				if (hasUsage) {
+					// implicit imports are deprecated
+					application.log.warn(
+						[
+							deprecation,
+							`Implicit import "${chalk.bold(localName)}" for class ${chalk.bold(className)}`,
+							`detected in ${chalk.bold([file.pattern.id, file.name].join(':'))}.`,
+							'Implicit imports are deprecated and should be replaced with explicit ones.',
+							'Implicit imports will be removed in version 1.0.',
+							`Place "${chalk.bold(importStatement)}" at the top of ${file.path}.`
+						].join(' ')
+					);
+					return [...results, importStatement];
+				} else {
+					return results;
+				}
+			}, []);
+
+		return [
+			...implicitClassDependencies,
+			...implicitDependencies,
+			...explicitDependencies
+		];
 	}
 
 	function matchFirstJsxExpressionAndWrapWithReturn(source) {
