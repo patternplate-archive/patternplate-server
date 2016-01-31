@@ -47,7 +47,6 @@ export default function createReactCodeFactory(application) {
 				requireBlock,
 				file.buffer
 			].join('\n');
-
 			return file;
 		} catch (error) {
 			const patternName = file.pattern.id;
@@ -63,7 +62,8 @@ export default function createReactCodeFactory(application) {
 
 		// TODO: This is a weak criteria to check if we have to create a wrapper
 		// perhaps we could check for dangling jsx expressions on the last line instead?
-		const isPlain = source.indexOf('extends React.Component') === -1 || source.indexOf('React.createClass') !== -1;
+		const isPlain = !source.match(/class(.+?)extends(.+?){/g) && // does not contain an es6-class, could possibly checked via babel-ast
+			source.indexOf('createClass') === -1; // does not contain an React.createClass call
 
 		// wrap in a render function if plain jsx
 		file.buffer = isPlain ? createWrappedRenderFunction(file, source, resolveDependencies, opts) : source;
