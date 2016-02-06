@@ -1,17 +1,25 @@
-import {resolve, basename, extname, dirname, sep} from 'path';
-
-import qfs from 'q-io/fs';
-import merge from 'lodash.merge';
 import {
-	flattenDeep,
-	uniq,
-	find,
-	invert
-} from 'lodash';
-import minimatch from 'minimatch';
+	basename,
+	extname,
+	dirname,
+	resolve,
+	sep
+} from 'path';
+
 import chalk from 'chalk';
 import memoize from 'memoize-promise';
+import {
+	find,
+	flattenDeep,
+	invert,
+	uniq
+} from 'lodash';
+import merge from 'lodash.merge';
+import minimatch from 'minimatch';
+import qfs from 'q-io/fs';
 import throat from 'throat';
+
+import getReadFile from '../../../library/filesystem/readFile.js';
 
 async function getPatternManifests(base, patterns = {}, fs = qfs) {
 	return await* Object.values(patterns).map(async id => {
@@ -104,21 +112,10 @@ export class Pattern {
 
 	constructor(patternPath, base, config = {}, transforms = {}, filters = {}, cache = null) {
 		const id = patternPath.split(sep).join('/');
-
 		const list = memoize(qfs.listTree).bind(qfs);
 		const stat = memoize(qfs.stat).bind(qfs);
 		const exists = memoize(qfs.exists).bind(qfs);
-		const read = async file => {
-			const stats = await stat(file);
-			const cached = this.cache.get(file, stats.node.mtime);
-			if (cached) {
-				return cached;
-			} else {
-				const content = qfs.read(file);
-				this.cache.set(file, stats.node.mtime, content);
-				return content;
-			}
-		};
+		const read = getReadFile({cache});
 
 		merge(this, {
 			id,
@@ -524,7 +521,7 @@ export class Pattern {
 
 	getLastModified() {
 		const fileMtimes = Object.values(this.files || {})
-			.map(file => new Date(file.fs.node.mtime));
+			.map(file => new Date(file.fs.mtime));
 
 		this.mtime = fileMtimes.sort((a, b) => b - a)[0];
 		return this;

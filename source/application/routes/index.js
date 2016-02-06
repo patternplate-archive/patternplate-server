@@ -1,82 +1,96 @@
-import fetch from 'isomorphic-fetch';
+import {
+	resolve
+} from 'path';
 
-import {resolve, normalize, basename, extname} from 'path';
-import fs from 'q-io/fs';
-import marked from 'marked';
-import {promisify} from 'bluebird';
-import btoa from 'btoa';
+import getPatternTree from '../../library/utilities/get-pattern-tree';
+import getReadme from '../../library/utilities/get-readme';
+
+function getResolvedRoutes(routes, options) {
+	const {
+		hostname,
+		port,
+		protocol,
+		resolver
+	} = options;
+
+	const host = `${protocol}://${hostname}:${port}`;
+
+	return Object.entries(routes)
+		.filter(entry => {
+			const [, configuration] = entry;
+			return configuration.enabled;
+		})
+		.map(entry => {
+			const [name, configuration] = entry;
+			const {path} = configuration;
+			return {
+				name,
+				path,
+				uri: `${host}${resolver(name)}`
+			};
+		});
+}
+
 
 export default function indexRouteFactory (application, configuration) {
-	const markdown = promisify(marked);
-
 	return async function indexRoute () {
-		let routeConfig = application.configuration.routes.enabled;
-		let serverConfig = application.configuration.server;
-		let base = `http://${serverConfig.host}:${serverConfig.port}`;
+		const {
+			server: {
+				host: hostname,
+				port
+			},
+			environment,
+			routes: {
+				enabled: routesConfiguration
+			},
+			pkg: {
+				name: pkgName,
+				version
+			}
+		} = application.configuration;
 
-		let routes = Object.keys(routeConfig)
-			.filter((routeName) => routeConfig[routeName].enabled === true)
-			.map(function getRoutes (routeName) {
-				return {'name': routeName, 'path': routeConfig[routeName].path, 'uri': `${base}${application.router.url(routeName)}`};
-			});
+		const {
+			patterncwd,
+			cwd
+		} = application.runtime;
 
-		let authorization = this.headers.authorization;
-		let basicAuthConfig = application.configuration.middlewares.basicauth;
+		const {
+			cache,
+			router: {
+				url: resolver
+			}
+		} = application;
 
-		if (basicAuthConfig && basicAuthConfig.credentials) {
-			let basicAuthCredentials = basicAuthConfig.credentials;
-			authorization = `Basic ${btoa(`${basicAuthCredentials.name}:${basicAuthCredentials.pass}`)}`;
-		}
+		const basePath = resolve(patterncwd || cwd, 'patterns');
 
-		let headers = Object.assign({}, {
-			'accept-type': 'application/json',
-			'authorization': authorization
+		// get resolved routes
+		const routes = getResolvedRoutes(routesConfiguration, {
+			hostname,
+			port,
+			protocol: 'http',
+			resolver: resolver.bind(application.router)
 		});
 
-		let response = await fetch(`${base}${application.router.url('meta')}`, {'headers': headers});
-		let meta = await response.json();
+		// get patterns/readme.md
+		const renderingReadme = await getReadme('.', basePath, {
+			cache
+		});
 
-		let readmePath = resolve(application.runtime.patterncwd || application.runtime.cwd, 'patterns', 'README.md');
-		var readme = '';
-
-		if (await fs.exists(readmePath)) {
-			let readMeSource = await fs.read(readmePath);
-			readMeSource = readMeSource.toString('utf-8');
-			readme = await markdown(readMeSource);
-		}
-
-		let buildPath = resolve(application.runtime.patterncwd || application.runtime.cwd, 'build');
-		let buildAvailable = await fs.exists(buildPath);
-		let builds = [];
-
-		if (buildAvailable) {
-			let list = await fs.listTree(buildPath);
-
-			list = list.filter((item) => extname(item) === '.zip');
-
-			builds = list.map((buildItemPath) => {
-				let fragments = basename(buildItemPath, extname(buildItemPath)).split('-');
-
-				return {
-					'path': fs.relativeFromDirectory(buildPath, buildItemPath),
-					'environment': fragments[2],
-					'revision': fragments[3],
-					'version': fragments[1]
-				};
-			});
-		}
+		// obtain the pattern tree
+		const gettingPatternTree = getPatternTree('.', basePath, {
+			cache
+		});
 
 		this.type = 'json';
 		this.body = Object.assign({}, {
-			'name': application.configuration.pkg.name,
-			'version': application.configuration.pkg.version,
-			'environment': application.configuration.environment,
-			'host': serverConfig.host,
-			'port': serverConfig.port,
-			'routes': routes,
-			'meta': meta,
-			'readme': readme,
-			'builds': builds
+			name: pkgName,
+			version,
+			environment,
+			host: hostname,
+			port,
+			routes,
+			meta: await gettingPatternTree,
+			readme: await renderingReadme
 		});
 	};
 }
