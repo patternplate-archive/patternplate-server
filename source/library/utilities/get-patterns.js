@@ -7,7 +7,8 @@ import {
 import chalk from 'chalk';
 import fs from 'q-io/fs';
 import throat from 'throat';
-import getPatternManifests from './get-pattern-manifests';
+
+import getDependentPatterns from './get-dependent-patterns';
 import getReadFile from '../filesystem/readFile.js';
 
 const defaults = {
@@ -15,14 +16,6 @@ const defaults = {
 	filters: {},
 	log: function() {}
 };
-
-async function getDependentPatterns(id, base, options) {
-	const manifests = await getPatternManifests('.', base, options);
-	return manifests.reduce((results, manifest) => { // eslint-disable-line no-loop-func
-		const isDependency = Object.values(manifest.patterns || {}).indexOf(id) > -1;
-		return isDependency ? {...results, [manifest.id]: manifest} : results;
-	}, {});
-}
 
 async function getPatterns(options, cache) {
 	const settings = {...defaults, ...options};

@@ -12,6 +12,7 @@ import {
 	find,
 	flattenDeep,
 	invert,
+	omit,
 	uniq
 } from 'lodash';
 import merge from 'lodash.merge';
@@ -528,19 +529,21 @@ export class Pattern {
 	}
 
 	toJSON() {
-		const copy = {...this};
+		const copy = merge({}, this);
 
-		Object.entries(copy.results).forEach(resultEntry => {
+		Object.entries(this.results).forEach(resultEntry => {
 			const [resultName, result] = resultEntry;
 
+			copy.dependencies = omit(copy.dependencies, 'Pattern');
+
 			copy.results[resultName] = {
-				'name': resultName,
-				'source': result.source.toString('utf-8'),
-				'demoSource': result.demoSource ? result.demoSource.toString('utf-8') : '',
-				'buffer': result.buffer.toString('utf-8'),
-				'demoBuffer': result.demoBuffer ? result.demoBuffer.toString('utf-8') : '',
-				'in': result.in,
-				'out': result.out
+				name: resultName,
+				source: result.source.toString('utf-8'),
+				demoSource: result.demoSource ? result.demoSource.toString('utf-8') : '',
+				buffer: result.buffer.toString('utf-8'),
+				demoBuffer: result.demoBuffer ? result.demoBuffer.toString('utf-8') : '',
+				in: result.in,
+				out: result.out
 			};
 		});
 
@@ -556,13 +559,13 @@ export class Pattern {
 			};
 		}, {});
 
+		// things not needed in serialized form
 		delete copy.cache;
 		delete copy.files;
 		delete copy.config;
 		delete copy.base;
 		delete copy.path;
 		delete copy.transforms;
-
 		return copy;
 	}
 }

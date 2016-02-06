@@ -1,3 +1,4 @@
+import {debuglog} from 'util';
 import denodeify from 'denodeify';
 
 import {
@@ -38,8 +39,8 @@ const writeFile = denodeify(writeFileNodeback);
 const stat = denodeify(statNodeback);
 
 function formatDuration(duration) {
-	const units = ['m', 's', 'ms'];
-	const methods = ['getMinutes', 'getSeconds', 'getMilliseconds'];
+	const units = ['h', 'm', 's', 'ms'];
+	const methods = ['getHours', 'getMinutes', 'getSeconds', 'getMilliseconds'];
 
 	return methods
 		.map(method => {
@@ -89,6 +90,8 @@ function getPackageString(dependencies, data, ...overrides) {
 }
 
 async function getArtifactMtimes(search, patterns) {
+	const debug = debuglog('commonjs-artifacts');
+
 	const types = Object.keys(patterns.formats)
 		.map(extension => patterns.formats[extension].name);
 
@@ -140,22 +143,31 @@ async function getArtifactMtimes(search, patterns) {
 		}).sort((a, b) => a.stamp - b.stamp);
 
 		item.mtime = times[0].date;
+		debug('mtime for artifact %s is %s', item.id, item.mtime);
 		return item;
 	});
 }
 
 function getPatternsToBuild(artifacts, patterns) {
+	const debug = debuglog('commonjs');
+
 	return pattern => {
 		// Find matching pattern artifact
 		const artifact = find(artifacts, {id: pattern.id});
 
 		// If no pattern artifact is found, build it
 		if (!artifact) {
+			debug('rebuild %s, no artifacts');
 			return true;
 		}
 
 		// Build if pattern mtime > artifact mtime
 		if (pattern.mtime.getTime() > artifact.mtime.getTime()) {
+			debug(
+				'rebuild %s, pattern mtime %s is newer than artifacts %s by %s',
+				pattern.id, pattern.mtime, artifact.mtime,
+				formatDuration(new Date(pattern.mtime - artifact.mtime))
+			);
 			return true;
 		}
 
@@ -172,6 +184,10 @@ function getPatternsToBuild(artifacts, patterns) {
 			difference(types, artifact.types).length ||
 			difference(artifact.types, types).length
 		) {
+			debug(
+				'rebuild %s, pattern types %s mismatch artifact types %s',
+				pattern.id, types, artifact.types
+			);
 			return true;
 		}
 	};
@@ -249,7 +265,9 @@ async function copySafe(source, target) {
 }
 
 async function writeSafe(path, buffer) {
+	const debug = debuglog('commonjs-write');
 	await mkdirp(dirname(path));
+	debug('Writing %s', path);
 	return writeFile(path, buffer);
 }
 
@@ -266,7 +284,11 @@ async function copyDirectory(source, target) {
 	);
 }
 
-async function exportAsCommonjs(application) {
+async function exportAsCommonjs(application, settings) {
+	const debug = debuglog('commonjs');
+	debug('calling commonjs with');
+	debug(settings);
+
 	const taskStart = new Date();
 	const cwd = application.runtime.patterncwd || application.runtime.cwd;
 
@@ -400,8 +422,13 @@ async function exportAsCommonjs(application) {
 			application.log.info(ok`Building all files for ${pattern.id} ${filterStart}`);
 		}
 
+		if (settings['dry-run']) {
+			return Promise.resolve({});
+		}
+
 		const transformStart = new Date();
 		application.log.info(wait`Transforming pattern ${pattern.id}`);
+
 
 		// obtain transformed pattern by id
 		const patternList = await getPatterns({
@@ -430,17 +457,22 @@ async function exportAsCommonjs(application) {
 
 		// Write results to disk
 		const writingArtifacts = Promise.all(patternList.map(async patternItem => {
-			const resultEnvironment = patternItem.results.index || {};
 			// Read pathFormatString from matching transform config for now,
 			// will be fed from pattern result meta information when we approach the new transform system
 			const pathFormatString = application.configuration.resolve;
 
-			const writingPatternItems = Promise.all(Object.entries(resultEnvironment).map(async environmentEntry => {
-				const [resultName, result] = environmentEntry;
-				const resultPath = join(commonjsRoot,
-					resolvePathFormatString(pathFormatString, patternItem.id, resultName, result.out));
-				return writeSafe(resultPath, result.buffer);
-			}));
+			const writingPatternItems = Promise.all(
+					Object.entries(patternItem.results)
+						.map(async resultsEntry => {
+							const [resultName, result] = resultsEntry;
+							const resultPath = join(
+								commonjsRoot,
+								resolvePathFormatString(
+									pathFormatString, patternItem.id, resultName, result.out
+								)
+							);
+							return writeSafe(resultPath, result.buffer);
+					}));
 
 			return await writingPatternItems;
 		}));
@@ -462,8 +494,17 @@ async function exportAsCommonjs(application) {
 	application.log.info(wait`Pruning ${artifactsToPrune.length} artifacts`);
 	const pruning = Promise.all(artifactsToPrune.map(path => {
 		// for now we can assume the whole folder has to be nixed
-		rm(dirname(path));
+		if (settings['dry-run']) {
+			return Promise.resolve();
+		}
+		return rm(dirname(path));
 	}));
+
+	if (settings['dry-run']) {
+		await building;
+		application.log.info(ready`Dry-run executed successfully ${buildStart}`);
+		return;
+	}
 
 
 	const copyStart = new Date();
