@@ -107,9 +107,11 @@ export default function createReactCodeFactory(application) {
 
 	function writeDependencyImports(file) {
 		const tagExpression = /<([A-Z][a-zA-Z0-9]+?)(?:\s|\/|>)/g;
+		const assignmentExpression = /([A-Z]\w+?)\s?=\s?(.+?)(?:,|;|\n)/g;
 		const source = file.buffer.toString('utf-8');
 		const externalTagOccurences = [];
 		const importOccurences = [];
+		const assignmentOccurences = [];
 
 		// Find all non-DOM tags
 		let match;
@@ -117,18 +119,32 @@ export default function createReactCodeFactory(application) {
 			externalTagOccurences.push(match[1]);
 		}
 
+		// Find tags that have an assignment in scope
+		// to filter them from implicit imports
+		// This really should be done via an ast at some point
+		let assignmentMatch;
+		while((assignmentMatch = assignmentExpression.exec(source)) !== null) {
+			assignmentOccurences.push({
+				match: assignmentMatch[0],
+				tagName: assignmentMatch[1],
+				localName: assignmentMatch[2]
+			});
+		}
+
 		// Find all explicit import statements
 		let importMatch;
 		while((importMatch = IMPORT.exec(source)) !== null) {
 			importOccurences.push({
 				match: importMatch[0],
-				localName: importMatch[2]
+				localName: importMatch[2],
+				tagName: importMatch[1]
 			});
 		}
 
 		// Dedupe matches
 		const externalTagNames = [...new Set(externalTagOccurences)];
-		const imports = [...new Set(importOccurences)];
+		const imports = uniq(importOccurences, 'localName');
+		const assignments = uniq(assignmentOccurences, 'localName');
 
 		// Extract explicit dependencies
 		const explicitDependencies = imports
@@ -147,7 +163,10 @@ export default function createReactCodeFactory(application) {
 				// Check if there is a match in the explicit imports
 				const hasExplicitImport = typeof find(imports, {localName}) !== 'undefined';
 
-				if (hasExplicitImport === false) {
+				// Check if there is a match in assignments
+				const hasAssignment = typeof find(assignments, {tagName}) !== 'undefined';
+
+				if (hasExplicitImport === false && hasAssignment === false) {
 					// implicit imports are deprecated
 					application.log.warn(
 						[
