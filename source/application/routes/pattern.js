@@ -1,159 +1,163 @@
-import {resolve, dirname, extname} from 'path';
-import {merge} from 'lodash';
+import {
+	extname,
+	dirname,
+	resolve
+} from 'path';
+
+import {
+	find,
+	merge
+} from 'lodash';
 
 import getPatterns from '../../library/utilities/get-patterns';
 import layout from '../layouts';
 
+function getRequestedFormats(extension, type) {
+	// API request, do not filter based on type
+	if (type === 'json') {
+		return [];
+	// Demo request, filter based on extension
+	} else {
+		return [extension];
+	}
+}
+
 export default function patternRouteFactory (application, configuration) {
-	let patterns = application.configuration[configuration.options.key] || {};
-	let transforms = application.configuration.transforms || {};
+	function renderLayout(result) {
+		const template = {
+			title: result.id
+		};
+
+		const sectionSeed = Object.values(application.configuration.patterns.formats)
+			.reduce((seed, format) => {
+				return {...seed, [format.name.toLowerCase()]: []};
+			}, {});
+
+		const templateContentData = Object.entries(result.results || {})
+			.reduce((templateSection, templateSectionResult) => {
+					const [sectionName, sectionResult] = templateSectionResult;
+					const name = sectionName.toLowerCase();
+
+					templateSection[name].push({
+						content: sectionResult.demoBuffer || sectionResult.buffer
+					});
+
+					return templateSection;
+				}, sectionSeed);
+
+		const templateReferenceData = result.outFormats
+			.reduce((referenceSection, outFormat) => {
+				if (!outFormat.type) {
+					return referenceSection;
+				}
+				referenceSection[outFormat.type].push({
+					uri: application.router.url('pattern', {
+						id: `${result.id}/index.${outFormat.extension}`
+					}).replace('%2B', '') // workaround for stuff router appends
+				});
+				return referenceSection;
+			}, sectionSeed);
+
+		// Append content script for iframe resizing
+		// TODO: remove this when the new client arrives
+		templateReferenceData.script.push({
+			uri: application.router.url('script', {
+				path: 'content.js'
+			}).replace('%2B', '') // workaround for stuff router appends
+		});
+
+		return layout({
+			...template,
+			content: templateContentData,
+			reference: templateReferenceData
+		});
+	}
+
+	const patterns = application.configuration[configuration.options.key] || {};
+	const transforms = application.configuration.transforms || {};
 	const config = { patterns, transforms };
 
 	return async function patternRoute () {
-		let cwd = application.runtime.patterncwd || application.runtime.cwd;
-		let basePath = resolve(cwd, config.patterns.path);
-		let id = this.params.id;
+		// collect some base data
+		const cwd = application.runtime.patterncwd || application.runtime.cwd;
+		const basePath = resolve(cwd, config.patterns.path);
+		const type = this.accepts('text', 'html', 'json');
 
-		let resultName;
-		let type = this.accepts('text', 'json', 'html');
-		let extension = extname(this.path);
+		// infer json extension from accept-type
+		const extension = type === 'json' ?
+			'json' :
+			extname(this.path).slice(1) || 'html'; // default to html
 
-		if (extension) {
-			type = extension.slice(1);
-		}
+		// determine requested outFormats
+		const outFormats = getRequestedFormats(extension, type);
 
-		if (extension) {
-			let format = config.patterns.formats[type] || {};
-			resultName = format.name || '';
+		// get the requested id, cut filename
+		const id = extname(this.path) ?
+			dirname(this.params.id) :
+			this.params.id;
 
-			if (!resultName) {
-				this.throw(404);
-			}
-
-			id = dirname(id);
-		}
-
-		if (type === 'text' && !extension) {
-			type = 'html';
-		}
-
-		let filters = {
-			'outFormats': []
+		// assemble config for getPatterns
+		const patternConfig = {
+			id,
+			config,
+			filters: {
+				outFormats
+			},
+			base: basePath,
+			factory: application.pattern.factory,
+			transforms: application.transforms,
+			log: application.log
 		};
 
-		switch(type) {
-			case 'json':
-				break;
-			case 'css':
-				filters.outFormats.push(type);
-				break;
-			case 'js':
-				filters.outFormats.push(type);
-				break;
-			default: // html/text
-				filters.outFormats.push(type);
-				break;
+		// get patterns
+		const patternResults = await getPatterns(patternConfig, application.cache);
+
+		// returns empty array of no patterns were found
+		if (patternResults.length === 0) {
+			this.throw(404);
 		}
 
-		let patternResults;
+		// The three cases should propably be split into
+		// pattern/meta/
+		// pattern/demo/
+		// pattern/file/
+		if (type === 'json') {
+			// dealing with an API request
+			// flatten if only one results
+			const jsonResult = patternResults.length === 1 ?
+				patternResults[0] :
+				patternResults;
+			// backwards compatibility for client
+			// this can be removed when the client requests
+			// pattern meta data seperately
+			let copyResult;
 
-		try {
-			const patternConfig = {
-				id,
-				config,
-				filters,
-				base: basePath,
-				factory: application.pattern.factory,
-				transforms: application.transforms,
-				log: application.log
-			};
-
-			patternResults = await getPatterns(patternConfig, application.cache);
-		} catch (err) {
-			this.throw(500, err);
-		}
-
-		patternResults = patternResults || [];
-		const result = patternResults.length === 1 ? patternResults[0] : patternResults;
-
-		this.type = type;
-
-		switch(type) {
-			case 'json':
-				// backwards compatibility for client
-				// this can be removed when the client requests
-				// pattern meta data seperately
-				let copyResult;
-
-				if (!Array.isArray(result)) {
-					copyResult = merge({}, result, {results: {index: result.results}});
-				} else {
-					copyResult = patternResults.map(pattern => {
-						return merge({}, pattern, {results: {index: pattern.results}});
-					});
-				}
-
-				this.body = copyResult;
-				break;
-			case 'css':
-			case 'js':
-				const file = result.results[resultName];
-
-				if (!file) {
-					this.throw(404);
-				}
-
-				this.body = file.demoBuffer || file.buffer;
-				break;
-			default: // html/text
-				const template = {
-					title: id
-				};
-
-				const sectionSeed = Object.values(application.configuration.patterns.formats)
-					.reduce((seed, format) => {
-						return {...seed, [format.name.toLowerCase()]: []};
-					}, {});
-
-				const templateContentData = Object.entries(result.results || {})
-					.reduce((templateSection, templateSectionResult) => {
-							const [sectionName, sectionResult] = templateSectionResult;
-							const name = sectionName.toLowerCase();
-
-							templateSection[name].push({
-								content: sectionResult.demoBuffer || sectionResult.buffer
-							});
-
-							return templateSection;
-						}, sectionSeed);
-
-				const templateReferenceData = result.outFormats
-					.reduce((referenceSection, outFormat) => {
-						if (!outFormat.type) {
-							return referenceSection;
-						}
-						referenceSection[outFormat.type].push({
-							uri: application.router.url('pattern', {
-								id: `${this.params.id}/index.${outFormat.extension}`
-							}).replace('%2B', '') // workaround for stuff router appends
-						});
-						return referenceSection;
-					}, sectionSeed);
-
-				// Append content script for iframe resizing
-				// TODO: remove this when the new client arrives
-				templateReferenceData.script.push({
-					uri: application.router.url('script', {
-						path: 'content.js'
-					}).replace('%2B', '') // workaround for stuff router appends
+			if (!Array.isArray(jsonResult)) {
+				copyResult = merge({}, jsonResult, {results: {index: jsonResult.results}});
+			} else {
+				copyResult = patternResults.map(pattern => {
+					return merge({}, pattern, {results: {index: pattern.results}});
 				});
+			}
 
-				this.body = layout({
-					...template,
-					content: templateContentData,
-					reference: templateReferenceData
-				});
-				break;
+			this.type = type;
+			this.body = copyResult;
+		} else if (type === 'html') {
+			// Dealing with an demo request
+			this.type = type;
+			this.body = renderLayout(patternResults[0]);
+		} else {
+			// Dealing with a resources request
+			const result = patternResults[0];
+
+			// thind a file with matching out format
+			const file = find(Object.values(result.results), {
+				out: extension
+			});
+
+			// set mime type
+			this.type = extension;
+			this.body = file.demoBuffer || file.buffer;
 		}
 	};
 }
