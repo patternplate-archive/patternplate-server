@@ -19,7 +19,7 @@ const routes = {
 		},
 		'pattern-result': {
 			'enabled': true,
-			'path': '/pattern/result/:id+/:environment/:basename/:type/:status.:extension',
+			'path': '/pattern/result/:id+/:environment.:extension',
 			'options': {
 				'key': 'patterns',
 				'maxage': 3600000

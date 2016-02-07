@@ -6,7 +6,7 @@ import {
 
 import {
 	find,
-	merge,
+	merge
 } from 'lodash';
 
 import getPatterns from '../../library/utilities/get-patterns';
@@ -45,10 +45,7 @@ export default function patternRouteFactory (application, configuration) {
 					uri: application.router.url('pattern-result', {
 						id: result.id,
 						environment: 'index',
-						extension: outFormat.extension,
-						type: outFormat.type,
-						basename: outFormat.baseName,
-						status: 'transformed'
+						extension: outFormat.extension
 					}).replace('%2B', '') // workaround for stuff router appends
 				});
 				return referenceSection;
@@ -78,10 +75,7 @@ export default function patternRouteFactory (application, configuration) {
 		const {
 			id,
 			environment,
-			extension,
-			basename,
-			type,
-			status
+			extension
 		} = this.params;
 
 		const cwd = application.runtime.patterncwd || application.runtime.cwd;
@@ -94,9 +88,7 @@ export default function patternRouteFactory (application, configuration) {
 			config,
 			environment,
 			filters: {
-				outFormats: [extension],
-				types: [type],
-				baseNames: [basename]
+				outFormats
 			},
 			base: basePath,
 			factory: application.pattern.factory,
@@ -112,7 +104,7 @@ export default function patternRouteFactory (application, configuration) {
 			this.throw(404);
 		}
 
-		if (type === 'markup' && status === 'rendered') {
+		if (extension === 'html') {
 			// Dealing with an demo request
 			this.type = extension;
 			this.body = renderLayout(patternResults[0]);
@@ -120,19 +112,14 @@ export default function patternRouteFactory (application, configuration) {
 			// Dealing with a resources request
 			const result = patternResults[0];
 
-			// find a file with matching out format
+			// thind a file with matching out format
 			const file = find(Object.values(result.results), {
-				out: extension,
-				type
+				out: extension
 			});
-
-			const fileToken = status === 'transformed' ?
-				'buffer' :
-				'source';
 
 			// set mime type
 			this.type = extension;
-			this.body = file[fileToken];
+			this.body = file.demoBuffer || file.buffer;
 		}
 	};
 }

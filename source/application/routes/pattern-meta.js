@@ -67,32 +67,6 @@ export default (application, configuration) => {
 		delete result.meta;
 		delete result.results;
 
-		// Tell the client where to look for formats
-		result.outFormats = result.outFormats
-			.reduce((formats, format) => {
-				const amend = Object.keys(result.environments)
-					.reduce((envFormats, envName) => {
-						const envAmend = ['source', 'transformed']
-							.map(status => {
-								return {
-									...format,
-									environment: envName,
-									status: status,
-									uri: application.router.url('pattern-result', {
-										environment,
-										extension: format.extension,
-										id: result.id,
-										type: format.type,
-										status,
-										basename: format.baseName
-									}).replace('%2B', '')
-								};
-							});
-						return [...envFormats, ...envAmend];
-					}, []);
-				return [...formats, ...amend];
-			}, []);
-
 		this.body = result;
 	};
 };

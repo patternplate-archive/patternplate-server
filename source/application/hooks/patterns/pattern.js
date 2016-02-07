@@ -352,26 +352,19 @@ export class Pattern {
 
 		// determine the formats available for request
 		const out = files
-			.reduce((results, file) => {
+			.map(file => {
 				const inFileFormat = extname(file).slice(1);
-				const baseName = basename(file, extname(file));
 				const formatConfig = this.config.patterns.formats[inFileFormat] || {};
 				const name = formatConfig.name || '';
 				const transformNames = formatConfig.transforms || [];
 				const lastTransform = this.config.transforms[transformNames[transformNames.length - 1]] || {};
 
-				const item = {
+				return {
 					name,
 					type: name.toLowerCase(),
-					extension: lastTransform.outFormat || inFileFormat,
-					baseName
+					extension: lastTransform.outFormat || inFileFormat
 				};
-				// There is a index for every demo
-				const amend = baseName === 'demo' ?
-					[item, {...item, baseName: 'index'}] :
-					[item];
-				return [...results, ...amend];
-			}, []);
+			});
 
 		// provide meta data about formats
 		this.outFormats = out;
@@ -522,7 +515,6 @@ export class Pattern {
 
 			file.out = file.out || lastTransform.outFormat || file.format;
 			this.results[formatConfig.name] = file;
-			file.type = formatConfig.name.toLowerCase();
 		}
 
 		return this;
@@ -549,8 +541,7 @@ export class Pattern {
 				buffer: result.buffer.toString('utf-8'),
 				demoBuffer: result.demoBuffer ? result.demoBuffer.toString('utf-8') : '',
 				in: result.in,
-				out: result.out,
-				type: result.type
+				out: result.out
 			};
 		});
 
