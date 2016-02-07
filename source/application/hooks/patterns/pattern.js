@@ -534,6 +534,8 @@ export class Pattern {
 		Object.entries(this.results).forEach(resultEntry => {
 			const [resultName, result] = resultEntry;
 
+			copy.dependencies = omit(copy.dependencies, 'Pattern');
+
 			copy.results[resultName] = {
 				name: resultName,
 				source: result.source.toString('utf-8'),
@@ -560,13 +562,10 @@ export class Pattern {
 		// things not needed in serialized form
 		delete copy.cache;
 		delete copy.files;
-		delete copy.fs;
 		delete copy.config;
 		delete copy.base;
 		delete copy.path;
 		delete copy.transforms;
-		delete copy.log;
-		delete copy.mtime;
 		return copy;
 	}
 }

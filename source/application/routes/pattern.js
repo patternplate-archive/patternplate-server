@@ -12,6 +12,16 @@ import {
 import getPatterns from '../../library/utilities/get-patterns';
 import layout from '../layouts';
 
+function getRequestedFormats(extension, type) {
+	// API request, do not filter based on type
+	if (type === 'json') {
+		return [];
+	// Demo request, filter based on extension
+	} else {
+		return [extension];
+	}
+}
+
 export default function patternRouteFactory (application, configuration) {
 	function renderLayout(result) {
 		const template = {
@@ -40,12 +50,9 @@ export default function patternRouteFactory (application, configuration) {
 				if (!outFormat.type) {
 					return referenceSection;
 				}
-
 				referenceSection[outFormat.type].push({
-					uri: application.router.url('pattern-result', {
-						id: result.id,
-						environment: 'index',
-						extension: outFormat.extension
+					uri: application.router.url('pattern', {
+						id: `${result.id}/index.${outFormat.extension}`
 					}).replace('%2B', '') // workaround for stuff router appends
 				});
 				return referenceSection;
@@ -72,21 +79,27 @@ export default function patternRouteFactory (application, configuration) {
 
 	return async function patternRoute () {
 		// collect some base data
-		const {
-			id,
-			environment,
-			extension
-		} = this.params;
-
 		const cwd = application.runtime.patterncwd || application.runtime.cwd;
 		const basePath = resolve(cwd, config.patterns.path);
-		const outFormats = [extension];
+		const type = this.accepts('text', 'html', 'json');
+
+		// infer json extension from accept-type
+		const extension = type === 'json' ?
+			'json' :
+			extname(this.path).slice(1) || 'html'; // default to html
+
+		// determine requested outFormats
+		const outFormats = getRequestedFormats(extension, type);
+
+		// get the requested id, cut filename
+		const id = extname(this.path) ?
+			dirname(this.params.id) :
+			this.params.id;
 
 		// assemble config for getPatterns
 		const patternConfig = {
 			id,
 			config,
-			environment,
 			filters: {
 				outFormats
 			},
@@ -104,9 +117,34 @@ export default function patternRouteFactory (application, configuration) {
 			this.throw(404);
 		}
 
-		if (extension === 'html') {
+		// The three cases should propably be split into
+		// pattern/meta/
+		// pattern/demo/
+		// pattern/file/
+		if (type === 'json') {
+			// dealing with an API request
+			// flatten if only one results
+			const jsonResult = patternResults.length === 1 ?
+				patternResults[0] :
+				patternResults;
+			// backwards compatibility for client
+			// this can be removed when the client requests
+			// pattern meta data seperately
+			let copyResult;
+
+			if (!Array.isArray(jsonResult)) {
+				copyResult = merge({}, jsonResult, {results: {index: jsonResult.results}});
+			} else {
+				copyResult = patternResults.map(pattern => {
+					return merge({}, pattern, {results: {index: pattern.results}});
+				});
+			}
+
+			this.type = type;
+			this.body = copyResult;
+		} else if (type === 'html') {
 			// Dealing with an demo request
-			this.type = extension;
+			this.type = type;
 			this.body = renderLayout(patternResults[0]);
 		} else {
 			// Dealing with a resources request

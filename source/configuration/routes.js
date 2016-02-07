@@ -17,17 +17,13 @@ const routes = {
 				'key': 'patterns'
 			}
 		},
-		'pattern-result': {
+		'pattern': {
 			'enabled': true,
-			'path': '/pattern/result/:id+/:environment.:extension',
+			'path': '/pattern/:id+',
 			'options': {
 				'key': 'patterns',
 				'maxage': 3600000
 			}
-		},
-		'pattern-meta': {
-			'enabled': true,
-			'path': '/pattern/meta/:id+/:environment.json'
 		},
 		'script': {
 			'enabled': true,
