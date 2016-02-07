@@ -6,7 +6,8 @@ import {
 
 import {
 	find,
-	merge
+	merge,
+	omit
 } from 'lodash';
 
 import getPatterns from '../../library/utilities/get-patterns';
@@ -127,16 +128,41 @@ export default function patternRouteFactory (application, configuration) {
 			const jsonResult = patternResults.length === 1 ?
 				patternResults[0] :
 				patternResults;
+
 			// backwards compatibility for client
 			// this can be removed when the client requests
 			// pattern meta data seperately
+			// this should become needless when
+			// - pattern.read is fast for big patterns
+			// - the client uses the new format
 			let copyResult;
-
 			if (!Array.isArray(jsonResult)) {
-				copyResult = merge({}, jsonResult, {results: {index: jsonResult.results}});
+				copyResult = omit(merge({}, jsonResult), ['results', 'dependencies']);
+				copyResult.results = { index: jsonResult.results };
+				copyResult.dependencies = Object.keys(jsonResult.dependencies)
+	 				.reduce((dependencies, dependencyName) => {
+	 					const id = jsonResult.dependencies[dependencyName].id;
+	 					const amend = dependencyName === 'Pattern' ?
+	 						{} :
+	 						{
+	 							[dependencyName]: id
+	 						}
+	 					return {...dependencies, ...amend};
+	 				}, {});
 			} else {
 				copyResult = patternResults.map(pattern => {
-					return merge({}, pattern, {results: {index: pattern.results}});
+					const copied = omit(merge({}, pattern), ['results']);
+					copyResult.results = { index: jsonResult.results };
+					copied.dependencies = Object.keys(pattern.dependencies)
+		 				.reduce((dependencies, dependencyName) => {
+		 					const id = pattern.dependencies[dependencyName].id;
+		 					const amend = dependencyName === 'Pattern' ?
+		 						{} :
+		 						{
+		 							[dependencyName]: id
+		 						}
+		 					return {...dependencies, ...amend};
+		 				}, {});
 				});
 			}
 
