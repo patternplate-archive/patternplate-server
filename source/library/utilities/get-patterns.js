@@ -33,10 +33,32 @@ function getMatchingEnvironments(patternID, environments) {
 	const matchingEnvironments = environments
 		// get matching environments
 		.filter(userEnvironment => {
-			const positives = userEnvironment.applyTo.filter(glob => glob[0] !== '!');
-			const negatives = userEnvironment.applyTo.filter(glob => glob[0] === '!');
-			return positives.any(positive => minimatch(patternID, positive)) &&
-				!negatives.any(negative => minimatch(patternID, negative));
+			envDebug('using filters %s for environment %s to match against %s', userEnvironment.applyTo, userEnvironment.name, patternID);
+
+			const positives = userEnvironment.applyTo
+				.filter(glob => glob[0] !== '!');
+
+			const negatives = userEnvironment.applyTo
+				.filter(glob => glob[0] === '!')
+				.map(glob => glob.slice(1));
+
+			const matchPositive = positives
+				.filter(positive => minimatch(patternID, positive));
+
+			const matchNegative = negatives
+				.filter(negative => minimatch(patternID, negative));
+
+			envDebug('matching %s against %s, %s', patternID, positives, negatives);
+
+			if (matchPositive.length > 0) {
+				envDebug('positive match for environment %s on %s: %s', userEnvironment.name, patternID, matchPositive);
+			}
+
+			if (matchNegative.length > 0) {
+				envDebug('negative match for environment %s on %s: %s', userEnvironment.name, patternID, matchNegative);
+			}
+
+			return matchPositive.length > 0 && matchNegative.length === 0;
 		})
 		// sort by priority
 		.sort((a, b) => b.priority - a.priority);
@@ -104,7 +126,7 @@ async function getPatterns(options, cache) {
 		name: 'index',
 		version: '0.1.0',
 		applyTo: ['**/*'],
-		includes: ['**/*'],
+		include: ['**/*'],
 		excludes: [],
 		priority: 0,
 		environment: {}
@@ -128,7 +150,10 @@ async function getPatterns(options, cache) {
 
 		// get the available environment names for this pattern
 		const environmentNames = matchingEnvironments.map(env => env.name);
-		envDebug('%s matches environments %s', patternID, environmentNames);
+
+		if (environmentNames.length > 0) {
+			log.debug(`Applying environments ${chalk.bold(environmentNames.join(', '))} to ${chalk.bold(patternID)}`);
+		}
 
 		// merge environment configs
 		// fall back to default environment if none is matching
