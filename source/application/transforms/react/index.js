@@ -160,13 +160,17 @@ export default function createReactCodeFactory(application) {
 				const tag = `<${tagName}/>`;
 				const importStatement = `import ${tagName} from '${localName}';`;
 
+				// Check if all uppercase
+				// e.g. <STRONG>foo</STRONG>
+				const isUglyDOMTag = tagName.toUpperCase() === tagName;
+
 				// Check if there is a match in the explicit imports
 				const hasExplicitImport = typeof find(imports, {localName}) !== 'undefined';
 
 				// Check if there is a match in assignments
 				const hasAssignment = typeof find(assignments, {tagName}) !== 'undefined';
 
-				if (hasExplicitImport === false && hasAssignment === false) {
+				if (hasExplicitImport === false && hasAssignment === false && !isUglyDOMTag) {
 					// implicit imports are deprecated
 					application.log.warn(
 						[
