@@ -82,7 +82,7 @@
     "marked": "^0.3.3",
     "memoize-promise": "^0.2.2",
     "memory-streams": "^0.1.0",
-    "minimatch": "^2.0.8",
+    "minimatch": "^2.0.10",
     "minimist": "^1.1.1",
     "mkdirp": "^0.5.1",
     "ncp": "^2.0.0",

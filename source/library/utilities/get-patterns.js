@@ -4,18 +4,45 @@ import {
 	resolve
 } from 'path';
 
+import {
+	debuglog,
+	inspect
+} from 'util';
+
 import chalk from 'chalk';
 import fs from 'q-io/fs';
+import {
+	merge,
+	omit
+} from 'lodash';
+import minimatch from 'minimatch';
 import throat from 'throat';
 
 import getDependentPatterns from './get-dependent-patterns';
 import getReadFile from '../filesystem/readFile.js';
+
+const envDebug = debuglog('environments');
 
 const defaults = {
 	isEnvironment: false,
 	filters: {},
 	log: function() {}
 };
+
+function getMatchingEnvironments(patternID, environments) {
+	const matchingEnvironments = environments
+		// get matching environments
+		.filter(userEnvironment => {
+			const positives = userEnvironment.applyTo.filter(glob => glob[0] !== '!');
+			const negatives = userEnvironment.applyTo.filter(glob => glob[0] === '!');
+			return positives.any(positive => minimatch(patternID, positive)) &&
+				!negatives.any(negative => minimatch(patternID, negative));
+		})
+		// sort by priority
+		.sort((a, b) => b.priority - a.priority);
+
+	return matchingEnvironments;
+}
 
 async function getPatterns(options, cache) {
 	const settings = {...defaults, ...options};
@@ -61,22 +88,77 @@ async function getPatterns(options, cache) {
 			.filter(item => basename(item) === 'pattern.json') :
 		[];
 
+	envDebug('found environment files at %s', userEnvironmentPaths);
+
 	// Load environments
 	const userEnvironmentFiles = await Promise.all(
-		userEnvironmentPaths.map(readFile)
+		userEnvironmentPaths.map(envFilePath => {
+			envDebug('reading env file %s', envFilePath);
+			const content = readFile(envFilePath);
+			envDebug('%s %s', envFilePath, content);
+			return content;
+		})
 	);
 
-	// Parse file contents
+	const defaultEnvironment = {
+		name: 'index',
+		version: '0.1.0',
+		applyTo: ['**/*'],
+		includes: ['**/*'],
+		excludes: [],
+		priority: 0,
+		environment: {}
+	};
+
+	// Parse environment file contents
 	const userEnvironments = userEnvironmentFiles
-		.map(userEnvironmentFile => JSON.parse(userEnvironmentFile.toString('utf-8')
-		));
+		.map(userEnvironmentFile => {
+			const raw = JSON.parse(userEnvironmentFile.toString('utf-8'));
+			return merge({}, defaultEnvironment, raw);
+		});
+
+	envDebug('read environment data');
+	envDebug(userEnvironments);
 
 	// read and transform patterns at a concurrency of 5
 	return await* patternIDs.map(throat(5, async patternID => {
+
+		// get environments that match this pattern
+		const matchingEnvironments = getMatchingEnvironments(patternID, userEnvironments);
+
+		// get the available environment names for this pattern
+		const environmentNames = matchingEnvironments.map(env => env.name);
+		envDebug('%s matches environments %s', patternID, environmentNames);
+
+		// merge environment configs
+		// fall back to default environment if none is matching
+		const environmentsConfig = matchingEnvironments
+			.reduce((results, environmentConfig) => {
+				const {environment} = environmentConfig;
+				const misplacedKeys = omit(environment, Object.keys(config));
+				const misplacedKeyNames = Object.keys(misplacedKeys);
+
+				if (misplacedKeys) {
+					log.warn(`${chalk.yellow('[⚠ Deprecation ⚠ ]')} Found unexpected keys ${misplacedKeyNames} in environment ${environmentConfig.name}.environment. Placing keys other than ${Object.keys(config)} in ${environmentConfig.name}.environment is deprecated, move the keys to ${environmentConfig.name}.environment.transforms`);
+				}
+
+				// directly stuff mismatching keys into transforms config to retain previous behaviour
+				return omit(merge({}, results, omit(environment, misplacedKeyNames), { transforms: misplacedKeys }),
+					Object.keys(misplacedKeys).concat(Object.keys(defaultEnvironment)));
+			}, defaultEnvironment);
+
+		envDebug('applying env config to pattern %s', patternID);
+		envDebug('%s', inspect(environmentsConfig, { depth: null }));
+
+		// merge the determined environments config onto the pattern config
+		const patternConfiguration = merge({}, config, environmentsConfig, {
+			environments: environmentNames
+		});
+
 		const initStart = new Date();
 		const filterString = JSON.stringify(filters);
 		log.info(`Initializing pattern "${patternID}" with filters: ${chalk.grey('[' + filterString + ']')}`);
-		const pattern = await factory(patternID, base, config, transforms, filters);
+		const pattern = await factory(patternID, base, patternConfiguration, transforms, filters);
 		log.info(`Initialized pattern "${patternID}" ${chalk.grey('[' + (new Date() - initStart) + 'ms]')}`);
 
 		const gettingDepending = await getDependentPatterns(patternID, base, {cache});
