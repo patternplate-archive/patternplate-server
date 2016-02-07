@@ -21,7 +21,6 @@ import throat from 'throat';
 import getDependentPatterns from './get-dependent-patterns';
 import getReadFile from '../filesystem/readFile.js';
 
-const envDebug = debuglog('environments');
 
 const defaults = {
 	isEnvironment: false,
@@ -30,6 +29,7 @@ const defaults = {
 };
 
 function getMatchingEnvironments(patternID, environments) {
+	const envDebug = debuglog('environments');
 	const matchingEnvironments = environments
 		// get matching environments
 		.filter(userEnvironment => {
@@ -68,6 +68,8 @@ function getMatchingEnvironments(patternID, environments) {
 
 async function getPatterns(options, cache) {
 	const settings = {...defaults, ...options};
+	const envDebug = debuglog('environments');
+
 	const {
 		id,
 		base,
@@ -76,8 +78,10 @@ async function getPatterns(options, cache) {
 		transforms,
 		filters,
 		log,
-		isEnvironment
+		isEnvironment,
 	} = settings;
+
+	const tasks = settings.tasks || ['read', 'transform'];
 
 	const path = resolve(base, id);
 	const readFile = getReadFile({cache});
@@ -186,6 +190,11 @@ async function getPatterns(options, cache) {
 		const pattern = await factory(patternID, base, patternConfiguration, transforms, filters);
 		log.info(`Initialized pattern "${patternID}" ${chalk.grey('[' + (new Date() - initStart) + 'ms]')}`);
 
+
+		if (tasks.indexOf('read') === -1) {
+			return pattern.toJSON();
+		}
+
 		const gettingDepending = await getDependentPatterns(patternID, base, {cache});
 
 		const readStart = new Date();
@@ -194,11 +203,15 @@ async function getPatterns(options, cache) {
 		pattern.manifest.dependentPatterns = await gettingDepending;
 		log.info(`Read pattern "${patternID}" ${chalk.grey('[' + (new Date() - readStart) + 'ms]')}`);
 
+		if (tasks.indexOf('transform') === -1) {
+			return pattern.toJSON();
+		}
+
 		const transformStart = new Date();
 		log.info(`Transforming pattern "${patternID}"`);
 		const transformed = await pattern.transform(!isEnvironment, isEnvironment);
 		log.info(`Transformed pattern "${patternID}" ${chalk.grey('[' + (new Date() - transformStart) + 'ms]')}`);
-		return typeof transformed.toJSON === 'function' ? transformed.toJSON() : transformed;
+		return transformed.toJSON();
 	}));
 }
 
