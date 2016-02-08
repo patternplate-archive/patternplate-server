@@ -513,6 +513,7 @@ export class Pattern {
 				this.log.silly(`Transformed ${fileBaseName} of ${patternName} via ${transformName} ${stamp}`);
 			}
 
+
 			file.out = file.out || lastTransform.outFormat || file.format;
 			this.results[formatConfig.name] = file;
 		}

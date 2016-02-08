@@ -140,29 +140,29 @@ export default function patternRouteFactory (application, configuration) {
 				copyResult = omit(merge({}, jsonResult), ['results', 'dependencies']);
 				copyResult.results = { index: jsonResult.results };
 				copyResult.dependencies = Object.keys(jsonResult.dependencies)
-	 				.reduce((dependencies, dependencyName) => {
-	 					const id = jsonResult.dependencies[dependencyName].id;
-	 					const amend = dependencyName === 'Pattern' ?
-	 						{} :
-	 						{
-	 							[dependencyName]: id
-	 						}
-	 					return {...dependencies, ...amend};
-	 				}, {});
+					.reduce((dependencies, dependencyName) => {
+						const dependencyId = jsonResult.dependencies[dependencyName].id;
+						const amend = dependencyName === 'Pattern' ?
+							{} :
+							{
+								[dependencyName]: dependencyId
+							};
+						return {...dependencies, ...amend};
+					}, {});
 			} else {
 				copyResult = patternResults.map(pattern => {
 					const copied = omit(merge({}, pattern), ['results']);
 					copyResult.results = { index: jsonResult.results };
 					copied.dependencies = Object.keys(pattern.dependencies)
-		 				.reduce((dependencies, dependencyName) => {
-		 					const id = pattern.dependencies[dependencyName].id;
-		 					const amend = dependencyName === 'Pattern' ?
-		 						{} :
-		 						{
-		 							[dependencyName]: id
-		 						}
-		 					return {...dependencies, ...amend};
-		 				}, {});
+						.reduce((dependencies, dependencyName) => {
+							const dependencyId = pattern.dependencies[dependencyName].id;
+							const amend = dependencyName === 'Pattern' ?
+								{} :
+								{
+									[dependencyName]: dependencyId
+								};
+							return {...dependencies, ...amend};
+						}, {});
 				});
 			}
 

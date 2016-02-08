@@ -9,5 +9,20 @@ export default {
 		'cache': {
 			'static': false
 		}
+	},
+	transforms: {
+		less: {
+			opts: {
+				sourceMap: {
+					outputSourceFiles: false,
+					sourceMapFileInline: false
+				}
+			}
+		},
+		browserify: {
+			opts: {
+				debug: false
+			}
+		}
 	}
 };

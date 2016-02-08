@@ -20,6 +20,7 @@ import throat from 'throat';
 
 import getDependentPatterns from './get-dependent-patterns';
 import getReadFile from '../filesystem/readFile.js';
+import getStaticCacheItem from './get-static-cache-item.js';
 
 const envDebug = debuglog('environments');
 
@@ -81,6 +82,7 @@ async function getPatterns(options, cache) {
 
 	const path = resolve(base, id);
 	const readFile = getReadFile({cache});
+	const staticCacheRoot = resolve(process.cwd(), '.cache');
 	config.log = log;
 
 	// No patterns to find here
@@ -144,6 +146,14 @@ async function getPatterns(options, cache) {
 
 	// read and transform patterns at a concurrency of 5
 	return await* patternIDs.map(throat(5, async patternID => {
+		// try to use the static cache
+		const cached = cache.config.static ?
+			await getStaticCacheItem(patternID, staticCacheRoot, cache) :
+			null;
+
+		if (cached) {
+			return cached;
+		}
 
 		// get environments that match this pattern
 		const matchingEnvironments = getMatchingEnvironments(patternID, userEnvironments);
