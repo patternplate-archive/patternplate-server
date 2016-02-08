@@ -19,7 +19,7 @@ import minimatch from 'minimatch';
 import throat from 'throat';
 
 import getDependentPatterns from './get-dependent-patterns';
-import getReadFile from '../filesystem/readFile.js';
+import getReadFile from '../filesystem/read-file.js';
 import getStaticCacheItem from './get-static-cache-item.js';
 
 const envDebug = debuglog('environments');

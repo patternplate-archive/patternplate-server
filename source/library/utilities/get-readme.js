@@ -10,7 +10,7 @@ import {
 import markedNodeBack from 'marked';
 import pathExists from 'path-exists';
 
-import getReadFile from '../filesystem/readFile.js';
+import getReadFile from '../filesystem/read-file.js';
 
 const marked = denodeify(markedNodeBack);
 

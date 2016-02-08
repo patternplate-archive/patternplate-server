@@ -1,16 +1,13 @@
 import {
-	writeFile as writeFileNodeback,
 	createWriteStream
 } from 'fs';
 
-import {resolve, dirname} from 'path';
-import {debuglog} from 'util';
+import {resolve} from 'path';
 
 import qfs from 'q-io/fs';
 import archiver from 'archiver';
 import merge from 'lodash.merge';
 import throat from 'throat';
-import chalk from 'chalk';
 import denodeify from 'denodeify';
 import mkdirpNodeback from 'mkdirp';
 
@@ -18,63 +15,17 @@ import flatPick from '../../../library/utilities/flat-pick';
 import getPatterns from '../../../library/utilities/get-patterns';
 import getPatternMtimes from '../../../library/utilities/get-pattern-mtimes';
 import git from '../../../library/utilities/git';
+import writeSafe from '../../../library/filesystem/write-safe';
+
+import {
+	ok,
+	wait,
+	ready,
+	deprecation
+} from '../../../library/log/decorations.js';
 
 const mkdirp = denodeify(mkdirpNodeback);
-const writeFile = denodeify(writeFileNodeback);
-
 const pkg = require(resolve(process.cwd(), 'package.json'));
-
-function formatDuration(duration) {
-	const units = ['m', 's', 'ms'];
-	const methods = ['getMinutes', 'getSeconds', 'getMilliseconds'];
-
-	return methods
-		.map(method => {
-			return duration[method]();
-		})
-		.map((time, index) => {
-			if (time > 0) {
-				return `${time}${units[index]}`;
-			}
-		})
-		.filter(Boolean)
-		.join(' ');
-}
-
-function getDurationStamp(start) {
-	const duration = new Date(new Date() - start);
-	return chalk.grey(`[${formatDuration(duration)}]`);
-}
-
-function getMessage(strings, values) {
-	return strings.reduce((result, string, index) => {
-		const value = typeof values[index] !== 'undefined' ? values[index] : '';
-		const formatted = value instanceof Date && index === values.length - 1 ? getDurationStamp(value) : value;
-		return `${result}${string}${formatted}`;
-	}, '');
-}
-
-function wait(strings, ...values) {
-	const sign = `${chalk.grey('⧗')}`;
-	return `${sign}    ${getMessage(strings, values)}`;
-}
-
-function ok(strings, ...values) {
-	const sign = `${chalk.grey('✔')}`;
-	return `${sign}    ${getMessage(strings, values)}`;
-}
-
-function ready(strings, ...values) {
-	const sign = `${chalk.green('✔')}`;
-	return `${sign}    ${getMessage(strings, values)}`;
-}
-
-async function writeSafe(path, buffer) {
-	const debug = debuglog('build-write');
-	await mkdirp(dirname(path));
-	debug('Writing %s', path);
-	return writeFile(path, buffer);
-}
 
 async function build (application, configuration) {
 	const start = new Date();
@@ -112,7 +63,7 @@ async function build (application, configuration) {
 	await mkdirp(staticCacheDirectory);
 
 	if (buildConfig.tasks.patterns && buildConfig.tasks.patterns !== 'false') {
-		application.log.warn(`${chalk.yellow('[⚠ Removal ⚠ ]')} The patterns sub-task of build was removed. Use the commonjs task instead. You can disable it by specifying patternplate-server.configuration.build.tasks.patterns=false`);
+		application.log.warn(deprecation`The patterns sub-task of build was removed. Use the commonjs task instead. You can disable it by specifying patternplate-server.configuration.build.tasks.patterns=false`);
 	}
 
 	// build the static cache
