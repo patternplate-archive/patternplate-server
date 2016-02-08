@@ -21,7 +21,7 @@ function getMessage(strings, values) {
 }
 
 
-export function error(strings, ...values) {
+export function fail(strings, ...values) {
 	const sign = `${chalk.red('✖')}`;
 	return `${sign}    ${getMessage(strings, values)}`;
 }
