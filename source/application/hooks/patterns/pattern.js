@@ -20,7 +20,7 @@ import minimatch from 'minimatch';
 import qfs from 'q-io/fs';
 import throat from 'throat';
 
-import getReadFile from '../../../library/filesystem/readFile.js';
+import getReadFile from '../../../library/filesystem/read-file.js';
 
 async function getPatternManifests(base, patterns = {}, fs = qfs) {
 	return await* Object.values(patterns).map(async id => {

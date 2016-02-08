@@ -6,283 +6,41 @@ import {
 	join,
 	dirname,
 	extname,
-	relative,
-	sep
+	relative
 } from 'path';
 
 import {
-	readFile as readFileNodeback,
-	writeFile as writeFileNodeback,
-	stat as statNodeback,
-	createReadStream,
-	createWriteStream
+	readFile as readFileNodeback
 } from 'fs';
 
-import mkdirpNodeback from 'mkdirp';
 import merge from 'lodash.merge';
-import {omit} from 'lodash';
-import fs from 'q-io/fs';
-import {find, difference} from 'lodash';
+import {
+	find,
+	omit
+} from 'lodash';
 import throat from 'throat';
 import chalk from 'chalk';
-import rimraf from 'rimraf';
 import exists from 'path-exists';
 
+import copyDirectory from '../../../library/filesystem/copy-directory';
+import removeFile from '../../../library/filesystem/remove-file';
+import writeSafe from '../../../library/filesystem/write-safe';
 import resolvePathFormatString from '../../../library/resolve-utilities/resolve-path-format-string';
+import getArtifactMtimes from '../../../library/utilities/get-artifact-mtimes';
+import getArtifactsToPrune from '../../../library/utilities/get-artifacts-to-prune';
 import getPatterns from '../../../library/utilities/get-patterns';
 import getPatternMtimes from '../../../library/utilities/get-pattern-mtimes';
+import getPatternsToBuild from '../../../library/utilities/get-patterns-to-build';
+import getPackageString from './get-package-string';
+
+import {
+	ok,
+	wait,
+	ready
+} from '../../../library/log/decorations';
 
 const pkg = require(resolve(process.cwd(), 'package.json'));
-const mkdirp = denodeify(mkdirpNodeback);
 const readFile = denodeify(readFileNodeback);
-const writeFile = denodeify(writeFileNodeback);
-const stat = denodeify(statNodeback);
-
-function formatDuration(duration) {
-	const units = ['h', 'm', 's', 'ms'];
-	const methods = ['getHours', 'getMinutes', 'getSeconds', 'getMilliseconds'];
-
-	return methods
-		.map(method => {
-			return duration[method]();
-		})
-		.map((time, index) => {
-			if (time > 0) {
-				return `${time}${units[index]}`;
-			}
-		})
-		.filter(Boolean)
-		.join(' ');
-}
-
-function getDurationStamp(start) {
-	const duration = new Date(new Date() - start);
-	return chalk.grey(`[${formatDuration(duration)}]`);
-}
-
-function getMessage(strings, values) {
-	return strings.reduce((result, string, index) => {
-		const value = typeof values[index] !== 'undefined' ? values[index] : '';
-		const formatted = value instanceof Date && index === values.length - 1 ? getDurationStamp(value) : value;
-		return `${result}${string}${formatted}`;
-	}, '');
-}
-
-function wait(strings, ...values) {
-	const sign = `${chalk.grey('⧗')}`;
-	return `${sign}    ${getMessage(strings, values)}`;
-}
-
-function ok(strings, ...values) {
-	const sign = `${chalk.grey('✔')}`;
-	return `${sign}    ${getMessage(strings, values)}`;
-}
-
-function ready(strings, ...values) {
-	const sign = `${chalk.green('✔')}`;
-	return `${sign}    ${getMessage(strings, values)}`;
-}
-
-function getPackageString(dependencies, data, ...overrides) {
-	const definition = merge(...[data, ...overrides]);
-	definition.dependencies = dependencies;
-	return JSON.stringify(definition, null, '  ');
-}
-
-async function getArtifactMtimes(search, patterns) {
-	const debug = debuglog('commonjs-artifacts');
-
-	const types = Object.keys(patterns.formats)
-		.map(extension => patterns.formats[extension].name);
-
-	const typedFiles = await* [...new Set(types)].map(async type => {
-		const files = await fs.listTree(resolve(search, 'distribution', type));
-		return files.filter(path => extname(path));
-	});
-
-	const artifactPaths = typedFiles
-		.reduce((flattened, files) => [...flattened, ...files], []);
-
-	const artifactMtimes = await Promise.all(artifactPaths
-		.map(async path => {
-			const artifactId = dirname(relative(resolve(search, 'distribution'), path).split(sep).join('/'));
-			const patternId = artifactId.split(sep).slice(1).join('/');
-			const stats = await stat(path);
-
-			return {
-				id: artifactId,
-				path: path,
-				patternId,
-				mtime: stats.mtime
-			};
-		}));
-
-	const artifactRegistry = artifactMtimes.reduce((registry, artifact) => {
-		const item = registry[artifact.patternId] || {
-			id: artifact.patternId,
-			artifacts: [],
-			files: [],
-			mtimes: [],
-			types: []
-		};
-
-		item.artifacts.push(artifact.id);
-		item.files.push(artifact.path);
-		item.mtimes.push(artifact.mtime);
-		item.types.push(artifact.id.split('/')[0]);
-		registry[artifact.patternId] = item;
-		return registry;
-	}, {});
-
-	return Object.values(artifactRegistry).map(item => {
-		const times = item.mtimes.map(time => {
-			return {
-				stamp: time.getTime(),
-				date: time
-			};
-		}).sort((a, b) => a.stamp - b.stamp);
-
-		item.mtime = times[0].date;
-		debug('mtime for artifact %s is %s', item.id, item.mtime);
-		return item;
-	});
-}
-
-function getPatternsToBuild(artifacts, patterns) {
-	const debug = debuglog('commonjs');
-
-	return pattern => {
-		// Find matching pattern artifact
-		const artifact = find(artifacts, {id: pattern.id});
-
-		// If no pattern artifact is found, build it
-		if (!artifact) {
-			debug('rebuild %s, no artifacts');
-			return true;
-		}
-
-		// Build if pattern mtime > artifact mtime
-		if (pattern.mtime.getTime() > artifact.mtime.getTime()) {
-			debug(
-				'rebuild %s, pattern mtime %s is newer than artifacts %s by %s',
-				pattern.id, pattern.mtime, artifact.mtime,
-				formatDuration(new Date(pattern.mtime - artifact.mtime))
-			);
-			return true;
-		}
-
-		// Get the types in this pattern
-		const types = [...new Set(pattern.files
-			.map(path => extname(path).slice(1))
-			.filter(Boolean)
-			.map(extension => patterns.formats[extension])
-			.filter(Boolean)
-			.map(format => format.name))];
-
-		// Build if types do not match
-		if (
-			difference(types, artifact.types).length ||
-			difference(artifact.types, types).length
-		) {
-			debug(
-				'rebuild %s, pattern types %s mismatch artifact types %s',
-				pattern.id, types, artifact.types
-			);
-			return true;
-		}
-	};
-}
-
-function getArtifactsToPrune(patterns, artifacts, config) {
-	return artifacts.reduce((results, artifact) => {
-		const pattern = find(patterns, {id: artifact.id});
-
-		// prune all artifact files without a corresponding pattern
-		if (!pattern) {
-			return [...results, ...artifact.files];
-		}
-
-		// get expected artifact files
-		const expected = pattern.files.map(file => {
-			const fileExtension = extname(file);
-			const formatName = fileExtension.slice(1);
-
-			const format = config.patterns.formats[formatName];
-
-			if (!format) {
-				return false;
-			}
-
-			const transformNames = format.transforms || [];
-			const lastTransformName = transformNames[transformNames.length - 1];
-			const lastTransform = config.transforms[lastTransformName] || {};
-
-			const fileType = format.name;
-			const targetExtension = lastTransform.outFormat || fileExtension.slice(1);
-
-			const expectedRelativePath = resolvePathFormatString(
-				config.resolve,
-				pattern.id,
-				fileType,
-				targetExtension
-			);
-
-			return resolve('./distribution', expectedRelativePath);
-		}).filter(Boolean);
-
-		// prune artifact files with pattern but no file corresponding
-		const files = artifact.files.filter(file => expected.indexOf(file) === -1);
-		return [...results, ...files];
-	}, []);
-}
-
-function copyFile(source, target) {
-	return new Promise((resolver, reject) => {
-		const reading = createReadStream(source);
-		const writing = createWriteStream(target);
-		reading.on('error', reject);
-		writing.on('error', reject);
-		writing.on('finish', resolver);
-		reading.pipe(writing);
-	});
-}
-
-function rm(target) {
-	return new Promise((resolver, reject) => {
-		rimraf(target, {}, error => {
-			if (error) {
-				reject(error);
-			} else {
-				resolve();
-			}
-		});
-	});
-}
-
-async function copySafe(source, target) {
-	await mkdirp(dirname(target));
-	await copyFile(source, target);
-}
-
-async function writeSafe(path, buffer) {
-	const debug = debuglog('commonjs-write');
-	await mkdirp(dirname(path));
-	debug('Writing %s', path);
-	return writeFile(path, buffer);
-}
-
-async function copyDirectory(source, target) {
-	const files = await fs.listTree(source);
-
-	return Promise.all(
-		files
-			.filter(extname)
-			.map(async file => {
-				const targetFile = resolve(target, relative(source, file));
-				return copySafe(file, targetFile);
-			})
-	);
-}
 
 async function exportAsCommonjs(application, settings) {
 	const debug = debuglog('commonjs');
@@ -497,7 +255,7 @@ async function exportAsCommonjs(application, settings) {
 		if (settings['dry-run']) {
 			return Promise.resolve();
 		}
-		return rm(dirname(path));
+		return removeFile(dirname(path));
 	}));
 
 	if (settings['dry-run']) {

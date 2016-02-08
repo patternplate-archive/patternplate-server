@@ -7,7 +7,7 @@ import {
 
 import fs from 'q-io/fs';
 
-import getReadFile from '../filesystem/readFile.js';
+import getReadFile from '../filesystem/read-file.js';
 
 const defaultManifest = {
 	'version': '0.1.0',
