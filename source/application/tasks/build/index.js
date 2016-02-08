@@ -14,6 +14,7 @@ import chalk from 'chalk';
 import denodeify from 'denodeify';
 import mkdirpNodeback from 'mkdirp';
 
+import flatPick from '../../../library/utilities/flat-pick';
 import getPatterns from '../../../library/utilities/get-patterns';
 import getPatternMtimes from '../../../library/utilities/get-pattern-mtimes';
 import git from '../../../library/utilities/git';
@@ -76,6 +77,7 @@ async function writeSafe(path, buffer) {
 }
 
 async function build (application, configuration) {
+	const start = new Date();
 	const cwd = application.runtime.patterncwd || application.runtime.cwd;
 	const patternHook = application.hooks.filter((hook) => hook.name === 'patterns')[0];
 	const patternRoot = resolve(cwd, patternHook.configuration.path);
@@ -149,20 +151,7 @@ async function build (application, configuration) {
 							patternList
 								.map(async patternItem => {
 									// cut some slack
-									patternItem.dependencies = Object.keys(patternItem.dependencies)
-										.reduce((dependencies, dependencyName) => {
-											const id = patternItem.dependencies[dependencyName].id;
-											const amend = dependencyName === 'Pattern' ?
-												{} :
-												{
-													[dependencyName]: id
-												};
-												return {
-													...dependencies,
-													...amend
-												};
-										}, {});
-
+									patternItem.dependencies = flatPick(patternItem, 'dependencies', ['id', 'manifest']);
 									const resultPath = resolve(staticCacheDirectory, patternItem.id.split('/').join('-') + '.json');
 									return writeSafe(resultPath, JSON.stringify(patternItem));
 								})
@@ -177,7 +166,6 @@ async function build (application, configuration) {
 
 	// Build environment output
 	if (buildConfig.tasks.bundles && buildConfig.tasks.bundles !== 'false') {
-		console.log('!');
 		/* const builds = await* environments.map(throat(5, async environment => { // eslint-disable-line no-shadow
 			return (await getPatterns({
 				id: qfs.relativeFromDirectory(patternRoot, environment),
@@ -231,7 +219,10 @@ async function build (application, configuration) {
 	archive.finalize();
 
 	return new Promise((fulfill, reject) => {
-		output.on('close', fulfill);
+		output.on('close', () => {
+			fulfill();
+			application.log.info(ready`Build ran successfull ${start}`);
+		});
 		archive.on('error', reject);
 	});
 }

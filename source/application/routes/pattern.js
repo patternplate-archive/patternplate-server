@@ -10,6 +10,7 @@ import {
 	omit
 } from 'lodash';
 
+import flatPick from '../../library/utilities/flat-pick';
 import getPatterns from '../../library/utilities/get-patterns';
 import layout from '../layouts';
 
@@ -139,30 +140,12 @@ export default function patternRouteFactory (application, configuration) {
 			if (!Array.isArray(jsonResult)) {
 				copyResult = omit(merge({}, jsonResult), ['results', 'dependencies']);
 				copyResult.results = { index: jsonResult.results };
-				copyResult.dependencies = Object.keys(jsonResult.dependencies)
-					.reduce((dependencies, dependencyName) => {
-						const dependencyId = jsonResult.dependencies[dependencyName].id;
-						const amend = dependencyName === 'Pattern' ?
-							{} :
-							{
-								[dependencyName]: dependencyId
-							};
-						return {...dependencies, ...amend};
-					}, {});
+				copyResult.dependencies = flatPick(jsonResult, 'dependencies', ['id', 'manifest']);
 			} else {
 				copyResult = patternResults.map(pattern => {
-					const copied = omit(merge({}, pattern), ['results']);
-					copyResult.results = { index: jsonResult.results };
-					copied.dependencies = Object.keys(pattern.dependencies)
-						.reduce((dependencies, dependencyName) => {
-							const dependencyId = pattern.dependencies[dependencyName].id;
-							const amend = dependencyName === 'Pattern' ?
-								{} :
-								{
-									[dependencyName]: dependencyId
-								};
-							return {...dependencies, ...amend};
-						}, {});
+					const copied = omit(merge({}, pattern), ['results', 'dependencies']);
+					copied.results = { index: jsonResult.results };
+					copied.dependencies = flatPick(pattern, 'dependencies', ['id', 'manifest']);
 				});
 			}
 
