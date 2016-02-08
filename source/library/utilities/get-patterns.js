@@ -15,12 +15,15 @@ import {
 	merge,
 	omit
 } from 'lodash';
-import minimatch from 'minimatch';
 import throat from 'throat';
 
+import getEnvironments from './get-environments';
+import {
+	defaultEnvironment
+} from './get-environments';
 import getDependentPatterns from './get-dependent-patterns';
-import getReadFile from '../filesystem/read-file.js';
 import getStaticCacheItem from './get-static-cache-item.js';
+import getMatchingEnvironments from './get-matching-environments';
 
 const envDebug = debuglog('environments');
 
@@ -29,43 +32,6 @@ const defaults = {
 	filters: {},
 	log: function() {}
 };
-
-function getMatchingEnvironments(patternID, environments) {
-	const matchingEnvironments = environments
-		// get matching environments
-		.filter(userEnvironment => {
-			envDebug('using filters %s for environment %s to match against %s', userEnvironment.applyTo, userEnvironment.name, patternID);
-
-			const positives = userEnvironment.applyTo
-				.filter(glob => glob[0] !== '!');
-
-			const negatives = userEnvironment.applyTo
-				.filter(glob => glob[0] === '!')
-				.map(glob => glob.slice(1));
-
-			const matchPositive = positives
-				.filter(positive => minimatch(patternID, positive));
-
-			const matchNegative = negatives
-				.filter(negative => minimatch(patternID, negative));
-
-			envDebug('matching %s against %s, %s', patternID, positives, negatives);
-
-			if (matchPositive.length > 0) {
-				envDebug('positive match for environment %s on %s: %s', userEnvironment.name, patternID, matchPositive);
-			}
-
-			if (matchNegative.length > 0) {
-				envDebug('negative match for environment %s on %s: %s', userEnvironment.name, patternID, matchNegative);
-			}
-
-			return matchPositive.length > 0 && matchNegative.length === 0;
-		})
-		// sort by priority
-		.sort((a, b) => b.priority - a.priority);
-
-	return matchingEnvironments;
-}
 
 async function getPatterns(options, cache) {
 	const settings = {...defaults, ...options};
@@ -81,7 +47,6 @@ async function getPatterns(options, cache) {
 	} = settings;
 
 	const path = resolve(base, id);
-	const readFile = getReadFile({cache});
 	const staticCacheRoot = resolve(process.cwd(), '.cache');
 	config.log = log;
 
@@ -102,47 +67,6 @@ async function getPatterns(options, cache) {
 		.map(item => dirname(item))
 		.map(item => fs.relativeFromDirectory(options.base, item));
 
-	// Check if there is a user environment folder
-	const environmentBase = resolve(base, '@environments');
-	const hasUserEnvironments = await fs.exists(environmentBase);
-
-	// Get available environments ids
-	const userEnvironmentPaths = hasUserEnvironments ?
-		(await fs.listTree(environmentBase))
-			.filter(item => basename(item) === 'pattern.json') :
-		[];
-
-	envDebug('found environment files at %s', userEnvironmentPaths);
-
-	// Load environments
-	const userEnvironmentFiles = await Promise.all(
-		userEnvironmentPaths.map(envFilePath => {
-			envDebug('reading env file %s', envFilePath);
-			const content = readFile(envFilePath);
-			envDebug('%s %s', envFilePath, content);
-			return content;
-		})
-	);
-
-	const defaultEnvironment = {
-		name: 'index',
-		version: '0.1.0',
-		applyTo: ['**/*'],
-		include: ['**/*'],
-		excludes: [],
-		priority: 0,
-		environment: {}
-	};
-
-	// Parse environment file contents
-	const userEnvironments = userEnvironmentFiles
-		.map(userEnvironmentFile => {
-			const raw = JSON.parse(userEnvironmentFile.toString('utf-8'));
-			return merge({}, defaultEnvironment, raw);
-		});
-
-	envDebug('read environment data');
-	envDebug(userEnvironments);
 
 	// read and transform patterns at a concurrency of 5
 	return await* patternIDs.map(throat(5, async patternID => {
@@ -154,6 +78,12 @@ async function getPatterns(options, cache) {
 		if (cached) {
 			return cached;
 		}
+
+		// load user environments
+		const userEnvironments = await getEnvironments(base, {
+			cache,
+			log
+		});
 
 		// get environments that match this pattern
 		const matchingEnvironments = getMatchingEnvironments(patternID, userEnvironments);
@@ -167,6 +97,7 @@ async function getPatterns(options, cache) {
 
 		// merge environment configs
 		// fall back to default environment if none is matching
+		// TODO: should move to getEnvironments
 		const environmentsConfig = matchingEnvironments
 			.reduce((results, environmentConfig) => {
 				const {environment} = environmentConfig;

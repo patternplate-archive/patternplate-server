@@ -67,7 +67,7 @@ async function build (application, configuration) {
 	}
 
 	// build the static cache
-	// TODO: save the artifacts instead of a giant json file
+	// TODO: save the artifacts instead of a kind-of-giant json file
 	// - when client and server negotiate about single files
 	// - read times are better
 	if (buildConfig.tasks.cache) {
