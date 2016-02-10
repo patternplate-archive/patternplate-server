@@ -57,7 +57,7 @@
     "babel-runtime": "^5.8.24",
     "babelify": "^6.0.2",
     "bluebird": "^2.9.25",
-    "boilerplate-server": "^0.10.1",
+    "boilerplate-server": "^0.11.0",
     "browserify": "^10.2.4",
     "btoa": "^1.1.2",
     "chalk": "^1.1.1",
