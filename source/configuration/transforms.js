@@ -1,5 +1,8 @@
 export default {
-	//'path': './application/transforms',
+	'path': [
+		'./application/transforms',
+		'./application/patternplate-server/transforms'
+	],
 	'markdown': {
 		'inFormat': 'md',
 		'outFormat': 'html'

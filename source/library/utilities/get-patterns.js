@@ -35,6 +35,7 @@ const defaults = {
 
 async function getPatterns(options, cache) {
 	const settings = {...defaults, ...options};
+
 	const {
 		id,
 		base,
