@@ -1,7 +1,11 @@
+import {
+	dirname
+} from 'path';
+
+import copyFile from './copy-file';
 import makeDirectory from './make-directory';
 
-async function copySafe(source, target) {
-	await mkdirp(dirname(target));
+export default async function copySafe(source, target) {
+	await makeDirectory(dirname(target));
 	await copyFile(source, target);
 }
-
