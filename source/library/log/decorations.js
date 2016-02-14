@@ -1,14 +1,12 @@
 import chalk from 'chalk';
-import moment from 'moment';
+import Duration from 'duration';
 
-function formatDuration(duration) {
-	return moment
-		.duration(duration)
-		.humanize();
+function formatDuration(start, end = new Date()) {
+	return new Duration(start, end).toString(1);
 }
 
 function getDurationStamp(start) {
-	const duration = formatDuration(new Date(new Date() - start));
+	const duration = formatDuration(start);
 	return chalk.grey(`${chalk.grey('[' + duration + ']')}`);
 }
 
