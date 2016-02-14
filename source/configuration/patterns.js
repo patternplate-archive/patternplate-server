@@ -28,15 +28,5 @@ export default {
 			'name': 'Documentation',
 			'transforms': ['markdown']
 		}
-	},
-	'cache': {
-		'populate': false,
-		'read': true,
-		'files': true,
-		'transform': true,
-		'static': false,
-		'options': {
-			'max': Infinity
-		}
 	}
 };
