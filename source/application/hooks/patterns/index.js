@@ -1,4 +1,3 @@
-console.log('patterns');
 import patternFactory from './pattern';
 import {Pattern} from './pattern';
 

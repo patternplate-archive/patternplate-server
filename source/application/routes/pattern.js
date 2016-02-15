@@ -60,6 +60,19 @@ export default function patternRouteFactory (application, configuration) {
 				return referenceSection;
 			}, sectionSeed);
 
+		// Reset the script references if the transforms pass
+		// explicit script dependencies
+		if (result.meta.scriptDependencies.length > 0) {
+			templateReferenceData.script = result.meta.scriptDependencies
+				.map(dependency => {
+					return {
+						uri: application.router.url(dependency.path, {
+							id: dependency.id
+						}).replace('%2B', '') // workaround for stuff router appends
+					}
+				});
+		}
+
 		// Append content script for iframe resizing
 		// TODO: remove this when the new client arrives
 		templateReferenceData.script.push({
