@@ -1,45 +1,34 @@
-#!/usr/bin/env node --harmony
+#!/usr/bin/env node
 'use strict';
 
-import 'babel-core/polyfill';
+import 'babel-polyfill';
 import minimist from 'minimist';
 
 import patternServer from '../';
 
-var args = minimist(process.argv.slice(1));
-
-async function start (options = {}) {
+async function main(options = {}) {
 	let application;
 
 	try {
 		application = await patternServer(options);
-	} catch(err) {
+	} catch (err) {
 		console.trace(err);
 		throw new Error(err);
 	}
 
 	try {
 		await application.start();
-	} catch(err) {
+	} catch (err) {
 		application.log.error(err);
 		throw new Error(err);
 	}
-
-	async function stop () {
-		try {
-			await application.stop();
-			process.exit( 0 );
-		} catch ( err ) {
-			application.log.error( err );
-			process.exit( 1 );
-		}
-	}
-
-	process.on( 'SIGINT', () => stop( 'SIGINT' ) );
-	process.on( 'SIGHUP', () => stop( 'SIGHUP' ) );
-	process.on( 'SIGQUIT', () => stop( 'SIGQUIT' ) );
-	process.on( 'SIGABRT', () => stop( 'SIGABRT' ) );
-	process.on( 'SIGTERM', () => stop( 'SIGTERM' ) );
 }
 
-start(args);
+const args = minimist(process.argv.slice(1));
+
+main(args)
+	.catch(err => {
+		setTimeout(() => {
+			throw err;
+		});
+	});
