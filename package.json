@@ -60,6 +60,7 @@
     "browserify": "^10.2.4",
     "btoa": "^1.1.2",
     "chalk": "^1.1.1",
+    "compare-semver": "^1.1.0",
     "core-util-is": "^1.0.1",
     "denodeify": "^1.2.1",
     "duration": "^0.2.0",
@@ -108,10 +109,14 @@
   },
   "devDependencies": {
     "babel": "^5.2.17",
-    "babel-eslint": "^3.0.1",
+    "babel-eslint": "^4.1.8",
     "chokidar-cli": "^0.3.0",
-    "eslint": "^0.20.0",
+    "eslint": "^2.0.0",
+    "eslint-config-xo": "^0.10.1",
+    "eslint-plugin-babel": "^3.1.0",
     "jsonlint": "^1.6.2",
-    "lodash": "^4.0.1"
+    "lodash": "^4.0.1",
+    "react": "^0.14.7",
+    "react-dom": "^0.14.7"
   }
 }

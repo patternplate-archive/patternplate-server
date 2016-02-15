@@ -7,7 +7,9 @@ import {
 } from 'lodash';
 
 import {
-	deprecation
+	deprecation,
+	ok,
+	wait
 } from '../../../library/log/decorations';
 
 function loadTransform(path) {
@@ -29,16 +31,16 @@ export default {
 		}
 
 		const transformPath = application.configuration.patterns.transformPath || this.configuration.path;
-		const transformPaths = Array.isArray(transformPath)
-			? transformPath
-			: [transformPath];
+		const transformPaths = Array.isArray(transformPath) ?
+			transformPath :
+			[transformPath];
 
 		const resolved = transformPaths
 			.reduce((items, item) => {
-					return [
-						...items,
-						...application.runtime.cwds.map((cwd) => resolve(cwd, item))
-					];
+				return [
+					...items,
+					...application.runtime.cwds.map(cwd => resolve(cwd, item))
+				];
 			}, []);
 
 		const transformNames = Object.keys(omit(this.configuration, ['path', 'options']));
@@ -46,6 +48,7 @@ export default {
 		// load all transforms factories
 		const transformFactories = transformNames
 			.reduce((registry, transformName) => {
+				application.log.debug(wait`Looking up transform ${transformName}`);
 				// resolve from project or core
 				// project transforms take precedence
 				const localTransformPaths = resolved
@@ -56,6 +59,7 @@ export default {
 					.filter(Boolean)[0];
 
 				if (localTransformFactory) {
+					application.log.debug(ok`Loaded local transform ${transformName}`);
 					return {
 						...registry,
 						[transformName]: localTransformFactory
@@ -72,6 +76,8 @@ export default {
 						`Could not load transform ${transformName}, tried: ${localTransformPaths}, ${pkg} npm`
 					);
 				}
+
+				application.log.debug(ok`Loaded package transform ${transformName}`);
 
 				return {
 					...registry,
