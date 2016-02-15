@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /*eslint-disable no-process-env */
 
-import 'babel-core/polyfill';
+import 'babel-polyfill';
 import minimist from 'minimist';
 
 import server from '../';
