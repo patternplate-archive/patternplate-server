@@ -23,7 +23,7 @@ import throat from 'throat';
 import getReadFile from '../../../library/filesystem/read-file.js';
 
 async function getPatternManifests(base, patterns = {}, fs = qfs) {
-	return await* Object.values(patterns).map(async id => {
+	return await * Object.values(patterns).map(async id => {
 		const json = await fs.read(resolve(base, id, 'pattern.json'));
 		const manifest = {...JSON.parse(json), __id: id};
 		const subManifests = await getPatternManifests(base, manifest.patterns, fs);
@@ -86,19 +86,19 @@ export class Pattern {
 		outFormats: []
 	};
 	log = {
-		error: function(...args) {
+		error(...args) {
 			console.error(...args);
 		},
-		warn: function(...args) {
+		warn(...args) {
 			console.warn(...args);
 		},
-		info: function(...args) {
+		info(...args) {
 			console.log(...args);
 		},
-		debug: function(...args) {
+		debug(...args) {
 			console.log(...args);
 		},
-		silly: function(...args) {
+		silly(...args) {
 			console.log(...args);
 		}
 	};
@@ -126,8 +126,8 @@ export class Pattern {
 			filters,
 			path: Pattern.resolve(base, id),
 			environments: {
-				'index': {
-					'manifest': { 'name': 'index' }
+				index: {
+					manifest: {name: 'index'}
 				}
 			},
 			isEnvironment: id.includes('@environment'),
@@ -156,8 +156,8 @@ export class Pattern {
 
 			if (!await this.fs.exists(manifestPath)) {
 				throw new Error(`Can not read pattern.json from ${this.path}, it does not exist.`, {
-					'fileName': this.path,
-					'pattern': this.id
+					fileName: this.path,
+					pattern: this.id
 				});
 			}
 
@@ -165,39 +165,39 @@ export class Pattern {
 				const manifestString = await this.fs.read(manifestPath);
 				const manifestData = JSON.parse(manifestString);
 				this.manifest = {
-					'version': '0.1.0',
-					'build': true,
-					'display': true,
-					'patterns': {},
+					version: '0.1.0',
+					build: true,
+					display: true,
+					patterns: {},
 					...this.manifest,
 					...manifestData
 				};
 			} catch (error) {
 				throw new Error(`Error while reading pattern.json from ${this.path}: ${error.message}`, {
-					'file': this.path,
-					'pattern': this.id,
-					'stack': error.stack
+					file: this.path,
+					pattern: this.id,
+					stack: error.stack
 				});
 			}
 
 			if (this.isEnvironment && !this.manifest.patterns) {
 				let list = await this.fs.list(this.base);
-				let range = this.manifest.range || '*';
+				const range = this.manifest.range || '*';
 
 				list = list
-					.filter((item) => basename(item) === 'pattern.json')
-					.filter((item) => !item.includes('@environment'))
-					.map((item) => qfs.relativeFromDirectory(this.base, dirname(item)))
-					.filter((item) => item !== this.id);
+					.filter(item => basename(item) === 'pattern.json')
+					.filter(item => !item.includes('@environment'))
+					.map(item => qfs.relativeFromDirectory(this.base, dirname(item)))
+					.filter(item => item !== this.id);
 
 				if (this.manifest.include) {
-					let include = Array.prototype.concat.call([], this.manifest.include, ['']);
-					list = list.filter((item) => minimatch(item, `{${include.join(',')}}` ));
+					const include = Array.prototype.concat.call([], this.manifest.include, ['']);
+					list = list.filter(item => minimatch(item, `{${include.join(',')}}`));
 				}
 
 				if (this.manifest.exclude) {
-					let exclude = Array.prototype.concat.call([], this.manifest.exclude, ['']);
-					list = list.filter((item) => !minimatch(item, `{${exclude.join(',')}}` ));
+					const exclude = Array.prototype.concat.call([], this.manifest.exclude, ['']);
+					list = list.filter(item => !minimatch(item, `{${exclude.join(',')}}`));
 				}
 
 				this.manifest.patterns = list
@@ -217,16 +217,16 @@ export class Pattern {
 						parents: [...this.config.parents, this.id]
 					};
 					const pattern = new Pattern(
-							id,
-							this.base,
-							config,
-							this.transforms,
-							{
-								...this.filters,
-								baseNames: ['index'] // dependencies are index-only
-							},
-							this.cache
-						);
+						id,
+						this.base,
+						config,
+						this.transforms,
+						{
+							...this.filters,
+							baseNames: ['index'] // dependencies are index-only
+						},
+						this.cache
+					);
 					pattern.manifest = manifest;
 					return pattern;
 				});
@@ -240,7 +240,7 @@ export class Pattern {
 				this.log.silly(`↳  ${chalk.bold(name)} → ${item}`);
 			});
 
-			const readDependencies = await* dependenciesToRead.map(async id => {
+			const readDependencies = await * dependenciesToRead.map(async id => {
 				return find(dependencyPatterns, {id}).read();
 			});
 
@@ -256,7 +256,8 @@ export class Pattern {
 
 		// determine the current mtimes for this pattern
 		const fileList = await qfs.list(path);
-		this.log.silly(`Listed ${fileList.length} files for ${this.id} ${chalk.grey('[' + (new Date() - readStart) + 'ms]')}`);
+		const fileListDuration = chalk.grey(`[${new Date() - readStart}ms]`);
+		this.log.silly(`Listed ${fileList.length} files for ${this.id} ${fileListDuration}`);
 
 		// use filter, use all formats if none given
 		const inFormats = this.filters.inFormats.length > 0 ?
@@ -294,9 +295,8 @@ export class Pattern {
 			.filter(outFormat => {
 				if (this.filters.outFormats.length === 0) {
 					return true;
-				} else {
-					return this.filters.outFormats.indexOf(outFormat) > -1;
 				}
+				return this.filters.outFormats.indexOf(outFormat) > -1;
 			});
 
 		// determine in formats for available out formats
@@ -377,18 +377,20 @@ export class Pattern {
 			)
 			.map(file => resolve(this.base, this.id, file));
 
-		this.log.silly(`Using ${matchingFiles.length} of ${files.length} files for ${this.id}: ${chalk.grey('[' + matchingFiles.map(file => basename(file)) + ']')}`);
+		const matchingFilesList = chalk.grey(`[${matchingFiles.map(file => basename(file))}]`);
+		this.log.silly(`Using ${matchingFiles.length} of ${files.length} files for ${this.id}: ${matchingFilesList}`);
 
 		const manifestStart = new Date();
 		await this.readManifest(path, fs);
 
 		// read manifest information
 		if (this.config.parents.length === 0) {
-			this.log.silly(`Read manifest for ${this.id} ${chalk.grey('[' + (new Date() - manifestStart) + 'ms]')}`);
+			const manifestReadDuration = chalk.grey(`[${new Date() - manifestStart}ms]`);
+			this.log.silly(`Read manifest for ${this.id} ${manifestReadDuration}`);
 		}
 
 		// read in relevant file information
-		const fileData = await* matchingFiles.map(throat(5, async file => {
+		const fileData = await * matchingFiles.map(throat(5, async file => {
 			const fileFs = await this.fs.stat(file);
 			const fileExt = extname(file);
 			const fileBaseName = basename(file);
@@ -438,11 +440,12 @@ export class Pattern {
 
 		// read last-modified
 		this.getLastModified();
-		this.log.silly(`Read files for ${this.id}. ${chalk.grey('[' + (new Date() - readStart) + 'ms]')}`);
+		const readDuration = chalk.grey(`[${new Date() - readStart}ms]`);
+		this.log.silly(`Read files for ${this.id}. ${readDuration}`);
 		return this;
 	}
 
-	async transform( withDemos = true, forced = false ) {
+	async transform(withDemos = true, forced = false) {
 		for (const fileName of Object.keys(this.files)) {
 			const file = this.files[fileName];
 			const formatConfig = this.config.patterns.formats[file.format];
@@ -513,7 +516,6 @@ export class Pattern {
 				this.log.silly(`Transformed ${fileBaseName} of ${patternName} via ${transformName} ${stamp}`);
 			}
 
-
 			file.out = file.out || lastTransform.outFormat || file.format;
 			this.results[formatConfig.name] = file;
 		}
@@ -572,7 +574,6 @@ export class Pattern {
 		return copy;
 	}
 }
-
 
 export default async function patternFactory(...args) {
 	return await new Pattern(...args);

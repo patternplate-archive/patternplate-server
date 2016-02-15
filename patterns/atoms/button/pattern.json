@@ -1,5 +1,10 @@
 {
 	"name": "button",
-    "displayName": "Simple Button",
-	"version": "0.1.0"
+	"displayName": "Simple Button",
+	"version": "0.1.0",
+	"options": {
+		"react-to-markup": {
+			"automount": true
+		}
+	}
 }
