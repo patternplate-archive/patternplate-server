@@ -553,10 +553,12 @@ export class Pattern {
 			const meta = file.meta || {};
 			const dependencies = meta.dependencies || [];
 			const devDependencies = meta.devDependencies || [];
+			const scriptDependencies = meta.scripts || [];
 			return {
 				...results,
 				dependencies: [...(results.dependencies || []), ...dependencies],
-				devDependencies: [...(results.devDependencies || []), ...devDependencies]
+				devDependencies: [...(results.devDependencies || []), ...devDependencies],
+				scriptDependencies: [...(results.scriptDependencies || []), ...scriptDependencies]
 			};
 		}, {});
 
