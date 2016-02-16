@@ -1,7 +1,4 @@
 export default {
-	'opts': {
-		'debug': false
-	},
 	'browserify': {
 		'opts': {
 			'debug': false
