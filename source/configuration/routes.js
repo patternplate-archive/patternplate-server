@@ -33,10 +33,6 @@ const routes = {
 			'enabled': true,
 			'path': '/demo/:id+'
 		},
-		'build': {
-			'enabled': true,
-			'path': '/build/:path*'
-		},
 		'react-mount': {
 			'enabled': true,
 			'path': '/react-mount/:id+'
