@@ -1,24 +1,23 @@
 import {createReadStream} from 'fs';
 import {resolve, basename, extname, dirname} from 'path';
 
-import browserify from 'browserify';
-import qio from 'q-io/fs';
+import exists from 'path-exists';
 
-function scriptRouteFactory (application) {
+function scriptRouteFactory(application) {
 	const browserifyConfig = application.configuration.assets.browserify || {};
 
-	return async function scriptRoute () {
-		let suffix = application.runtime.env === 'development' ? '' : 'bundle';
-		let ext = extname(this.params.path).slice(1);
+	return async function scriptRoute() {
+		const suffix = application.runtime.env === 'development' ? '' : 'bundle';
+		const ext = extname(this.params.path).slice(1);
 
-		let filename = [basename(this.params.path, `.${ext}`), suffix, ext]
-			.filter((fragment) => fragment)
+		const filename = [basename(this.params.path, `.${ext}`), suffix, ext]
+			.filter(Boolean)
 			.join('.');
 
-		let relative = dirname(this.params.path);
-		let path = resolve(application.runtime.cwd, 'assets', 'script', relative, filename);
+		const relative = dirname(this.params.path);
+		const path = resolve(application.runtime.cwd, 'assets', 'script', relative, filename);
 
-		if (!await qio.exists(path)) {
+		if (!await exists(path)) {
 			return;
 		}
 
@@ -26,12 +25,13 @@ function scriptRouteFactory (application) {
 
 		try {
 			if (application.runtime.env === 'development') {
-				let bundler = browserify(path, browserifyConfig);
+				const browserify = require('browserify');
+				const bundler = browserify(path, browserifyConfig);
 				this.body = bundler.bundle();
 			} else {
 				this.body = createReadStream(path);
 			}
-		} catch(err) {
+		} catch (err) {
 			application.log.error(err);
 			this.throw(err, 500);
 		}
