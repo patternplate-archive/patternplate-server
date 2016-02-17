@@ -27,15 +27,47 @@ import {
 const mkdirp = denodeify(mkdirpNodeback);
 const pkg = require(resolve(process.cwd(), 'package.json'));
 
-async function build (application, configuration) {
+async function build(application, configuration) {
 	const start = new Date();
 	const cwd = application.runtime.patterncwd || application.runtime.cwd;
-	const patternHook = application.hooks.filter((hook) => hook.name === 'patterns')[0];
+	const patternHook = application.hooks.filter(hook => hook.name === 'patterns')[0];
 	const patternRoot = resolve(cwd, patternHook.configuration.path);
 	const staticRoot = resolve(cwd, 'static');
 	const assetRoot = resolve(cwd, 'assets');
 
 	const buildConfig = merge({}, application.configuration.build, configuration);
+
+	const automountConfiguration = {
+		transforms: { // eslint-disable-line quote-props
+			react: {
+				inFormat: 'jsx',
+				outFormat: 'js',
+				resolveDependencies: false,
+				convertDependencies: true
+			},
+			'react-mount': {
+				inFormat: 'js',
+				outFormat: 'js'
+			},
+			browserify: {
+				inFormat: 'js',
+				outFormat: 'js'
+			}
+		},
+		patterns: {
+			path: patternRoot,
+			formats: {
+				jsx: {
+					name: 'Component',
+					transforms: ['react', 'react-mount', 'browserify']
+				},
+				html: {
+					name: 'Component',
+					transforms: ['react', 'react-mount', 'browserify']
+				}
+			}
+		}
+	};
 
 	// FIXME: This simple merge statement is not sufficient to reconfigure your build process (may apply to other config
 	// cases too). A better aproach would be to have a configuration model which could do the merge on a per-config-key
@@ -43,21 +75,24 @@ async function build (application, configuration) {
 	const patterns = merge({}, application.configuration.patterns || {}, buildConfig.patterns || {});
 
 	// Update formats to the current buildFormats (this is required to e.g. reduce transformers for build)
-	for (let name of Object.keys(buildConfig.patterns.formats || {})) {
+	for (const name of Object.keys(buildConfig.patterns.formats || {})) {
 		patterns.formats[name] = buildConfig.patterns.formats[name];
 	}
 
 	const transforms = merge({}, application.configuration.transforms || {}, buildConfig.transforms || {});
-	const patternConfig = { patterns, transforms };
+	const patternConfig = {
+		patterns, transforms
+	};
 
 	const environment = application.runtime.env;
 	const revision = await git.short();
 	const version = pkg.version;
 
-	const buildRoot = resolve(application.runtime.patterncwd || application.runtime.cwd, 'build');
+	const buildRoot = resolve(cwd, 'build');
 	const buildDirectory = resolve(buildRoot, `build-v${version}-${environment}-${revision}`);
 	const patternBuildDirectory = resolve(buildDirectory, 'patterns');
-	const staticCacheDirectory = resolve(application.runtime.patterncwd || application.runtime.cwd, '.cache');
+	const staticCacheDirectory = resolve(cwd, '.cache');
+	const automountCacheDirectory = resolve(cwd, '.cache', 'react-mount');
 
 	await mkdirp(patternBuildDirectory);
 	await mkdirp(staticCacheDirectory);
@@ -71,11 +106,12 @@ async function build (application, configuration) {
 	// - when client and server negotiate about single files
 	// - read times are better
 	if (buildConfig.tasks.cache) {
-		// for now we just use the ids
+		// for now we just use the ids, later we could do incremental builds
 		const patternMtimes = await getPatternMtimes('./patterns', {
 			resolveDependencies: false
 		});
 
+		// build all the artifacts
 		await Promise.all(
 			patternMtimes
 				.map(
@@ -103,13 +139,45 @@ async function build (application, configuration) {
 								.map(async patternItem => {
 									// cut some slack
 									patternItem.dependencies = flatPick(patternItem, 'dependencies', ['id', 'manifest']);
-									const resultPath = resolve(staticCacheDirectory, patternItem.id.split('/').join('-') + '.json');
+									const resultPath = resolve(staticCacheDirectory, `${patternItem.id.split('/').join('-')}.json`);
 									return writeSafe(resultPath, JSON.stringify(patternItem));
 								})
 						);
 
+						// if automounting is enabled create cache entry for it
+						const writingAutoMountCache = Promise.all(
+							patternList
+								// get patterns that have automounting enabled
+								.filter(patternItem => {
+									const config = merge(
+										{},
+										patternConfig.transforms['react-to-markup'].opts,
+										(patternItem.manifest.options || {})['react-to-markup'] || {}
+									);
+									return config.automount;
+								})
+								// get automounting result and write it to cache
+								.map(async patternItem => {
+									application.log.info(ok`Creating automount cache for ${patternItem.id}`);
+
+									const autoMountPatterns = await getPatterns({
+										id: patternItem.id,
+										base: patternRoot,
+										config: automountConfiguration,
+										factory: application.pattern.factory,
+										transforms: application.transforms,
+										log: application.log
+									}, application.cache);
+
+									const pattern = autoMountPatterns[0];
+									const resultPath = resolve(automountCacheDirectory, `${pattern.id.split('/').join('-')}.js`);
+									return writeSafe(resultPath, pattern.results.Component.buffer);
+								})
+						);
+
 						application.log.info(ok`Wrote cache for ${pattern.id} ${writeStart}`);
-						return await writingCache;
+						await writingCache;
+						await writingAutoMountCache;
 					})
 			)
 		);
@@ -162,8 +230,8 @@ async function build (application, configuration) {
 		}
 	}
 
-	let archive = archiver('zip');
-	let output = createWriteStream(`${buildDirectory}.zip`);
+	const archive = archiver('zip');
+	const output = createWriteStream(`${buildDirectory}.zip`);
 
 	archive.pipe(output);
 	archive.directory(buildDirectory, false);

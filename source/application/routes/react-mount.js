@@ -2,54 +2,67 @@ import {
 	resolve
 } from 'path';
 
-import {merge} from 'lodash';
 import getPatterns from '../../library/utilities/get-patterns';
+import getStaticCacheItem from '../../library/utilities/get-static-cache-item';
 
 export default function (application) {
-	// prewarm browserify with react and react-dom
 	const patterns = application.configuration.patterns || {};
-	// const transforms = application.configuration.transforms || {};
 
 	// Create one-off special config
-	const config = merge(
-		{},
-		{
-			transforms: { // eslint-disable-line quote-props
-				react: {
-					inFormat: 'jsx',
-					outFormat: 'js',
-					resolveDependencies: false,
-					convertDependencies: true
-				},
-				'react-mount': {
-					inFormat: 'js',
-					outFormat: 'js'
-				},
-				browserify: {
-					inFormat: 'js',
-					outFormat: 'js'
-				}
+	const config = {
+		transforms: { // eslint-disable-line quote-props
+			react: {
+				inFormat: 'jsx',
+				outFormat: 'js',
+				resolveDependencies: false,
+				convertDependencies: true
 			},
-			patterns: {
-				path: patterns.path,
-				formats: {
-					jsx: {
-						name: 'Component',
-						transforms: ['react', 'react-mount', 'browserify']
-					},
-					html: {
-						name: 'Component',
-						transforms: ['react', 'react-mount', 'browserify']
-					}
+			'react-mount': {
+				inFormat: 'js',
+				outFormat: 'js'
+			},
+			browserify: {
+				inFormat: 'js',
+				outFormat: 'js'
+			}
+		},
+		patterns: {
+			path: patterns.path,
+			formats: {
+				jsx: {
+					name: 'Component',
+					transforms: ['react', 'react-mount', 'browserify']
+				},
+				html: {
+					name: 'Component',
+					transforms: ['react', 'react-mount', 'browserify']
 				}
 			}
 		}
-	);
+	};
 
 	return async function() {
+		this.type = 'js';
+
 		// collect some base data
 		const cwd = application.runtime.patterncwd || application.runtime.cwd;
 		const base = resolve(cwd, config.patterns.path);
+		const mountableCacheRoot = resolve(cwd, '.cache', 'react-mount');
+
+		// special cache for react-mount
+		// TODO: remove this when patterns.formats[ext] support arrays
+		const cached = await getStaticCacheItem({
+			id: this.params.id,
+			base: mountableCacheRoot,
+			cache: application.cache,
+			extension: 'js',
+			stream: true
+		});
+
+		if (cached) {
+			this.body = cached;
+			return;
+		}
 
 		// get the react-transformed patterns
 		const patterns = await getPatterns({
@@ -68,7 +81,6 @@ export default function (application) {
 		}
 
 		const result = pattern.results.Component.buffer;
-		this.type = 'js';
 		this.body = result;
 	};
 }

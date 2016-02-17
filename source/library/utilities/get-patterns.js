@@ -30,7 +30,7 @@ const envDebug = debuglog('environments');
 const defaults = {
 	isEnvironment: false,
 	filters: {},
-	log: function() {}
+	log() {}
 };
 
 async function getPatterns(options, cache) {
@@ -68,12 +68,15 @@ async function getPatterns(options, cache) {
 		.map(item => dirname(item))
 		.map(item => fs.relativeFromDirectory(options.base, item));
 
-
 	// read and transform patterns at a concurrency of 5
-	return await* patternIDs.map(throat(5, async patternID => {
+	return await * patternIDs.map(throat(5, async patternID => {
 		// try to use the static cache
-		const cached = cache.config.static ?
-			await getStaticCacheItem(patternID, staticCacheRoot, cache) :
+		const cached = cache && cache.config.static ?
+			await getStaticCacheItem({
+				id: patternID,
+				base: staticCacheRoot,
+				cache
+			}) :
 			null;
 
 		if (cached) {
@@ -110,12 +113,12 @@ async function getPatterns(options, cache) {
 				}
 
 				// directly stuff mismatching keys into transforms config to retain previous behaviour
-				return omit(merge({}, results, omit(environment, misplacedKeyNames), { transforms: misplacedKeys }),
+				return omit(merge({}, results, omit(environment, misplacedKeyNames), {transforms: misplacedKeys}),
 					Object.keys(misplacedKeys).concat(Object.keys(defaultEnvironment)));
 			}, defaultEnvironment);
 
 		envDebug('applying env config to pattern %s', patternID);
-		envDebug('%s', inspect(environmentsConfig, { depth: null }));
+		envDebug('%s', inspect(environmentsConfig, {depth: null}));
 
 		// merge the determined environments config onto the pattern config
 		const patternConfiguration = merge({}, config, environmentsConfig, {
