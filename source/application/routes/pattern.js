@@ -62,7 +62,7 @@ export default function patternRouteFactory (application, configuration) {
 
 		// Reset the script references if the transforms pass
 		// explicit script dependencies
-		if (result.meta.scriptDependencies.length > 0) {
+		if ((result.meta.scriptDependencies || []).length > 0) {
 			templateReferenceData.script = result.meta.scriptDependencies
 				.map(dependency => {
 					return {
