@@ -116,11 +116,11 @@ export default {
 			}
 		}
 	},
-	'rewrite-includes': {
+	'resolve-includes': {
 		outFormat: 'less',
 		resolve: '%(outputName)s/%(patternId)s/index.%(extension)s'
 	},
-	'rewrite-imports': {
+	'resolve-imports': {
 		outFormat: 'js',
 		resolve: '%(outputName)s/%(patternId)s/index.%(extension)s'
 	}
