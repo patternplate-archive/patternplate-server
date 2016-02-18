@@ -2,8 +2,10 @@ export default {
 	'tasks': {
 		'bundles': true,
 		'patterns': true,
+		'commonjs': false,
 		'static': true,
-		'cache': false
+		'cache': false,
+		'archive': true
 	},
 	'patterns': {
 		'cache': {

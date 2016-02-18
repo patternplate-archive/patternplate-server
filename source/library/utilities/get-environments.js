@@ -30,7 +30,6 @@ export const defaultEnvironment = {
 	environment: {}
 };
 
-
 export default async function getEnvironments(base, options = {}) {
 	const {log, cache} = options;
 	const readFile = getReadFile({cache});
