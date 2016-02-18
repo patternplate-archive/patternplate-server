@@ -1,6 +1,8 @@
 import {sep} from 'path';
-import getPatternIdRegistry from '../../../library/resolve-utilities/get-pattern-id-registry';
-import resolvePatternFilePath from '../../../library/resolve-utilities/resolve-pattern-file-path';
+import {
+	getPatternIdRegistry,
+	resolvePatternFilePath
+} from 'patternplate-transforms-core';
 
 const detect = /@import(.+?)["|'](.*)["|'];/g;
 

@@ -21,11 +21,13 @@ import {
 import throat from 'throat';
 import chalk from 'chalk';
 import exists from 'path-exists';
+import {
+	resolvePathFormatString
+} from 'patternplate-transforms-core';
 
 import copyDirectory from '../../../library/filesystem/copy-directory';
 import removeFile from '../../../library/filesystem/remove-file';
 import writeSafe from '../../../library/filesystem/write-safe';
-import resolvePathFormatString from '../../../library/resolve-utilities/resolve-path-format-string';
 import getArtifactMtimes from '../../../library/utilities/get-artifact-mtimes';
 import getArtifactsToPrune from '../../../library/utilities/get-artifacts-to-prune';
 import getPatterns from '../../../library/utilities/get-patterns';

@@ -4,8 +4,8 @@ import fs from 'q-io/fs';
 import denodeify from 'denodeify';
 import {stat} from 'fs';
 import {find} from 'lodash';
+import {pathToId} from 'patternplate-transforms-core';
 
-import pathToId from '../resolve-utilities/path-to-id';
 const fsStat = denodeify(stat);
 const read = denodeify(readFile);
 
@@ -20,7 +20,7 @@ async function getPatternFilesMtime(files) {
 			return (await fsStat(file)).mtime;
 		});
 
-	return await* tasks;
+	return await * tasks;
 }
 
 async function getModifiedFiles(mtime, files) {
@@ -57,7 +57,7 @@ const defaults = {
 	resolveDependencies: false
 };
 
-async function getPatternMtimes (search, options) {
+async function getPatternMtimes(search, options) {
 	const paths = await fs.listTree(search);
 	const settings = {...defaults, ...options};
 
@@ -84,9 +84,9 @@ async function getPatternMtimes (search, options) {
 		};
 	});
 
-	const readPatterns = await* readTasks;
+	const readPatterns = await * readTasks;
 
-	return await* readPatterns.map(async readPattern => {
+	return await * readPatterns.map(async readPattern => {
 		readPattern.manifest = await readPattern.manifest;
 		const dependencyMtimes = settings.resolveDependencies ?
 			getDependencyMtimes(readPattern, readPatterns) :
