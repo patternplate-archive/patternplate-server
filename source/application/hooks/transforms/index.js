@@ -7,16 +7,30 @@ import {
 } from 'lodash';
 
 import {
+	resolve as resolvePackage
+} from 'try-require';
+
+import {
 	deprecation,
 	ok,
 	wait
 } from '../../../library/log/decorations';
 
 function loadTransform(path) {
+	const available = resolvePackage(path);
+
+	if (!available) {
+		return null;
+	}
+
 	try {
 		return require(path);
 	} catch (error) {
-		return null;
+		error.message = [
+			`Error while loading transform ${path}:`,
+			error.message
+		].join('\n');
+		return error;
 	}
 }
 
