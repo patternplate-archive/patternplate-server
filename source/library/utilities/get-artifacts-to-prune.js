@@ -7,7 +7,9 @@ import {
 	find
 } from 'lodash';
 
-import resolvePathFormatString from '../resolve-utilities/resolve-path-format-string';
+import {
+	resolvePathFormatString
+} from 'patternplate-transforms-core';
 
 export default function getArtifactsToPrune(patterns, artifacts, config) {
 	return artifacts.reduce((results, artifact) => {
