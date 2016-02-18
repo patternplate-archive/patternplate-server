@@ -30,7 +30,7 @@ function loadTransform(path) {
 			`Error while loading transform ${path}:`,
 			error.message
 		].join('\n');
-		return error;
+		throw error;
 	}
 }
 

@@ -87,6 +87,8 @@
     "patternplate-transform-react": "^0.2.0",
     "patternplate-transform-react-mount": "^0.1.0",
     "patternplate-transform-react-to-markup": "^0.2.2",
+    "patternplate-transform-resolve-imports": "^0.1.0",
+    "patternplate-transform-resolve-includes": "^0.1.0",
     "patternplate-transform-uglify": "^0.1.0",
     "patternplate-transforms-core": "^0.1.1",
     "pretty-data": "^0.40.0",
