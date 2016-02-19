@@ -1,6 +1,6 @@
 import merge from 'lodash.merge';
 
-import {deprecation} from '../../../library/log/decorations';
+import {deprecation, wait, ready} from '../../../library/log/decorations';
 import archiveTask from '../build-archive';
 import bundlesTask from '../build-bundles';
 import cacheTask from '../build-cache';
@@ -17,27 +17,37 @@ async function build(application, configuration) {
 
 	// Build static cache
 	if (buildConfig.tasks.cache && buildConfig.tasks.cache !== 'false') {
+		application.log.info(wait`Starting sub-task build-cache`);
 		await cacheTask(application, buildConfig.cache || {});
+		application.log.info(ready`Executed sub-task build-cache`);
 	}
 
 	// Build commonjs pkg root
 	if (buildConfig.tasks.commonjs && buildConfig.tasks.commonjs !== 'false') {
+		application.log.info(wait`Starting sub-task build-commonjs`);
 		await commonjsTask(application, buildConfig.commonjs || {});
+		application.log.info(ready`Executed sub-task build-commonjs`);
 	}
 
 	// Build bundles
 	if (buildConfig.tasks.bundles && buildConfig.tasks.bundles !== 'false') {
+		application.log.info(wait`Starting sub-task build-bundles`);
 		await bundlesTask(application, buildConfig.bundles || {});
+		application.log.info(ready`Executed sub-task build-bundles`);
 	}
 
 	// Copy static files
 	if (buildConfig.tasks.static && buildConfig.tasks.static !== 'false') {
+		application.log.info(wait`Starting sub-task build-static`);
 		await staticTask(application, buildConfig.bundles || {});
+		application.log.info(ready`Executed sub-task build-static`);
 	}
 
 	// Archive all the things
-	if (buildConfig.tasks.archive) {
+	if (buildConfig.tasks.archive && buildConfig.tasks.archive !== 'false') {
+		application.log.info(wait`Starting sub-task build-archive`);
 		await archiveTask(application, buildConfig.archive || {});
+		application.log.info(ready`Executed sub-task build-archive`);
 	}
 }
 
