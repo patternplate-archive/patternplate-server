@@ -1,11 +1,10 @@
-import {
-	createWriteStream
-} from 'fs';
-
+import {createWriteStream} from 'fs';
 import {resolve} from 'path';
 
+import exists from 'path-exists';
 import archiver from 'archiver';
 import git from '../../../library/utilities/git';
+import {warn} from '../../../library/log/decorations';
 
 const pkg = require(resolve(process.cwd(), 'package.json'));
 
@@ -16,6 +15,12 @@ export default async application => {
 	const revision = await git.short();
 	const version = pkg.version;
 	const buildDirectory = resolve(buildRoot, `build-v${version}-${environment}-${revision}`);
+	const buildDirectoryExists = await exists(buildDirectory);
+
+	if (buildDirectoryExists === false) {
+		application.log.warn(warn`directory ${buildDirectory} not found, nothing to archive`);
+		return;
+	}
 
 	const archive = archiver('zip');
 	const output = createWriteStream(`${buildDirectory}.zip`);

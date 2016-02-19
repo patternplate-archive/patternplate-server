@@ -5,6 +5,7 @@ import exists from 'path-exists';
 import copyDirectory from '../../../library/filesystem/copy-directory';
 import makeDirectory from '../../../library/filesystem/make-directory';
 import git from '../../../library/utilities/git';
+import {ok, wait, warn} from '../../../library/log/decorations';
 
 const pkg = require(resolve(process.cwd(), 'package.json'));
 
@@ -23,10 +24,11 @@ export default async application => {
 
 	if (await exists(staticRoot)) {
 		const staticTarget = resolve(patternBuildDirectory, 'static');
-		application.log.info(`[console:run] Copy asset files from "${assetRoot}" to ${staticTarget} ...`);
+		application.log.info(wait`Copying asset files from "${assetRoot}" to ${staticTarget}`);
 		await makeDirectory(staticTarget);
 		await copyDirectory(staticRoot, staticTarget);
+		application.log.info(ok`Copied asset files`);
 	} else {
-		application.log.info(`[console:run] No asset files at "${staticRoot}"`);
+		application.log.warn(warn`No asset files at "${staticRoot}"`);
 	}
 };
