@@ -43,3 +43,4 @@ node_modules
 /library
 .settings
 jsconfig.json
+/build

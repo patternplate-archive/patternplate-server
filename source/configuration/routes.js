@@ -33,9 +33,9 @@ const routes = {
 			'enabled': true,
 			'path': '/demo/:id+'
 		},
-		'build': {
+		'react-mount': {
 			'enabled': true,
-			'path': '/build/:path*'
+			'path': '/react-mount/:id+'
 		},
 		'static': {
 			'options': {

@@ -1,119 +1,128 @@
+/* eslint-disable */
 export default {
-	//'path': './application/transforms',
-	'markdown': {
-		'inFormat': 'md',
-		'outFormat': 'html'
+	path: [
+		'./application/transforms',
+		'./application/patternplate-server/transforms'
+	],
+	markdown: {
+		inFormat: 'md',
+		outFormats: 'html'
 	},
-	'react': {
-		'inFormat': 'jsx',
-		'outFormat': 'jsx',
-		'resolveDependencies': true,
-		'opts': {}
+	react: {
+		inFormat: 'jsx',
+		outFormat: 'jsx',
+		resolveDependencies: true,
+		opts: {}
+	},
+	'react-mount': {
+		inFormat: 'js',
+		outFormat: 'js'
 	},
 	'react-to-markup': {
-		'inFormat': 'jsx',
-		'outFormat': 'html',
-		'opts': {}
+		inFormat: 'jsx',
+		outFormat: 'html',
+		opts: {}
 	},
-	'babel': {
-		'inFormat': 'js',
-		'outFormat': 'js',
-		'opts': {}
+	babel: {
+		inFormat: 'js',
+		outFormat: 'js',
+		opts: {}
 	},
-	'browserify': {
-		'inFormat': 'js',
-		'outFormat': 'js',
-		'opts': {
-			'debug': true
+	browserify: {
+		inFormat: 'js',
+		outFormat: 'js',
+		rewrite: true,
+		opts: {
+			debug: true
 		},
-		'transforms': {
-			'babelify': {
-				'enabled': true,
-				'opts': {}
+		transforms: {
+			babelify: {
+				enabled: true,
+				opts: {}
 			},
-			'uglifyify': {
-				'enabled': false,
-				'opts': {
-					'global': true
+			uglifyify: {
+				enabled: false,
+				opts: {
+					global: true
 				}
 			},
-			'envify': {
-				'enabled': true,
-				'opts': {
-					'global': true,
-					'_': 'purge'
+			envify: {
+				enabled: true,
+				opts: {
+					global: true,
+					_: 'purge'
 				}
 			},
 			'unreachable-branch-transform': {
-				'enabled': false,
-				'opts': {
-					'global': true
+				enabled: false,
+				opts: {
+					global: true
 				}
 			}
 		}
 	},
-	'uglify': {
-		'inFormat': 'js',
-		'outFormat': 'js',
-		'opts': {
-			'sequences': true,
-			'properties': true,
-			'dead_code': true,
-			'drop_debugger': true,
-			'unsafe': true,
-			'conditionals': true,
-			'comparisons': true,
-			'evaluate': true,
-			'booleans': true,
-			'loops': true,
-			'unused': true,
-			'hoist_funs': true,
-			'if_return': true,
-			'join_vars': true,
-			'cascade': true,
-			'warnings': false,
-			'negate_iife': true,
-			'pure_getters': true,
-			'drop_console': true
+	uglify: {
+		inFormat: 'js',
+		outFormat: 'js',
+		opts: {
+			sequences: true,
+			properties: true,
+			dead_code: true,
+			drop_debugger: true,
+			unsafe: true,
+			conditionals: true,
+			comparisons: true,
+			evaluate: true,
+			booleans: true,
+			loops: true,
+			unused: true,
+			hoist_funs: true,
+			if_return: true,
+			join_vars: true,
+			cascade: true,
+			warnings: false,
+			negate_iife: true,
+			pure_getters: true,
+			drop_console: true
 		}
 	},
-	'less': {
-		'inFormat': 'less',
-		'outFormat': 'css',
-		'opts': {
-			'compress': false,
-			'sourceMap': {
-				'outputSourceFiles': true,
-				'sourceMapFileInline': true
+	less: {
+		inFormat: 'less',
+		outFormat: 'css',
+		opts: {
+			compress: false,
+			sourceMap: {
+				outputSourceFiles: true,
+				sourceMapFileInline: true
 			}
 		},
-		'plugins': {
+		plugins: {
 			'clean-css': {
-				'enabled': false,
-				'opts': {
-					'advanced': true,
-					'aggressiveMerging': true,
-					'compatibility': '*',
-					'mediaMerging': true,
-					'processImport': false,
-					'restructuring': true,
-					'shorthandCompacting': true
+				enabled: false,
+				opts: {
+					advanced: true,
+					aggressiveMerging: true,
+					compatibility: '*',
+					mediaMerging: true,
+					processImport: false,
+					restructuring: true,
+					shorthandCompacting: true
 				}
 			},
-			'autoprefix': {
-				'enabled': true,
-				'opts': {
-					'browsers': ['last 2 versions']
+			autoprefix: {
+				enabled: true,
+				opts: {
+					browsers: ['last 2 versions']
 				}
 			}
 		}
 	},
-	'rewrite-includes': {
-		'outFormat': 'less',
-		'resolve': '%(outputName)s/%(patternId)s/index.%(extension)s'
+	'resolve-includes': {
+		outFormat: 'less',
+		resolve: '%(outputName)s/%(patternId)s/index.%(extension)s'
 	},
-	'rewrite-imports': {
-		'outFormat': 'js',
-		'resolve': '%(outputName)s/%(patternId)s/index.%(extension)s'
+	'resolve-imports': {
+		outFormat: 'js',
+		resolve: '%(outputName)s/%(patternId)s/index.%(extension)s'
 	}
 };

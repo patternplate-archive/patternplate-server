@@ -1,6 +1,6 @@
 const assets = {
-	'browserify': {
-		'insertGlobals': true
+	browserify: {
+		insertGlobals: true
 	}
 };
 

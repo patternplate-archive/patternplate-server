@@ -1,5 +1,13 @@
-import { join, dirname, basename, sep } from 'path';
+import {
+	basename,
+	dirname,
+	resolve,
+	sep
+} from 'path';
+
 import fs from 'q-io/fs';
+
+import getReadFile from '../filesystem/read-file.js';
 
 const defaultManifest = {
 	'version': '0.1.0',
@@ -7,23 +15,31 @@ const defaultManifest = {
 	'display': true
 };
 
-async function loadManifest (path, id) {
-	let content = await fs.read(join(path, id, 'pattern.json'));
-	let data = JSON.parse(content);
+async function loadManifest (id, base, cache = null) {
+	const readFile = getReadFile({cache});
+	const idPath = id.split('/').join(sep);
+	const content = await readFile(resolve(base, idPath, 'pattern.json'));
+	const data = JSON.parse(content);
 	return Object.assign({}, defaultManifest, data, { id });
 }
 
-async function loadPatterns (path) {
-	let paths = await fs.listTree(path);
+async function loadPatterns (id, base, options = {}) {
+	const path = id.split('/').join(sep);
+	const paths = await fs.listTree(
+		resolve(base, path)
+	);
 
-	let patternIDs = paths
+	const patternIDs = paths
 		.filter((item) => basename(item) === 'pattern.json')
 		.filter((item) => !item.includes('@environments'))
 		.map((item) => dirname(item))
-		.map((item) => fs.relativeFromDirectory(path, item))
+		.map((item) => fs.relativeFromDirectory(base, item))
 		.map((item) => item.split(sep).join('/'));
 
-	let manifests = Promise.all(patternIDs.map(id => loadManifest(path, id)));
+	const manifests = Promise.all(
+		patternIDs
+			.map(patternID => loadManifest(patternID, base, options.cache))
+	);
 	return await manifests;
 }
 

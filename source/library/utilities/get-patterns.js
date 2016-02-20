@@ -1,15 +1,41 @@
-import {resolve, dirname, basename} from 'path';
+import {
+	basename,
+	dirname,
+	resolve
+} from 'path';
+
+import {
+	debuglog,
+	inspect
+} from 'util';
+
+import chalk from 'chalk';
 import fs from 'q-io/fs';
-import getPatternManifests from './get-pattern-manifests';
+import {
+	merge,
+	omit
+} from 'lodash';
+import throat from 'throat';
+
+import getEnvironments from './get-environments';
+import {
+	defaultEnvironment
+} from './get-environments';
+import getDependentPatterns from './get-dependent-patterns';
+import getStaticCacheItem from './get-static-cache-item.js';
+import getMatchingEnvironments from './get-matching-environments';
+
+const envDebug = debuglog('environments');
 
 const defaults = {
 	isEnvironment: false,
 	filters: {},
-	log: function() {}
+	log() {}
 };
 
-async function getPatterns(options, cache = null) {
+async function getPatterns(options, cache) {
 	const settings = {...defaults, ...options};
+
 	const {
 		id,
 		base,
@@ -21,93 +47,104 @@ async function getPatterns(options, cache = null) {
 		isEnvironment
 	} = settings;
 
-	let path = resolve(base, id);
-	let search = resolve(path, 'pattern.json');
+	const path = resolve(base, id);
+	const staticCacheRoot = resolve(process.cwd(), '.cache');
+	config.log = log;
 
 	// No patterns to find here
 	if (!await fs.exists(path)) {
-		return null;
+		return [];
 	}
 
-	// We are dealing with a directory listing
-	if (!await fs.exists(search)) {
-		search = path;
-	}
+	const search = await fs.exists(resolve(path, 'pattern.json')) ?
+		resolve(path, 'pattern.json') :
+		path;
 
 	// Get all pattern ids
-	let paths = await fs.listTree(search);
-	let patternIDs = paths
-		.filter((item) => basename(item) === 'pattern.json')
-		.filter((item) => isEnvironment ? true : !item.includes('@environments'))
-		.map((item) => dirname(item))
-		.map((item) => fs.relativeFromDirectory(options.base, item));
+	const paths = await fs.listTree(search);
+	const patternIDs = paths
+		.filter(item => basename(item) === 'pattern.json')
+		.filter(item => isEnvironment ? true : !item.includes('@environments'))
+		.map(item => dirname(item))
+		.map(item => fs.relativeFromDirectory(options.base, item));
 
-	let manifests;
-	let results = [];
-	let errors = [];
+	// read and transform patterns at a concurrency of 5
+	return await * patternIDs.map(throat(5, async patternID => {
+		// try to use the static cache
+		const cached = cache && cache.config.static ?
+			await getStaticCacheItem({
+				id: patternID,
+				base: staticCacheRoot,
+				cache
+			}) :
+			null;
 
-	for (let patternID of patternIDs) {
-		let readCacheID = `pattern:read:${patternID}`;
-		log(`Initializing pattern "${patternID}"`);
-
-		if (cache && cache.config.static && cache.staticRoot && await fs.exists(cache.staticRoot)) {
-			let cachedPatternPath = resolve(cache.staticRoot, patternID, 'build.json');
-			log(`Searching ${patternID} static cache at ${cachedPatternPath}`);
-
-			if (await fs.exists(cachedPatternPath)) {
-				try {
-					results.push(JSON.parse(await fs.read(cachedPatternPath)));
-					log(`Static cache hit for ${patternID} at ${cachedPatternPath}. Profit!`);
-					continue;
-				} catch (err) {
-					log(`Error reading static cache version of ${patternID} at ${cachedPatternPath}`, err);
-				}
-			}
-
-			log(`Static cache miss for ${patternID} at ${cachedPatternPath}, falling back to dynamic version`);
+		if (cached) {
+			return cached;
 		}
 
-		let pattern = await factory(patternID, base, config, transforms, filters);
-		let cachedRead = cache && cache.config.read ? cache.get(readCacheID, false) : null;
-
-		// Fetch all manifests
-		if (!manifests) {
-			manifests = await getPatternManifests(base);
-		}
-
-		// Resolve dependent patterns
-		let dependentPatterns = {};
-		manifests.map((manifest) => {
-			if (manifest.patterns) {
-				for (let name of Object.keys(manifest.patterns)) {
-					if (manifest.patterns[name] === patternID) {
-						dependentPatterns[manifest.id] = manifest;
-					}
-				}
-			}
+		// load user environments
+		const userEnvironments = await getEnvironments(base, {
+			cache,
+			log
 		});
-		pattern.manifest.dependentPatterns = dependentPatterns;
 
-		if (!cachedRead) {
-			log(`Reading pattern "${patternID}"`);
-			await pattern.read();
-		} else {
-			log(`Using cached pattern read "${readCacheID}"`);
-			pattern = cachedRead;
+		// get environments that match this pattern
+		const matchingEnvironments = getMatchingEnvironments(patternID, userEnvironments);
+
+		// get the available environment names for this pattern
+		const environmentNames = matchingEnvironments.map(env => env.name);
+
+		if (environmentNames.length > 0) {
+			log.debug(`Applying environments ${chalk.bold(environmentNames.join(', '))} to ${chalk.bold(patternID)}`);
 		}
 
-		if (cache && cache.config.read) {
-			cache.set(readCacheID, pattern.mtime, pattern);
-		}
+		// merge environment configs
+		// fall back to default environment if none is matching
+		// TODO: should move to getEnvironments
+		const environmentsConfig = matchingEnvironments
+			.reduce((results, environmentConfig) => {
+				const {environment} = environmentConfig;
+				const misplacedKeys = omit(environment, Object.keys(config));
+				const misplacedKeyNames = Object.keys(misplacedKeys);
 
-		results.push(await pattern.transform(!isEnvironment, isEnvironment));
-	}
+				if (misplacedKeys) {
+					log.warn(`${chalk.yellow('[⚠ Deprecation ⚠ ]')} Found unexpected keys ${misplacedKeyNames} in environment ${environmentConfig.name}.environment. Placing keys other than ${Object.keys(config)} in ${environmentConfig.name}.environment is deprecated, move the keys to ${environmentConfig.name}.environment.transforms`);
+				}
 
-	results = results.map((result) => {
-		return typeof result.toJSON === 'function' ? result.toJSON() : result;
-	});
+				// directly stuff mismatching keys into transforms config to retain previous behaviour
+				return omit(merge({}, results, omit(environment, misplacedKeyNames), {transforms: misplacedKeys}),
+					Object.keys(misplacedKeys).concat(Object.keys(defaultEnvironment)));
+			}, defaultEnvironment);
 
-	return results;
+		envDebug('applying env config to pattern %s', patternID);
+		envDebug('%s', inspect(environmentsConfig, {depth: null}));
+
+		// merge the determined environments config onto the pattern config
+		const patternConfiguration = merge({}, config, environmentsConfig, {
+			environments: environmentNames
+		});
+
+		const initStart = new Date();
+		const filterString = JSON.stringify(filters);
+		log.info(`Initializing pattern "${patternID}" with filters: ${chalk.grey('[' + filterString + ']')}`);
+		const pattern = await factory(patternID, base, patternConfiguration, transforms, filters);
+		log.info(`Initialized pattern "${patternID}" ${chalk.grey('[' + (new Date() - initStart) + 'ms]')}`);
+
+		const gettingDepending = await getDependentPatterns(patternID, base, {cache});
+
+		const readStart = new Date();
+		log.info(`Reading pattern "${patternID}"`);
+		await pattern.read();
+		pattern.manifest.dependentPatterns = await gettingDepending;
+		log.info(`Read pattern "${patternID}" ${chalk.grey('[' + (new Date() - readStart) + 'ms]')}`);
+
+		const transformStart = new Date();
+		log.info(`Transforming pattern "${patternID}"`);
+		const transformed = await pattern.transform(!isEnvironment, isEnvironment);
+		log.info(`Transformed pattern "${patternID}" ${chalk.grey('[' + (new Date() - transformStart) + 'ms]')}`);
+		return transformed;
+	}));
 }
 
 export default getPatterns;

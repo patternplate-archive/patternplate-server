@@ -2,7 +2,6 @@
 	"name": "index",
 	"version": "0.1.0",
 	"conditional-comment": "!IE",
-	"exclude": ["ecospheres/**"],
 	"formats": ["js", "css", "less"],
 	"environment": {
 		"less": {
