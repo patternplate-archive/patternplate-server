@@ -143,7 +143,7 @@ async function getPatterns(options, cache) {
 		log.info(`Transforming pattern "${patternID}"`);
 		const transformed = await pattern.transform(!isEnvironment, isEnvironment);
 		log.info(`Transformed pattern "${patternID}" ${chalk.grey('[' + (new Date() - transformStart) + 'ms]')}`);
-		return typeof transformed.toJSON === 'function' ? transformed.toJSON() : transformed;
+		return transformed;
 	}));
 }
 

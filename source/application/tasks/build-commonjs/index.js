@@ -25,6 +25,7 @@ import {
 	resolvePathFormatString
 } from 'patternplate-transforms-core';
 
+import {deprecation} from '../../../library/log/decorations';
 import copyDirectory from '../../../library/filesystem/copy-directory';
 import removeFile from '../../../library/filesystem/remove-file';
 import writeSafe from '../../../library/filesystem/write-safe';
@@ -56,9 +57,22 @@ async function exportAsCommonjs(application, settings) {
 	const patternRoot = resolve(cwd, patternHook.configuration.path);
 	const staticRoot = resolve(cwd, 'static');
 	const commonjsRoot = resolve(cwd, 'distribution');
-
 	const manifestPath = resolve(commonjsRoot, 'package.json');
-	application.configuration = merge({}, application.configuration, application.configuration.commonjs);
+
+	if (application.configuration.commonjs) {
+		application.log.debug(deprecation`The 'patternplate-server.configuration.commonjs' key moved to 'patternplate-server.configuration.build.commonjs' and is deprecated.`);
+	}
+
+	const config = merge(
+		{},
+		application.configuration.commonjs,
+		application.configuration.build.commonjs
+	);
+
+	application.configuration = merge({},
+		application.configuration,
+		config
+	);
 
 	// Reconfigure the cache
 	application.cache.config = merge({},
@@ -67,9 +81,9 @@ async function exportAsCommonjs(application, settings) {
 	);
 
 	// Update formats to the current buildFormats (this is required to e.g. reduce transformers for build)
-	for (const name of Object.keys(application.configuration.commonjs.patterns.formats)) {
+	for (const name of Object.keys(config.patterns.formats)) {
 		const present = application.configuration.patterns.formats[name] || {};
-		const override = application.configuration.commonjs.patterns.formats[name] || {};
+		const override = config.patterns.formats[name] || {};
 		present.transforms = override.transforms ? override.transforms : present.transforms;
 	}
 
@@ -155,7 +169,7 @@ async function exportAsCommonjs(application, settings) {
 				const lastTransform = application.configuration.transforms[lastTransformName] || {};
 				const targetExtension = lastTransform.outFormat || formatKey;
 				const targetFile = resolvePathFormatString(
-					application.configuration.commonjs.resolve,
+					config.resolve,
 					pattern.id,
 					format.name,
 					targetExtension
@@ -300,17 +314,17 @@ async function exportAsCommonjs(application, settings) {
 		getPackageString(
 			omit(
 				dependencies,
-				application.configuration.commonjs.ignoredDependencies || []
+				config.ignoredDependencies || []
 			),
 			previousPkg,
 		{
 			devDependencies: omit(
 				devDependencies,
-				application.configuration.commonjs.ignoredDevDependencies || []
+				config.ignoredDevDependencies || []
 			)
 		},
 		omit(pkg, ['dependencies', 'devDependencies', 'scripts', 'config', 'main']),
-		application.configuration.commonjs.pkg
+		config.pkg
 		)
 	);
 

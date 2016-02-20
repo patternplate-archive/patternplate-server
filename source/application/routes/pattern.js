@@ -19,12 +19,11 @@ function getRequestedFormats(extension, type) {
 	if (type === 'json') {
 		return [];
 	// Demo request, filter based on extension
-	} else {
-		return [extension];
 	}
+	return [extension];
 }
 
-export default function patternRouteFactory (application, configuration) {
+export default function patternRouteFactory(application, configuration) {
 	function renderLayout(result) {
 		const template = {
 			title: result.id
@@ -37,15 +36,15 @@ export default function patternRouteFactory (application, configuration) {
 
 		const templateContentData = Object.entries(result.results || {})
 			.reduce((templateSection, templateSectionResult) => {
-					const [sectionName, sectionResult] = templateSectionResult;
-					const name = sectionName.toLowerCase();
+				const [sectionName, sectionResult] = templateSectionResult;
+				const name = sectionName.toLowerCase();
 
-					templateSection[name].push({
-						content: sectionResult.demoBuffer || sectionResult.buffer
-					});
+				templateSection[name].push({
+					content: sectionResult.demoBuffer || sectionResult.buffer
+				});
 
-					return templateSection;
-				}, sectionSeed);
+				return templateSection;
+			}, sectionSeed);
 
 		const templateReferenceData = result.outFormats
 			.reduce((referenceSection, outFormat) => {
@@ -69,7 +68,7 @@ export default function patternRouteFactory (application, configuration) {
 						uri: application.router.url(dependency.path, {
 							id: dependency.id
 						}).replace('%2B', '') // workaround for stuff router appends
-					}
+					};
 				});
 		}
 
@@ -90,9 +89,9 @@ export default function patternRouteFactory (application, configuration) {
 
 	const patterns = application.configuration[configuration.options.key] || {};
 	const transforms = application.configuration.transforms || {};
-	const config = { patterns, transforms };
+	const config = {patterns, transforms};
 
-	return async function patternRoute () {
+	return async function patternRoute() {
 		// collect some base data
 		const cwd = application.runtime.patterncwd || application.runtime.cwd;
 		const basePath = resolve(cwd, config.patterns.path);
@@ -132,6 +131,8 @@ export default function patternRouteFactory (application, configuration) {
 			this.throw(404);
 		}
 
+		const results = patternResults[0].toJSON();
+
 		// The three cases should propably be split into
 		// pattern/meta/
 		// pattern/demo/
@@ -139,9 +140,6 @@ export default function patternRouteFactory (application, configuration) {
 		if (type === 'json') {
 			// dealing with an API request
 			// flatten if only one results
-			const jsonResult = patternResults.length === 1 ?
-				patternResults[0] :
-				patternResults;
 
 			// backwards compatibility for client
 			// this can be removed when the client requests
@@ -149,31 +147,19 @@ export default function patternRouteFactory (application, configuration) {
 			// this should become needless when
 			// - pattern.read is fast for big patterns
 			// - the client uses the new format
-			let copyResult;
-			if (!Array.isArray(jsonResult)) {
-				copyResult = omit(merge({}, jsonResult), ['results', 'dependencies']);
-				copyResult.results = { index: jsonResult.results };
-				copyResult.dependencies = flatPick(jsonResult, 'dependencies', ['id', 'manifest']);
-			} else {
-				copyResult = patternResults.map(pattern => {
-					const copied = omit(merge({}, pattern), ['results', 'dependencies']);
-					copied.results = { index: jsonResult.results };
-					copied.dependencies = flatPick(pattern, 'dependencies', ['id', 'manifest']);
-				});
-			}
+			const copyResult = omit(merge({}, results), ['results', 'dependencies']);
+			copyResult.results = {index: results.results};
+			copyResult.dependencies = flatPick(results, 'dependencies', ['id', 'manifest']);
 
 			this.type = type;
 			this.body = copyResult;
 		} else if (type === 'html') {
 			// Dealing with an demo request
 			this.type = type;
-			this.body = renderLayout(patternResults[0]);
+			this.body = renderLayout(results);
 		} else {
-			// Dealing with a resources request
-			const result = patternResults[0];
-
 			// thind a file with matching out format
-			const file = find(Object.values(result.results), {
+			const file = find(Object.values(results.results), {
 				out: extension
 			});
 

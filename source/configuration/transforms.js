@@ -31,6 +31,7 @@ export default {
 	browserify: {
 		inFormat: 'js',
 		outFormat: 'js',
+		rewrite: true,
 		opts: {
 			debug: true
 		},
