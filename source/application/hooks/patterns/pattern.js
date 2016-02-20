@@ -59,7 +59,7 @@ function constructFileDependencies(dependencies, search) {
 		.entries(dependencies)
 		.reduce((results, entry) => {
 			const [dependencyName, dependencyPattern] = entry;
-			const searchResults = Object.keys(dependencyPattern.files)
+			const searchResults = Object.keys(dependencyPattern.files || {})
 				.filter(file => {
 					return search.indexOf(file) > -1;
 				});
@@ -123,7 +123,7 @@ export class Pattern {
 			base,
 			cache,
 			transforms,
-			filters,
+			filters: merge({}, this.filters, filters),
 			path: Pattern.resolve(base, id),
 			environments: {
 				index: {
@@ -403,7 +403,7 @@ export class Pattern {
 			const transforms = transformNames.map(name => this.config.transforms[name] || {});
 			const resolveDependencies = transforms.some(transform => transform.resolveDependencies !== false);
 			const isRoot = this.config.parents.length === 0;
-			const fileContents = isRoot || resolveDependencies ? await this.fs.read(file) : new Buffer('');
+			const fileContents = isRoot || resolveDependencies ? await this.fs.read(file) : new Buffer('', 'utf-8');
 
 			if (isRoot === false && resolveDependencies) {
 				this.log.silly(`Reading ${this.id} as dependeny of ${this.config.parents[this.config.parents.length - 1]}`);
@@ -442,6 +442,92 @@ export class Pattern {
 		this.getLastModified();
 		const readDuration = chalk.grey(`[${new Date() - readStart}ms]`);
 		this.log.silly(`Read files for ${this.id}. ${readDuration}`);
+		return this;
+	}
+
+	// create dependency entries and files for an array of patterns
+	inject(manifest, patterns) {
+		// construct manifest
+		this.manifest = patterns.reduce((registry, pattern) => {
+			const {id} = pattern;
+			return merge(
+				registry,
+				{
+					patterns: {
+						[id.split('/').join('-')]: id
+					}
+				}
+			);
+		}, manifest);
+
+		// construct pattern dependencies
+		this.dependencies = Object.entries(this.manifest.patterns)
+			.reduce((dependencies, patternEntry) => {
+				const [localName, id] = patternEntry;
+				return merge(
+					dependencies,
+					{
+						[localName]: find(patterns, {id})
+					});
+			}, {});
+
+		const formats = uniq(Object.values(this.config.patterns.formats)
+			.filter(format => format.build), 'name');
+
+		// construct files from dependencies
+		this.files = formats.reduce((files, formatConfig) => {
+			const format = this.config.transforms[formatConfig.transforms[0]].inFormat;
+
+			if (this.filters.inFormats.indexOf(format) === -1) {
+				return files;
+			}
+
+			const baseName = 'index';
+			const ext = `.${format}`;
+			const name = `${baseName}${ext}`;
+			const dependencies = constructFileDependencies(this.dependencies, [name]);
+			const path = resolve(
+				this.base,
+				'@environments',
+				manifest.name,
+				name
+			);
+			const {importStatement} = formatConfig;
+
+			if (typeof importStatement !== 'function') {
+				throw new Error(`Missing config key "importStatement" for format ${format}`);
+			}
+
+			// import everything mentioned in the virtual manifest file
+			const required = uniq(Object.keys(this.manifest.patterns)
+				// if it is in the file dependencies
+				.filter(localName => localName in dependencies), {path});
+
+			const source = required.map(localName => importStatement(localName))
+				.join('\n');
+
+			const buffer = source;
+
+			return merge(files, {
+				[name]: {
+					buffer,
+					source,
+					name,
+					baseName,
+					dependencies,
+					ext,
+					format,
+					fs: {},
+					path,
+					pattern: this,
+					meta: {
+						dependencies: [],
+						devDependencies: []
+					}
+				}
+			});
+		}, {});
+
 		return this;
 	}
 
