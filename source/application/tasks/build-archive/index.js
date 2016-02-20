@@ -1,8 +1,9 @@
 import {createWriteStream} from 'fs';
 import {resolve} from 'path';
 
-import exists from 'path-exists';
 import archiver from 'archiver';
+import exists from 'path-exists';
+
 import git from '../../../library/utilities/git';
 import {warn} from '../../../library/log/decorations';
 

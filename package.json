@@ -5,7 +5,7 @@
   "main": "library/",
   "scripts": {
     "start": "node --harmony binary/patternplate-server.js",
-    "console": "boilerplate-console",
+    "console": "node --harmony binary/patternplate-server-console.js",
     "build": "npm run clean && npm run build-server && npm run build-assets",
     "build-server": "npm run clean && npm run babel",
     "build-assets": "browserify assets/script/content.js | uglifyjs > assets/script/content.bundle.js",
