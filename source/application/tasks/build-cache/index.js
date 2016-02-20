@@ -34,8 +34,6 @@ async function build(application, configuration) {
 		configuration
 	);
 
-	console.log(buildConfig);
-
 	const automountConfiguration = {
 		transforms: { // eslint-disable-line quote-props
 			react: {
