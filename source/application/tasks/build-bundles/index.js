@@ -8,6 +8,7 @@ import throat from 'throat';
 import getEnvironments from '../../../library/utilities/get-environments';
 import getPatternMtimes from '../../../library/utilities/get-pattern-mtimes';
 import getPatterns from '../../../library/utilities/get-patterns';
+import git from '../../../library/utilities/git';
 import writeSafe from '../../../library/filesystem/write-safe';
 
 export default async (application, settings) => {
@@ -22,9 +23,17 @@ export default async (application, settings) => {
 	);
 
 	const cwd = application.runtime.patterncwd || application.runtime.cwd;
+	const pkg = require(resolve(cwd, 'package.json'));
+	const revision = await git.short();
+	const version = pkg.version;
+	const environment = application.runtime.env;
 	const patternHook = application.hooks.filter(hook => hook.name === 'patterns')[0];
 	const base = resolve(cwd, patternHook.configuration.path);
-	const buildBase = resolve(cwd, application.configuration.build.bundles.target);
+	const buildBase = resolve(
+		cwd,
+		application.configuration.build.bundles.target,
+		`build-v${version}-${environment}-${revision}`
+	);
 
 	const {
 		cache, log, transforms,

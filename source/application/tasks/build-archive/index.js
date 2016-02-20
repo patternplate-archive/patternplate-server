@@ -7,14 +7,13 @@ import exists from 'path-exists';
 import git from '../../../library/utilities/git';
 import {warn} from '../../../library/log/decorations';
 
-const pkg = require(resolve(process.cwd(), 'package.json'));
-
 export default async application => {
 	const cwd = application.runtime.patterncwd || application.runtime.cwd;
-	const buildRoot = resolve(cwd, 'build');
-	const environment = application.runtime.env;
+	const pkg = require(resolve(cwd, 'package.json'));
 	const revision = await git.short();
 	const version = pkg.version;
+	const buildRoot = resolve(cwd, 'build');
+	const environment = application.runtime.env;
 	const buildDirectory = resolve(buildRoot, `build-v${version}-${environment}-${revision}`);
 	const buildDirectoryExists = await exists(buildDirectory);
 
