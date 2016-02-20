@@ -25,7 +25,16 @@ async function build(application, configuration) {
 	const patternHook = application.hooks.filter(hook => hook.name === 'patterns')[0];
 	const patternRoot = resolve(cwd, patternHook.configuration.path);
 
-	const buildConfig = merge({}, application.configuration.build, configuration);
+	const buildConfig = merge(
+		{
+			patterns: {},
+			tasks: {}
+		},
+		application.configuration.build.cache,
+		configuration
+	);
+
+	console.log(buildConfig);
 
 	const automountConfiguration = {
 		transforms: { // eslint-disable-line quote-props
