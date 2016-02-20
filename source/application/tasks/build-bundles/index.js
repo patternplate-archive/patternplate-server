@@ -3,6 +3,7 @@ import {debuglog} from 'util';
 
 import {merge} from 'lodash';
 import minimatch from 'minimatch';
+import throat from 'throat';
 
 import getEnvironments from '../../../library/utilities/get-environments';
 import getPatternMtimes from '../../../library/utilities/get-pattern-mtimes';
@@ -80,7 +81,7 @@ export default async (application, settings) => {
 
 			// build all patterns matching the include config
 			const builtPatterns = await Promise.all(includedPatterns
-				.map(async pattern => {
+				.map(throat(5, async pattern => {
 					const {id} = pattern;
 
 					const patternList = await getPatterns({
@@ -94,7 +95,7 @@ export default async (application, settings) => {
 					}, cache);
 
 					return patternList[0];
-				}));
+				})));
 
 			// construct a virtual pattern
 			const bundlePattern = await factory(
