@@ -1,6 +1,6 @@
 {
   "name": "patternplate-server",
-  "version": "0.14.14-dev",
+  "version": "0.14.15-beta",
   "description": "Programmatically serve atomic patterns via a REST API",
   "main": "library/",
   "scripts": {
