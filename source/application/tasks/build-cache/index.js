@@ -12,9 +12,10 @@ import git from '../../../library/utilities/git';
 import writeSafe from '../../../library/filesystem/write-safe';
 
 import {
+	deprecation,
 	ok,
 	wait,
-	deprecation
+	warn
 } from '../../../library/log/decorations.js';
 
 const mkdirp = denodeify(mkdirpNodeback);
@@ -165,9 +166,19 @@ async function build(application, configuration) {
 									log: application.log
 								}, application.cache);
 
-								const pattern = autoMountPatterns[0];
-								const resultPath = resolve(automountCacheDirectory, `${pattern.id.split('/').join('-')}.js`);
-								return writeSafe(resultPath, pattern.results.Component.buffer);
+								const [pattern] = autoMountPatterns;
+								const {Component} = pattern;
+
+								if (typeof Component === 'undefined') {
+									application.log.warn(warn`${patternItem.id} provides no automount Component`);
+									return null;
+								}
+
+								const resultPath = resolve(
+									automountCacheDirectory,
+									`${pattern.id.split('/').join('-')}.js`
+								);
+								return writeSafe(resultPath, Component.buffer);
 							})
 					);
 
