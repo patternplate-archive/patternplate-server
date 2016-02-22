@@ -131,7 +131,10 @@ export default function patternRouteFactory(application, configuration) {
 			this.throw(404);
 		}
 
-		const results = patternResults[0].toJSON();
+		const [patternResult] = patternResults;
+		const results = typeof patternResult.toJSON === 'function' ?
+			patternResult.toJSON() :
+			patternResult;
 
 		// The three cases should propably be split into
 		// pattern/meta/
