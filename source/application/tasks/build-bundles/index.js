@@ -57,9 +57,15 @@ export default async (application, settings) => {
 	}
 
 	// Get environments
-	const environments = await getEnvironments(base, {
+	const loadedEnvironments = await getEnvironments(base, {
 		cache,
 		log
+	});
+
+	// Environments have to apply on all patterns
+	const environments = loadedEnvironments.map(environment => {
+		environment.applyTo = '**/*';
+		return environment;
 	});
 
 	// Get available patterns
@@ -83,10 +89,17 @@ export default async (application, settings) => {
 			});
 
 			// Merge environment config into transform config
-			const config = merge({}, {
-				patterns: application.configuration.patterns,
-				transforms: application.configuration.transforms
-			}, {transforms: envConfig});
+			const config = merge(
+				{},
+				{
+					patterns: application.configuration.patterns,
+					transforms: application.configuration.transforms
+				},
+				envConfig,
+				{
+					environments: [environment.name]
+				}
+			);
 
 			// build all patterns matching the include config
 			const builtPatterns = await Promise.all(includedPatterns
