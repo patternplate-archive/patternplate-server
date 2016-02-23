@@ -146,10 +146,11 @@ async function build(application, configuration) {
 						patternList
 							// get patterns that have automounting enabled
 							.filter(patternItem => {
+								const manifestConfig = (patternItem.manifest.options || {})['react-to-markup'] || {};
 								const config = merge(
 									{},
 									patternConfig.transforms['react-to-markup'].opts,
-									(patternItem.manifest.options || {})['react-to-markup'] || {}
+									manifestConfig.opts
 								);
 								return config.automount;
 							})
