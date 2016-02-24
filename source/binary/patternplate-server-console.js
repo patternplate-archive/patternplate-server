@@ -1,12 +1,11 @@
 #!/usr/bin/env node
-/*eslint-disable no-process-env */
 
 import 'babel-polyfill';
 import minimist from 'minimist';
 
 import server from '../';
 
-async function start (options) {
+async function start(options) {
 	const mode = 'console';
 	const settings = {...options, mode};
 	const command = settings._[1];

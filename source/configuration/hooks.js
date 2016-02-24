@@ -1,9 +1,9 @@
 export default {
-	'path': [
+	path: [
 		'application/hooks',
 		'application/patternplate-server/hooks'
 	],
-	'enabled': {
-		'patterns': true
+	enabled: {
+		patterns: true
 	}
 };
