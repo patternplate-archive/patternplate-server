@@ -13,14 +13,16 @@ import {
 	readFile as readFileNodeback
 } from 'fs';
 
-import merge from 'lodash.merge';
 import {
 	find,
-	omit
+	flatten,
+	omit,
+	merge
 } from 'lodash';
 import throat from 'throat';
 import chalk from 'chalk';
 import exists from 'path-exists';
+import coreModuleNames from 'node-core-module-names';
 import {
 	resolvePathFormatString
 } from 'patternplate-transforms-core';
@@ -126,10 +128,6 @@ async function exportAsCommonjs(application, settings) {
 		application.log.info(ok`Target folder has no manifest file, building all patterns`);
 	}
 
-	// dependency registry
-	let externalDependencies = [];
-	let externalDevDependencies = [];
-
 	// build patterns in parallel
 	const buildStart = new Date();
 	const building = Promise.all(patternsToBuild.map(throat(5, async pattern => {
@@ -216,15 +214,6 @@ async function exportAsCommonjs(application, settings) {
 
 		application.log.info(ok`Transformed pattern ${pattern.id} ${transformStart}`);
 
-		// Extract dependency information
-		patternList.forEach(patternItem => {
-			const meta = patternItem.meta || {};
-			const itemDependencies = meta.dependencies || [];
-			const itemDevDependencies = meta.devDependencies || [];
-			externalDependencies = [...externalDependencies, ...itemDependencies];
-			externalDevDependencies = [...externalDevDependencies, ...itemDevDependencies];
-		});
-
 		const writeStart = new Date();
 		application.log.info(ok`Writing artifacts of ${pattern.id}`);
 
@@ -252,6 +241,7 @@ async function exportAsCommonjs(application, settings) {
 
 		const written = await writingArtifacts;
 		application.log.info(ok`Wrote ${written.length} artifacts for ${pattern.id} ${writeStart}`);
+		return patternList;
 	})));
 
 	const pruneDetectionStart = new Date();
@@ -292,44 +282,63 @@ async function exportAsCommonjs(application, settings) {
 	const built = await building;
 	application.log.info(ready`Built ${built.length} from ${patternsToBuild.length} planned and ${patternMtimes.length} artifacts overall ${buildStart}`);
 
-	const pkgStart = new Date();
-	application.log.info(wait`Writing package.json`);
+	if (built.length > 0) {
+		const pkgStart = new Date();
+		application.log.info(wait`Writing package.json`);
 
-	const previousPkg = hasManifest ?
-		JSON.parse(await readFile(manifestPath)) :
-		{dependencies: {}, devDependencies: {}};
+		const previousPkg = hasManifest ?
+			JSON.parse(await readFile(manifestPath)) :
+			{dependencies: {}, devDependencies: {}};
 
-	const dependencies = externalDependencies.reduce((results, dependencyName) => {
-		return {...results,
-			[dependencyName]: pkg.dependencies[dependencyName] || pkg.devDependencies[dependencyName] || '*'};
-	}, previousPkg.dependencies);
+		// Extract dependency information
+		const dependencyLists = flatten(built).reduce((registry, patternItem) => {
+			const {meta: {dependencies, devDependencies}} = patternItem;
+			return {
+				dependencies: [...registry.dependencies, ...dependencies],
+				devDependencies: [...registry.devDependencies, ...devDependencies]
+			};
+		}, {
+			dependencies: [],
+			devDependencies: []
+		});
 
-	const devDependencies = omit(externalDevDependencies.reduce((results, dependencyName) => {
-		return {...results,
-			[dependencyName]: pkg.dependencies[dependencyName] || pkg.devDependencies[dependencyName] || '*'};
-	}, previousPkg.devDependencies), Object.keys(dependencies));
+		const deps = pkg.dependencies || {};
+		const devDeps = pkg.devDependencies || {};
 
-	const writingPkg = writeSafe(
-		manifestPath,
-		getPackageString(
-			omit(
-				dependencies,
-				config.ignoredDependencies || []
-			),
-			previousPkg,
-		{
-			devDependencies: omit(
-				devDependencies,
-				config.ignoredDevDependencies || []
+		const dependencies = dependencyLists.dependencies
+			.reduce((results, dependencyName) => {
+				return {...results,
+					[dependencyName]: deps[dependencyName] || devDeps[dependencyName] || '*'};
+			}, previousPkg.dependencies);
+
+		const devDependencies = dependencyLists.devDependencies
+			.reduce((results, dependencyName) => {
+				return {...results,
+					[dependencyName]: deps[dependencyName] || devDeps[dependencyName] || '*'};
+			}, previousPkg.devDependencies);
+
+		const writingPkg = writeSafe(
+			manifestPath,
+			getPackageString(
+				omit(
+					dependencies,
+					[...(config.ignoredDependencies || []), coreModuleNames]
+				),
+				previousPkg,
+			{
+				devDependencies: omit(
+					devDependencies,
+					[...(config.ignoredDevDependencies || []), coreModuleNames, ...Object.keys(dependencies)]
+				)
+			},
+			omit(pkg, ['dependencies', 'devDependencies', 'scripts', 'config', 'main']),
+			config.pkg
 			)
-		},
-		omit(pkg, ['dependencies', 'devDependencies', 'scripts', 'config', 'main']),
-		config.pkg
-		)
-	);
+		);
 
-	await writingPkg;
-	application.log.info(ready`Wrote package.json ${pkgStart}`);
+		await writingPkg;
+		application.log.info(ready`Wrote package.json ${pkgStart}`);
+	}
 	application.log.info(ready`Task completed ${taskStart}`);
 }
 
