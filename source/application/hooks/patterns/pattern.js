@@ -606,37 +606,7 @@ export class Pattern {
 			this.results[formatConfig.name] = file;
 		}
 
-		return this;
-	}
-
-	getLastModified() {
-		const fileMtimes = Object.values(this.files || {})
-			.map(file => new Date(file.fs.mtime));
-
-		this.mtime = fileMtimes.sort((a, b) => b - a)[0];
-		return this;
-	}
-
-	toJSON() {
-		const copy = merge({}, this);
-
-		Object.entries(this.results).forEach(resultEntry => {
-			const [resultName, result] = resultEntry;
-
-			copy.dependencies = omit(copy.dependencies, 'Pattern');
-
-			copy.results[resultName] = {
-				name: resultName,
-				source: result.source.toString('utf-8'),
-				demoSource: result.demoSource ? result.demoSource.toString('utf-8') : '',
-				buffer: result.buffer.toString('utf-8'),
-				demoBuffer: result.demoBuffer ? result.demoBuffer.toString('utf-8') : '',
-				in: result.in,
-				out: result.out
-			};
-		});
-
-		copy.meta = Object.entries(copy.files).reduce((results, entry) => {
+		this.meta = Object.entries(this.files).reduce((results, entry) => {
 			const [, file] = entry;
 			const meta = file.meta || {};
 			const dependencies = meta.dependencies || [];
@@ -650,6 +620,33 @@ export class Pattern {
 			};
 		}, {});
 
+		Object.entries(this.results).forEach(resultEntry => {
+			const [resultName, result] = resultEntry;
+			this.dependencies = omit(this.dependencies, 'Pattern');
+			this.results[resultName] = {
+				name: resultName,
+				source: result.source.toString('utf-8'),
+				demoSource: result.demoSource ? result.demoSource.toString('utf-8') : '',
+				buffer: result.buffer.toString('utf-8'),
+				demoBuffer: result.demoBuffer ? result.demoBuffer.toString('utf-8') : '',
+				in: result.in,
+				out: result.out
+			};
+		});
+
+		return this;
+	}
+
+	getLastModified() {
+		const fileMtimes = Object.values(this.files || {})
+			.map(file => new Date(file.fs.mtime));
+
+		this.mtime = fileMtimes.sort((a, b) => b - a)[0];
+		return this;
+	}
+
+	toJSON() {
+		const copy = merge({}, this);
 		// things not needed in serialized form
 		delete copy.cache;
 		delete copy.files;
