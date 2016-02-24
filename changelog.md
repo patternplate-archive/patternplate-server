@@ -1,3 +1,13 @@
+<a name="0.14.20"></a>
+## [0.14.20](https://github.com/sinnerschrader/patternplate-server/compare/v0.14.19...v0.14.20) (2016-02-24)
+
+
+### Bug Fixes
+
+* **tasks/build-commonjs:** write dependencies correctly to manifest ([f20cd39](https://github.com/sinnerschrader/patternplate-server/commit/f20cd39)), closes [#55](https://github.com/sinnerschrader/patternplate-server/issues/55)
+
+
+
 <a name="0.14.19"></a>
 ## [0.14.19](https://github.com/sinnerschrader/patternplate-server/compare/v0.14.18...v0.14.19) (2016-02-23)
 
