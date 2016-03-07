@@ -1,3 +1,13 @@
+<a name="0.14.21"></a>
+## [0.14.21](https://github.com/sinnerschrader/patternplate-server/compare/v0.14.20...v0.14.21) (2016-03-07)
+
+
+### Bug Fixes
+
+* **application/hooks/transforms:** Fixes es6 compatible exports for factory functions ([bc4c37f](https://github.com/sinnerschrader/patternplate-server/commit/bc4c37f))
+
+
+
 <a name="0.14.20"></a>
 ## [0.14.20](https://github.com/sinnerschrader/patternplate-server/compare/v0.14.19...v0.14.20) (2016-02-24)
 
