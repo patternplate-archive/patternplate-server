@@ -1,0 +1,19 @@
+{
+  "rules": {
+    "scope-enum": [
+      2,
+      "always",
+      [
+        "system",
+        "release",
+        "test",
+        "api",
+        "cli",
+        "hook",
+        "server",
+        "routes",
+        "task"
+      ]
+    ]
+  }
+}
