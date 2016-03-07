@@ -105,7 +105,7 @@ export default {
 				const [name, factory] = entry;
 				return {
 					...registry,
-					[name]: factory(application)
+					[name]: (factory.default ? factory.default : factory)(application)
 				};
 			}, {});
 
