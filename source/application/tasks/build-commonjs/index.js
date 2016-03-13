@@ -294,8 +294,8 @@ async function exportAsCommonjs(application, settings) {
 		const dependencyLists = flatten(built).reduce((registry, patternItem) => {
 			const {meta: {dependencies, devDependencies}} = patternItem;
 			return {
-				dependencies: [...registry.dependencies, ...dependencies],
-				devDependencies: [...registry.devDependencies, ...devDependencies]
+				dependencies: [...registry.dependencies, ...(dependencies || [])],
+				devDependencies: [...registry.devDependencies, ...(devDependencies || [])]
 			};
 		}, {
 			dependencies: [],
