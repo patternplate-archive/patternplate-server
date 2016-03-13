@@ -1,3 +1,13 @@
+<a name="0.14.23"></a>
+## [0.14.23](https://github.com/sinnerschrader/patternplate-server/compare/v0.14.22...v0.14.23) (2016-03-13)
+
+
+### Bug Fixes
+
+* **server:** print env deprecations only when offending keys are found ([bba1428](https://github.com/sinnerschrader/patternplate-server/commit/bba1428)), closes [sinnerschrader/patternplate#21](https://github.com/sinnerschrader/patternplate/issues/21)
+
+
+
 <a name="0.14.22"></a>
 ## [0.14.22](https://github.com/sinnerschrader/patternplate-server/compare/v0.14.21...v0.14.22) (2016-03-13)
 
