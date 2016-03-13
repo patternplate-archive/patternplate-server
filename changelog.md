@@ -1,3 +1,13 @@
+<a name="0.14.22"></a>
+## [0.14.22](https://github.com/sinnerschrader/patternplate-server/compare/v0.14.21...v0.14.22) (2016-03-13)
+
+
+### Bug Fixes
+
+* **task:** harden build-commonjs against unexpected dependency input ([670a33e](https://github.com/sinnerschrader/patternplate-server/commit/670a33e)), closes [sinnerschrader/patternplate#48](https://github.com/sinnerschrader/patternplate/issues/48)
+
+
+
 <a name="0.14.21"></a>
 ## [0.14.21](https://github.com/sinnerschrader/patternplate-server/compare/v0.14.20...v0.14.21) (2016-03-07)
 
