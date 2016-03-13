@@ -4,17 +4,19 @@
 	"conditional-comment": "!IE",
 	"formats": ["js", "css", "less"],
 	"environment": {
-		"less": {
-			"opts": {
-				"globalVars": {
-					"global-is-legacy": true
+		"transforms": {
+			"less": {
+				"opts": {
+					"globalVars": {
+						"global-is-legacy": true
+					}
 				}
-			}
-		},
-		"react-jsx": {
-			"opts": {
-				"context": {
-					"env": "index"
+			},
+			"react-jsx": {
+				"opts": {
+					"context": {
+						"env": "index"
+					}
 				}
 			}
 		}

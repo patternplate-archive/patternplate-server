@@ -5,38 +5,40 @@
 	"formats": ["js", "css", "less"],
 	"conditional-comment": "lte IE 8",
 	"environment": {
-		"browserify": {
-			"transforms": {
-				"envify": {
-					"opts": {
-						"BROWSER": "legacy"
+		"transforms": {
+			"browserify": {
+				"transforms": {
+					"envify": {
+						"opts": {
+							"BROWSER": "legacy"
+						}
 					}
-				}
-			}
-		},
-		"less": {
-			"opts": {
-				"globalVars": {
-					"global-is-legacy": true
 				}
 			},
-			"plugins": {
-				"autoprefix": {
-					"opts": {
-						"browsers": ["ie 8"]
+			"less": {
+				"opts": {
+					"globalVars": {
+						"global-is-legacy": true
 					}
 				},
-				"clean-css": {
-					"opts": {
-						"compatibility": "ie8"
+				"plugins": {
+					"autoprefix": {
+						"opts": {
+							"browsers": ["ie 8"]
+						}
+					},
+					"clean-css": {
+						"opts": {
+							"compatibility": "ie8"
+						}
 					}
 				}
-			}
-		},
-		"react-jsx": {
-			"opts": {
-				"context": {
-					"env": "legacy"
+			},
+			"react-jsx": {
+				"opts": {
+					"context": {
+						"env": "legacy"
+					}
 				}
 			}
 		}
