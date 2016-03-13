@@ -108,7 +108,7 @@ async function getPatterns(options, cache) {
 				const misplacedKeys = omit(environment, Object.keys(config));
 				const misplacedKeyNames = Object.keys(misplacedKeys);
 
-				if (misplacedKeys) {
+				if (misplacedKeys.length > 0) {
 					log.warn(`${chalk.yellow('[⚠ Deprecation ⚠ ]')} Found unexpected keys ${misplacedKeyNames} in environment ${environmentConfig.name}.environment. Placing keys other than ${Object.keys(config)} in ${environmentConfig.name}.environment is deprecated, move the keys to ${environmentConfig.name}.environment.transforms`);
 				}
 
