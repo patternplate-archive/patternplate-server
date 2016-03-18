@@ -1,4 +1,4 @@
-function layout (props) {
+function layout(props) {
 	return `<!doctype html>
 	<html>
 		<head>
@@ -10,7 +10,7 @@ function layout (props) {
 		</head>
 		<body>
 			${props.content.markup
-				.map((markup) => markup.content)
+				.map(markup => markup.content)
 				.join('\n')}
 			${props.reference.script
 				.map(script => `<script src="${script.uri}"></script>`)

@@ -72,14 +72,6 @@ export default function patternRouteFactory(application, configuration) {
 				});
 		}
 
-		// Append content script for iframe resizing
-		// TODO: remove this when the new client arrives
-		templateReferenceData.script.push({
-			uri: application.router.url('script', {
-				path: 'content.js'
-			}).replace('%2B', '') // workaround for stuff router appends
-		});
-
 		return layout({
 			...template,
 			content: templateContentData,
