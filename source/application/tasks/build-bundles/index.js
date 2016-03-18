@@ -77,7 +77,7 @@ export default async (application, settings) => {
 	await Promise.all(environments
 		.filter(environment => environment.include && environment.include.length)
 		.map(async environment => {
-			const {environment: envConfig, include, exclude} = environment;
+			const {environment: envConfig, include, exclude, formats: envFormats} = environment;
 			const includePatterns = include || [];
 			const excludePatterns = exclude || [];
 
@@ -101,6 +101,9 @@ export default async (application, settings) => {
 				}
 			);
 
+			const environmentFilters = merge({}, filters);
+			environmentFilters.inFormats = envFormats;
+
 			// build all patterns matching the include config
 			const builtPatterns = await Promise.all(includedPatterns
 				.map(throat(5, async pattern => {
@@ -113,7 +116,7 @@ export default async (application, settings) => {
 						factory,
 						transforms,
 						log,
-						filters
+						filters: environmentFilters
 					}, cache);
 
 					return patternList[0];

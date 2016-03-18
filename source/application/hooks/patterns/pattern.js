@@ -499,9 +499,9 @@ export class Pattern {
 			}
 
 			// import everything mentioned in the virtual manifest file
-			const required = uniq(Object.keys(this.manifest.patterns)
+			const required = Object.keys(this.manifest.patterns)
 				// if it is in the file dependencies
-				.filter(localName => localName in dependencies), {path});
+				.filter(localName => localName in dependencies);
 
 			const source = required.map(localName => importStatement(localName))
 				.join('\n');
@@ -513,7 +513,7 @@ export class Pattern {
 					buffer,
 					source,
 					name,
-					baseName,
+					basename: baseName,
 					dependencies,
 					ext,
 					format,
