@@ -1,3 +1,13 @@
+<a name="0.14.24"></a>
+## [0.14.24](https://github.com/sinnerschrader/patternplate-server/compare/v0.14.23...v0.14.24) (2016-03-18)
+
+
+### Bug Fixes
+
+* **task:** determine virtual environment root files correctly ([c486dac](https://github.com/sinnerschrader/patternplate-server/commit/c486dac))
+
+
+
 <a name="0.14.23"></a>
 ## [0.14.23](https://github.com/sinnerschrader/patternplate-server/compare/v0.14.22...v0.14.23) (2016-03-13)
 
