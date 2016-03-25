@@ -2,44 +2,66 @@ import {
 	resolve
 } from 'path';
 
+import {merge} from 'lodash';
+
 import getPatterns from '../../library/utilities/get-patterns';
 import getStaticCacheItem from '../../library/utilities/get-static-cache-item';
 
+function getMountTransformChain(format, transforms) {
+	const formatChanging = format.transforms.findIndex(transformName => {
+		const {outFormat} = transforms[transformName];
+		return ['js', 'jsx'].indexOf(outFormat) === -1;
+	});
+
+	const index = formatChanging === -1 ?
+		format.transforms.length :
+		formatChanging;
+
+	return format.transforms
+		.slice(0, index)
+		.concat(['react-mount', 'browserify']);
+}
+
 export default function (application) {
 	const patterns = application.configuration.patterns || {};
+	const transforms = application.configuration.transforms;
+	const jsxFormat = application.configuration.patterns.formats.jsx;
+	const mountTransforms = getMountTransformChain(jsxFormat, transforms);
 
 	// Create one-off special config
-	const config = {
-		transforms: { // eslint-disable-line quote-props
-			react: {
-				inFormat: 'jsx',
-				outFormat: 'js',
-				resolveDependencies: false,
-				convertDependencies: true
-			},
-			'react-mount': {
-				inFormat: 'js',
-				outFormat: 'js'
-			},
-			browserify: {
-				inFormat: 'js',
-				outFormat: 'js'
-			}
+	const config = merge(
+		{},
+		{
+			transforms,
+			patterns
 		},
-		patterns: {
-			path: patterns.path,
-			formats: {
-				jsx: {
-					name: 'Component',
-					transforms: ['react', 'react-mount', 'browserify']
+		{
+			transforms: { // eslint-disable-line quote-props
+				react: {
+					inFormat: 'jsx',
+					outFormat: 'js',
+					resolveDependencies: false,
+					convertDependencies: true
 				},
-				html: {
-					name: 'Component',
-					transforms: ['react', 'react-mount', 'browserify']
+				'react-mount': {
+					inFormat: 'js',
+					outFormat: 'js'
+				},
+				browserify: {
+					inFormat: 'js',
+					outFormat: 'js'
+				}
+			},
+			patterns: {
+				formats: {
+					jsx: {
+						name: 'Component',
+						transforms: mountTransforms
+					}
 				}
 			}
 		}
-	};
+	);
 
 	return async function() {
 		this.type = 'js';
