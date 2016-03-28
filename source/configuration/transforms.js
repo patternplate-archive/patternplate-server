@@ -3,7 +3,7 @@ export default {
 	path: [
 		'./application/transforms',
 		'./application/patternplate-server/transforms'
-	],
+	] /*,
 	markdown: {
 		inFormat: 'md',
 		outFormats: 'html'
@@ -124,5 +124,5 @@ export default {
 	'resolve-imports': {
 		outFormat: 'js',
 		resolve: '%(outputName)s/%(patternId)s/index.%(extension)s'
-	}
+	} */
 };

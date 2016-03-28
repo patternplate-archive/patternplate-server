@@ -1,7 +1,7 @@
 export default {
 	path: './patterns',
 	formats: {
-		js: {
+		/* js: {
 			name: 'Script',
 			transforms: ['browserify'],
 			importStatement: localName => {
@@ -42,6 +42,6 @@ export default {
 		md: {
 			name: 'Documentation',
 			transforms: ['markdown']
-		}
+		} */
 	}
 };
