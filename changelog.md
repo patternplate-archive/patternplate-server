@@ -1,3 +1,13 @@
+<a name="0.15.0-beta2"></a>
+# [0.15.0-beta2](https://github.com/sinnerschrader/patternplate-server/compare/v0.14.24...v0.15.0-beta2) (2016-03-28)
+
+
+### Bug Fixes
+
+* **routes:** compute transforms for react-mount ([5360941](https://github.com/sinnerschrader/patternplate-server/commit/5360941))
+
+
+
 <a name="Unreleased"></a>
 # Unreleased (2016-03-22)
 
