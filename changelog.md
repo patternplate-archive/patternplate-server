@@ -1,3 +1,13 @@
+<a name="0.15.0"></a>
+# [0.15.0](https://github.com/sinnerschrader/patternplate-server/compare/v0.14.24...v0.15.0) (2016-04-13)
+
+
+### Bug Fixes
+
+* **system:** remove iframe resizer script ([bb6a042](https://github.com/sinnerschrader/patternplate-server/commit/bb6a042))
+
+
+
 <a name="0.14.24"></a>
 ## [0.14.24](https://github.com/sinnerschrader/patternplate-server/compare/v0.14.23...v0.14.24) (2016-03-18)
 
