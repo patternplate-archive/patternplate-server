@@ -1,6 +1,6 @@
 {
   "name": "patternplate-server",
-  "version": "0.14.25",
+  "version": "0.15.16",
   "description": "Programmatically serve atomic patterns via a REST API",
   "main": "library/",
   "scripts": {
@@ -94,9 +94,9 @@
     "patternplate-transform-browserify": "^0.2.0",
     "patternplate-transform-less": "^0.1.0",
     "patternplate-transform-markdown": "^0.1.0",
-    "patternplate-transform-react": "^0.2.0",
+    "patternplate-transform-react": "^0.3.0",
     "patternplate-transform-react-mount": "^0.1.0",
-    "patternplate-transform-react-to-markup": "^0.2.2",
+    "patternplate-transform-react-to-markup": "^0.3.1",
     "patternplate-transform-resolve-imports": "^0.1.0",
     "patternplate-transform-resolve-includes": "^0.1.0",
     "patternplate-transform-uglify": "^0.1.0",
