@@ -1,3 +1,13 @@
+<a name="0.16.0"></a>
+# [0.16.0](https://github.com/sinnerschrader/patternplate-server/compare/v0.14.25...v0.16.0) (2016-04-16)
+
+
+### Features
+
+* **system:** update to feature releases of react-* transforms ([9e063d7](https://github.com/sinnerschrader/patternplate-server/commit/9e063d7))
+
+
+
 <a name="0.14.25"></a>
 ## [0.14.25](https://github.com/sinnerschrader/patternplate-server/compare/v0.14.24...v0.14.25) (2016-04-13)
 
