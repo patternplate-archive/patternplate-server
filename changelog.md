@@ -1,3 +1,13 @@
+<a name="0.16.1"></a>
+## [0.16.1](https://github.com/sinnerschrader/patternplate-server/compare/v0.16.0...v0.16.1) (2016-04-19)
+
+
+### Bug Fixes
+
+* **routes:** compute transforms for react-mount ([36aa653](https://github.com/sinnerschrader/patternplate-server/commit/36aa653))
+
+
+
 <a name="0.16.0"></a>
 # [0.16.0](https://github.com/sinnerschrader/patternplate-server/compare/v0.14.25...v0.16.0) (2016-04-16)
 
