@@ -1,3 +1,13 @@
+<a name="0.16.2"></a>
+## [0.16.2](https://github.com/sinnerschrader/patternplate-server/compare/v0.16.1...v0.16.2) (2016-04-19)
+
+
+### Bug Fixes
+
+* **server:** resolve transforms from process.cwd() ([b1227f5](https://github.com/sinnerschrader/patternplate-server/commit/b1227f5)), closes [sinnerschrader/patternplate#67](https://github.com/sinnerschrader/patternplate/issues/67)
+
+
+
 <a name="0.16.1"></a>
 ## [0.16.1](https://github.com/sinnerschrader/patternplate-server/compare/v0.16.0...v0.16.1) (2016-04-19)
 
