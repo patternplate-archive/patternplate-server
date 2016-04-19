@@ -1,9 +1,19 @@
 import hotswap from 'hotswap';
 import {resolve} from 'path';
 import {find, omit} from 'lodash';
-import {resolve as resolvePackage} from 'try-require';
+import {sync as resolveSync} from 'resolve';
 
 import {deprecation, ok, wait} from '../../../library/log/decorations';
+
+function resolvePackage(id) {
+	try {
+		return resolveSync(id, {
+			basedir: process.cwd()
+		});
+	} catch (error) {
+		return null;
+	}
+}
 
 function loadTransform(name, path) {
 	const available = resolvePackage(path);
