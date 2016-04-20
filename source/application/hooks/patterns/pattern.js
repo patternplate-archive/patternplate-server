@@ -23,12 +23,12 @@ import throat from 'throat';
 import getReadFile from '../../../library/filesystem/read-file.js';
 
 async function getPatternManifests(base, patterns = {}, fs = qfs) {
-	return await * Object.values(patterns).map(async id => {
+	return await Promise.all(Object.values(patterns).map(async id => {
 		const json = await fs.read(resolve(base, id, 'pattern.json'));
 		const manifest = {...JSON.parse(json), __id: id};
 		const subManifests = await getPatternManifests(base, manifest.patterns, fs);
 		return [manifest, ...subManifests];
-	});
+	}));
 }
 
 function getDependenciesToRead(patterns = {}, pool = []) {
@@ -240,9 +240,9 @@ export class Pattern {
 				this.log.silly(`↳  ${chalk.bold(name)} → ${item}`);
 			});
 
-			const readDependencies = await * dependenciesToRead.map(async id => {
+			const readDependencies = await Promise.all(dependenciesToRead.map(async id => {
 				return find(dependencyPatterns, {id}).read();
-			});
+			}));
 
 			this.dependencies = constructDependencies(this.manifest.patterns, readDependencies);
 		}
@@ -390,7 +390,7 @@ export class Pattern {
 		}
 
 		// read in relevant file information
-		const fileData = await * matchingFiles.map(throat(5, async file => {
+		const fileData = await Promise.all(matchingFiles.map(throat(5, async file => {
 			const fileFs = await this.fs.stat(file);
 			const fileExt = extname(file);
 			const fileBaseName = basename(file);
@@ -431,7 +431,7 @@ export class Pattern {
 				...data,
 				dependencies
 			};
-		}));
+		})));
 
 		// convert to consumable format
 		this.files = fileData.reduce((results, data) => {
@@ -567,7 +567,7 @@ export class Pattern {
 
 				this.log.debug(`Transforming ${fileBaseName} of ${patternName} via ${transformName}`);
 				try {
-					const result = await transformFunction(file, null, configuration, forced);
+					const result = await transformFunction(file, null, configuration, forced); // eslint-disable-line babel/no-await-in-loop
 					if (result) {
 						// deprecate the use of file.demoBuffer
 						if (result.demoBuffer) {
