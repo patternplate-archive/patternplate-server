@@ -525,6 +525,10 @@ export class Pattern {
 						devDependencies: []
 					}
 				}
+			}, (a, b) => {
+				if (Buffer.isBuffer(b)) {
+					return b;
+				}
 			});
 		}, {});
 
