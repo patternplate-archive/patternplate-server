@@ -109,7 +109,7 @@ export default async (application, settings) => {
 				.map(throat(5, async pattern => {
 					const {id} = pattern;
 
-					const patternList = await getPatterns({
+					const [result] = await getPatterns({
 						id,
 						base,
 						config,
@@ -117,9 +117,9 @@ export default async (application, settings) => {
 						transforms,
 						log,
 						filters: environmentFilters
-					}, cache);
+					}, cache, ['read']);
 
-					return patternList[0];
+					return result;
 				})));
 
 			// construct a virtual pattern

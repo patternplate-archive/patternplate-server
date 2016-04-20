@@ -33,7 +33,7 @@ const defaults = {
 	log() {}
 };
 
-async function getPatterns(options, cache) {
+async function getPatterns(options, cache, cmds = ['read', 'transform']) {
 	const settings = {...defaults, ...options};
 
 	const {
@@ -133,11 +133,19 @@ async function getPatterns(options, cache) {
 
 		const gettingDepending = await getDependentPatterns(patternID, base, {cache});
 
+		if (! cmds.includes('read')) {
+			return pattern;
+		}
+
 		const readStart = new Date();
 		log.info(`Reading pattern "${patternID}"`);
 		await pattern.read();
 		pattern.manifest.dependentPatterns = await gettingDepending;
 		log.info(`Read pattern "${patternID}" ${chalk.grey('[' + (new Date() - readStart) + 'ms]')}`);
+
+		if (! cmds.includes('transform')) {
+			return pattern;
+		}
 
 		const transformStart = new Date();
 		log.info(`Transforming pattern "${patternID}"`);
