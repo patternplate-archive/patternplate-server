@@ -1,3 +1,14 @@
+<a name="0.16.3"></a>
+## [0.16.3](https://github.com/sinnerschrader/patternplate-server/compare/v0.16.2...v0.16.3) (2016-04-20)
+
+
+### Bug Fixes
+
+* **cli:** improve build-bundles performance ([a76e207](https://github.com/sinnerschrader/patternplate-server/commit/a76e207))
+* **server:** do not garble buffers when merging injected files ([9edcf83](https://github.com/sinnerschrader/patternplate-server/commit/9edcf83))
+
+
+
 <a name="0.16.2"></a>
 ## [0.16.2](https://github.com/sinnerschrader/patternplate-server/compare/v0.16.1...v0.16.2) (2016-04-19)
 
