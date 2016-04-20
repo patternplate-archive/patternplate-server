@@ -15,15 +15,21 @@ function resolvePackage(id) {
 	}
 }
 
-function loadTransform(name, path) {
-	const available = resolvePackage(path);
+function loadTransform(name, path, loadModule) {
+	const transformName = `patternplate-transform-${name}`;
+	const availableFile = resolvePackage(path);
+	const availableModule = loadModule ?
+		resolvePackage(transformName) :
+		null;
+
+	const available = availableFile || availableModule;
 
 	if (!available) {
 		return null;
 	}
 
 	try {
-		const fn = require(path);
+		const fn = require(available);
 		return {
 			fn: fn.default ? fn.default : fn,
 			path: available,
@@ -31,7 +37,7 @@ function loadTransform(name, path) {
 		};
 	} catch (error) {
 		error.message = [
-			`Error while loading transform ${path}:`,
+			`Error while loading transform ${name} from ${path}:`,
 			error.message
 		].join('\n');
 		throw error;
@@ -48,7 +54,7 @@ function loadTansformFactories(transformNames, paths, application) {
 				.map(path => resolve(path, transformName, 'index.js'));
 
 			const localTransformFactory = localTransformPaths
-				.map(localPath => loadTransform(transformName, localPath))
+				.map(localPath => loadTransform(transformName, localPath, false))
 				.filter(Boolean)[0];
 
 			if (localTransformFactory) {
@@ -62,7 +68,7 @@ function loadTansformFactories(transformNames, paths, application) {
 			// try to load from patternplate-transform-${transformName}
 			// if no local transform was found
 			const pkg = `patternplate-transform-${transformName}`;
-			const packageTransformFactory = loadTransform(transformName, pkg);
+			const packageTransformFactory = loadTransform(transformName, pkg, true);
 
 			if (!packageTransformFactory) {
 				throw new Error(
