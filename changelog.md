@@ -1,3 +1,15 @@
+<a name="0.16.4"></a>
+## [0.16.4](https://github.com/sinnerschrader/patternplate-server/compare/v0.16.3...v0.16.4) (2016-04-20)
+
+
+### Bug Fixes
+
+* **server:** filter undefined references from layout ([7f86076](https://github.com/sinnerschrader/patternplate-server/commit/7f86076))
+* **server:** load npm transform with failsafes ([1f308ef](https://github.com/sinnerschrader/patternplate-server/commit/1f308ef))
+* **server:** read automount components for cache correctly ([14f1df5](https://github.com/sinnerschrader/patternplate-server/commit/14f1df5))
+
+
+
 <a name="0.16.3"></a>
 ## [0.16.3](https://github.com/sinnerschrader/patternplate-server/compare/v0.16.2...v0.16.3) (2016-04-20)
 
