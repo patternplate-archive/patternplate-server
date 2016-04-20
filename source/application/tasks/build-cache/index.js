@@ -67,7 +67,7 @@ async function build(application, configuration) {
 		}
 	};
 
-	// FIXME: This simple merge statement is not sufficient to reconfigure your build process (may apply to other config
+	// TODO: This simple merge statement is not sufficient to reconfigure your build process (may apply to other config
 	// cases too). A better aproach would be to have a configuration model which could do the merge on a per-config-key
 	// and as side-benefit it would help reduce breaking changes.
 	const patterns = merge({}, application.configuration.patterns || {}, buildConfig.patterns || {});
@@ -167,10 +167,12 @@ async function build(application, configuration) {
 									log: application.log
 								}, application.cache);
 
-								const [pattern] = autoMountPatterns;
-								const {Component} = pattern;
+								const [pattern = {}] = autoMountPatterns;
+								const {results = {}} = pattern;
+								const {Component} = results;
 
 								if (typeof Component === 'undefined') {
+									// TODO: This should be an error some day
 									application.log.warn(warn`${patternItem.id} provides no automount Component`);
 									return null;
 								}
