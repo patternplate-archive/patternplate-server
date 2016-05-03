@@ -7,7 +7,10 @@ import {
 import {
 	find,
 	merge,
-	omit
+	omit,
+	object,
+	compact,
+	map
 } from 'lodash';
 
 import flatPick from '../../library/utilities/flat-pick';
@@ -114,6 +117,24 @@ export default function patternRouteFactory(application, configuration) {
 			transforms: application.transforms,
 			log: application.log
 		};
+
+		// look out for a environment switch command
+		// parse url
+		// todo: should be provided by boilerplate-server internal functions
+		if (this.req._parsedUrl.query && this.req._parsedUrl.query.indexOf('switchEnv') > -1) {
+			const urlParams =  object(compact(map(
+				this.req._parsedUrl.query.split('&'),
+				function(item) {
+					if (item) return item.split('=');
+				}
+			)));
+
+			// set the desired environment
+			application.configuration.desiredEnvironment = urlParams.switchEnv;
+		}
+
+		// set the current environment, fallback to index if none given
+		patternConfig.desiredEnvironment = application.configuration.desiredEnvironment || "index";
 
 		// get patterns
 		const patternResults = await getPatterns(patternConfig, application.cache);
