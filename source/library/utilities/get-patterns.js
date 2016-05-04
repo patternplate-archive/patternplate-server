@@ -86,7 +86,8 @@ async function getPatterns(options, cache, cmds = ['read', 'transform']) {
 		// load user environments
 		const userEnvironments = await getEnvironments(base, {
 			cache,
-			log
+			log,
+			desiredEnv: options.desiredEnvironment
 		});
 
 		// get environments that match this pattern

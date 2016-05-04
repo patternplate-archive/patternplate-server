@@ -28,6 +28,10 @@ node_modules
 *.swp
 *.swo
 
+## Webstorm IDE Files
+.idea
+*.iws
+
 # Users Environment Variables
 .lock-wscript
 .tmp

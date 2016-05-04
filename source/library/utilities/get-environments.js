@@ -39,12 +39,26 @@ export default async function getEnvironments(base, options = {}) {
 	const hasUserEnvironments = await exists(environmentBase);
 
 	// Get available environments ids
-	const userEnvironmentPaths = hasUserEnvironments ?
+	let userEnvironmentPaths = hasUserEnvironments ?
 		(await fs.listTree(environmentBase))
 			.filter(item => basename(item) === 'pattern.json') :
 		[];
 
 	envDebug('found environment files at %s', userEnvironmentPaths);
+
+	// filter for desired env
+	// todo: refactor this part
+	if (options.desiredEnv && userEnvironmentPaths.length > 0) {
+		userEnvironmentPaths = userEnvironmentPaths.filter(function(item) {
+			let envName = item
+				.replace(/\/pattern.json$/, "")
+				.split("/")
+
+			envName = envName[envName.length - 1];
+
+			return envName == options.desiredEnv;
+		});
+	}
 
 	// Load environments
 	const userEnvironmentFiles = await Promise.all(
