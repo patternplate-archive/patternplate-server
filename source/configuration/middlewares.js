@@ -4,8 +4,12 @@ const middlewares = {
 		'application/patternplate-server/middlewares'
 	],
 	enabled: {
-		cors: true,
-		basicauth: {
+		"cors": true,
+		"inject-script": {
+			enabled: true,
+			src: null
+		},
+		"basicauth": {
 			enabled: false,
 			credentials: {
 				name: process.env.PATTERNPLATE_SERVER_BASIC_AUTH_LOGIN ||
