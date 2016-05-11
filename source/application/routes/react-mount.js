@@ -4,29 +4,19 @@ import {
 
 import {merge} from 'lodash';
 
+import getMountTransformChain from '../../library/utilities/get-mount-transform-chain';
 import getPatterns from '../../library/utilities/get-patterns';
 import getStaticCacheItem from '../../library/utilities/get-static-cache-item';
-
-function getMountTransformChain(format, transforms) {
-	const formatChanging = format.transforms.findIndex(transformName => {
-		const {outFormat} = transforms[transformName];
-		return ['js', 'jsx'].indexOf(outFormat) === -1;
-	});
-
-	const index = formatChanging === -1 ?
-		format.transforms.length :
-		formatChanging;
-
-	return format.transforms
-		.slice(0, index)
-		.concat(['react-mount', 'browserify']);
-}
 
 export default function (application) {
 	const patterns = application.configuration.patterns || {};
 	const transforms = application.configuration.transforms;
 	const jsxFormat = application.configuration.patterns.formats.jsx;
 	const mountTransforms = getMountTransformChain(jsxFormat, transforms);
+	const componentFormat = {
+		name: 'Component',
+		transforms: mountTransforms
+	};
 
 	// Create one-off special config
 	const config = merge(
@@ -54,10 +44,8 @@ export default function (application) {
 			},
 			patterns: {
 				formats: {
-					jsx: {
-						name: 'Component',
-						transforms: mountTransforms
-					}
+					jsx: componentFormat,
+					html: componentFormat
 				}
 			}
 		}

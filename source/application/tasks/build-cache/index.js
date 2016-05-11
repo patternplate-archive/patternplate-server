@@ -6,6 +6,7 @@ import denodeify from 'denodeify';
 import mkdirpNodeback from 'mkdirp';
 
 import flatPick from '../../../library/utilities/flat-pick';
+import getMountTransformChain from '../../../library/utilities/get-mount-transform-chain';
 import getPatterns from '../../../library/utilities/get-patterns';
 import getPatternMtimes from '../../../library/utilities/get-pattern-mtimes';
 import git from '../../../library/utilities/git';
@@ -35,38 +36,6 @@ async function build(application, configuration) {
 		configuration
 	);
 
-	const automountConfiguration = {
-		transforms: { // eslint-disable-line quote-props
-			react: {
-				inFormat: 'jsx',
-				outFormat: 'js',
-				resolveDependencies: false,
-				convertDependencies: true
-			},
-			'react-mount': {
-				inFormat: 'js',
-				outFormat: 'js'
-			},
-			browserify: {
-				inFormat: 'js',
-				outFormat: 'js'
-			}
-		},
-		patterns: {
-			path: patternRoot,
-			formats: {
-				jsx: {
-					name: 'Component',
-					transforms: ['react', 'react-mount', 'browserify']
-				},
-				html: {
-					name: 'Component',
-					transforms: ['react', 'react-mount', 'browserify']
-				}
-			}
-		}
-	};
-
 	// TODO: This simple merge statement is not sufficient to reconfigure your build process (may apply to other config
 	// cases too). A better aproach would be to have a configuration model which could do the merge on a per-config-key
 	// and as side-benefit it would help reduce breaking changes.
@@ -81,6 +50,45 @@ async function build(application, configuration) {
 	const patternConfig = {
 		patterns, transforms
 	};
+
+	const jsxFormat = application.configuration.patterns.formats.jsx;
+	const mountTransforms = getMountTransformChain(jsxFormat, transforms);
+	const componentFormat = {
+		name: 'Component',
+		transforms: mountTransforms
+	};
+
+	const automountConfiguration = merge(
+		{},
+		{
+			transforms,
+			patterns
+		},
+		{
+			transforms: { // eslint-disable-line quote-props
+				react: {
+					inFormat: 'jsx',
+					outFormat: 'js',
+					resolveDependencies: false,
+					convertDependencies: true
+				},
+				'react-mount': {
+					inFormat: 'js',
+					outFormat: 'js'
+				},
+				browserify: {
+					inFormat: 'js',
+					outFormat: 'js'
+				}
+			},
+			patterns: {
+				formats: {
+					jsx: componentFormat,
+					html: componentFormat
+				}
+			}
+		}
+	);
 
 	const environment = application.runtime.env;
 	const revision = await git.short();
