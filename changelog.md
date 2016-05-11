@@ -1,3 +1,13 @@
+<a name="0.16.5"></a>
+## [0.16.5](https://github.com/sinnerschrader/patternplate-server/compare/v0.16.4...v0.16.5) (2016-05-11)
+
+
+### Bug Fixes
+
+* **server:** harmonize component transformation ([9dc5e1f](https://github.com/sinnerschrader/patternplate-server/commit/9dc5e1f))
+
+
+
 <a name="0.16.4"></a>
 ## [0.16.4](https://github.com/sinnerschrader/patternplate-server/compare/v0.16.3...v0.16.4) (2016-04-20)
 
