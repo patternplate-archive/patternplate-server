@@ -1,3 +1,13 @@
+<a name="0.16.6"></a>
+## [0.16.6](https://github.com/sinnerschrader/patternplate-server/compare/v0.16.5...v0.16.6) (2016-05-11)
+
+
+### Bug Fixes
+
+* **server:** simplify transform resolver ([131229c](https://github.com/sinnerschrader/patternplate-server/commit/131229c)), closes [#68](https://github.com/sinnerschrader/patternplate-server/issues/68)
+
+
+
 <a name="0.16.5"></a>
 ## [0.16.5](https://github.com/sinnerschrader/patternplate-server/compare/v0.16.4...v0.16.5) (2016-05-11)
 
