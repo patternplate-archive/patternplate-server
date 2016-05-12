@@ -79,14 +79,16 @@ export default async (application, settings) => {
 		.map(async environment => {
 			const {environment: envConfig, include, exclude, formats: envFormats} = environment;
 			const includePatterns = include || [];
-			const excludePatterns = exclude || [];
+			const excludePatterns = exclude || ['@'];
 
 			// Get patterns matching the include config
 			const includedPatterns = availablePatterns.filter(available => {
 				const {id} = available;
 				return includePatterns.some(pattern => minimatch(id, pattern)) &&
-					!excludePatterns.some(pattern => minimatch(id, pattern));
+					!excludePatterns.concat('@environments/**/*').some(pattern => minimatch(id, pattern));
 			});
+
+			console.log(includedPatterns.map(p => p.id));
 
 			// Merge environment config into transform config
 			const config = merge(
