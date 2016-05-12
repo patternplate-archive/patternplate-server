@@ -4,6 +4,9 @@ import {
 	resolve
 } from 'path';
 
+import url from 'url';
+import querystring from 'querystring';
+
 import {
 	find,
 	merge,
@@ -24,7 +27,7 @@ function getRequestedFormats(extension, type) {
 }
 
 export default function patternRouteFactory(application, configuration) {
-	function renderLayout(result) {
+	function renderLayout(result, query) {
 		const template = {
 			title: result.id
 		};
@@ -51,11 +54,16 @@ export default function patternRouteFactory(application, configuration) {
 				if (!outFormat.type) {
 					return referenceSection;
 				}
-				referenceSection[outFormat.type].push({
-					uri: application.router.url('pattern', {
-						id: `${result.id}/index.${outFormat.extension}`
-					}).replace('%2B', '') // workaround for stuff router appends
-				});
+
+				const built = application.router.url('pattern', {
+					id: `${result.id}/index.${outFormat.extension}`
+				}).replace('%2B', '');
+
+				const parsed = url.parse(built);
+				parsed.search = querystring.stringify(query);
+				const uri = url.format(parsed);
+
+				referenceSection[outFormat.type].push({uri});
 				return referenceSection;
 			}, sectionSeed);
 
@@ -64,11 +72,14 @@ export default function patternRouteFactory(application, configuration) {
 		if ((result.meta.scriptDependencies || []).length > 0) {
 			templateReferenceData.script = result.meta.scriptDependencies
 				.map(dependency => {
-					return {
-						uri: application.router.url(dependency.path, {
-							id: dependency.id
-						}).replace('%2B', '') // workaround for stuff router appends
-					};
+					const built = application.router.url(dependency.path, {
+						id: dependency.id
+					}).replace('%2B', '');
+
+					const parsed = url.parse(built);
+					parsed.search = querystring.stringify(query);
+					const uri = url.format(parsed);
+					return {uri};
 				});
 		}
 
@@ -88,6 +99,7 @@ export default function patternRouteFactory(application, configuration) {
 		const cwd = application.runtime.patterncwd || application.runtime.cwd;
 		const basePath = resolve(cwd, config.patterns.path);
 		const type = this.accepts('text', 'html', 'json');
+		const {environment} = this.query;
 
 		// infer json extension from accept-type
 		const extension = type === 'json' ?
@@ -107,7 +119,8 @@ export default function patternRouteFactory(application, configuration) {
 			id,
 			config,
 			filters: {
-				outFormats
+				outFormats,
+				environments: [environment].filter(Boolean)
 			},
 			base: basePath,
 			factory: application.pattern.factory,
@@ -151,7 +164,7 @@ export default function patternRouteFactory(application, configuration) {
 		} else if (type === 'html') {
 			// Dealing with an demo request
 			this.type = type;
-			this.body = renderLayout(results);
+			this.body = renderLayout(results, this.query);
 		} else {
 			// thind a file with matching out format
 			const file = find(Object.values(results.results), {

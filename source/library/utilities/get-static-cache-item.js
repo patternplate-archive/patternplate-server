@@ -27,7 +27,16 @@ export default async function getStaticCacheItem(options) {
 		stream
 	} = settings;
 
-	const cacheFilePath = resolve(base, `${id.split('/').join('-')}.${extension}`);
+	const baseName = id.split('/').join('-');
+	const {filters = {}} = settings;
+	const [envFilter] = filters.environments || [];
+	const envName = envFilter === 'index' ?
+		null :
+		envFilter;
+
+	const name = [baseName, envName].filter(Boolean).join('--');
+
+	const cacheFilePath = resolve(base, `${name}.${extension}`);
 	const readFile = getReadFile({cache});
 
 	if (!await exists(cacheFilePath)) {
@@ -41,6 +50,7 @@ export default async function getStaticCacheItem(options) {
 		createReadStream(cacheFilePath);
 
 	if (extension === 'json' && stream === false) {
+		console.log(name);
 		return JSON.parse(cacheFileContents);
 	}
 

@@ -23,6 +23,8 @@ const mkdirp = denodeify(mkdirpNodeback);
 const pkg = require(resolve(process.cwd(), 'package.json'));
 
 async function build(application, configuration) {
+	application.cache.config.static = false;
+
 	const cwd = application.runtime.patterncwd || application.runtime.cwd;
 	const patternHook = application.hooks.filter(hook => hook.name === 'patterns')[0];
 	const patternRoot = resolve(cwd, patternHook.configuration.path);
@@ -149,6 +151,35 @@ async function build(application, configuration) {
 							})
 					);
 
+					// Write cache for each applicable environment
+					await Promise.all(patternList.map(async pattern => {
+						const environmentNames = pattern.manifest.demoEnvironments
+							.filter(({name}) => name !== 'index')
+							.map(({name}) => name);
+
+						return await Promise.all(environmentNames.map(async environmentName => {
+							const environmentPatterns = await getPatterns({
+								id: pattern.id,
+								base: patternRoot,
+								config: patternConfig,
+								factory: application.pattern.factory,
+								transforms: application.transforms,
+								log: application.log,
+								filters: {
+									environments: [environmentName]
+								}
+							}, application.cache);
+
+							return Promise.all(
+								environmentPatterns.map(async envPattern => {
+									envPattern.dependencies = flatPick(envPattern, 'dependencies', ['id', 'manifest']);
+									const resultPath = resolve(staticCacheDirectory, `${envPattern.id.split('/').join('-')}--${environmentName}.json`);
+									return writeSafe(resultPath, JSON.stringify(envPattern));
+								})
+							);
+						}));
+					}));
+
 					// if automounting is enabled create cache entry for it
 					const writingAutoMountCache = Promise.all(
 						patternList
@@ -185,10 +216,42 @@ async function build(application, configuration) {
 									return null;
 								}
 
+								// Write cache for each applicable environment
+								await Promise.all(autoMountPatterns.map(async pattern => {
+									const environmentNames = pattern.manifest.demoEnvironments
+										.filter(({name}) => name !== 'index')
+										.map(({name}) => name);
+
+									return await Promise.all(environmentNames.map(async environmentName => {
+										const environmentPatterns = await getPatterns({
+											id: patternItem.id,
+											base: patternRoot,
+											config: automountConfiguration,
+											factory: application.pattern.factory,
+											transforms: application.transforms,
+											log: application.log,
+											filters: {
+												environments: [environmentName]
+											}
+										}, application.cache);
+
+										return Promise.all(
+											environmentPatterns.map(async envPattern => {
+												const resultPath = resolve(
+													automountCacheDirectory,
+													`${pattern.id.split('/').join('-')}--${environmentName}.js`
+												);
+												return writeSafe(resultPath, envPattern.results.Component.buffer);
+											})
+										);
+									}));
+								}));
+
 								const resultPath = resolve(
 									automountCacheDirectory,
 									`${pattern.id.split('/').join('-')}.js`
 								);
+
 								return writeSafe(resultPath, Component.buffer);
 							})
 					);
