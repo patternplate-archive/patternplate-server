@@ -88,8 +88,6 @@ export default async (application, settings) => {
 					!excludePatterns.concat('@environments/**/*').some(pattern => minimatch(id, pattern));
 			});
 
-			console.log(includedPatterns.map(p => p.id));
-
 			// Merge environment config into transform config
 			const config = merge(
 				{},

@@ -66,7 +66,10 @@ export default function (application) {
 			base: mountableCacheRoot,
 			cache: application.cache,
 			extension: 'js',
-			stream: true
+			stream: true,
+			filters: {
+				environments: [this.query.environment].filter(Boolean)
+			}
 		});
 
 		if (cached) {
