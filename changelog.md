@@ -1,3 +1,19 @@
+<a name="0.17.0"></a>
+# [0.17.0](https://github.com/sinnerschrader/patternplate-server/compare/v0.16.6...v0.17.0) (2016-05-13)
+
+
+### Bug Fixes
+
+* **server:** exclude other bundles from build-bundles includes config ([786cd5f](https://github.com/sinnerschrader/patternplate-server/commit/786cd5f))
+
+
+### Features
+
+* **server:** allow clients to force environments ([91bb846](https://github.com/sinnerschrader/patternplate-server/commit/91bb846))
+* **server:** use forced-env cache for react-mount ([653dc74](https://github.com/sinnerschrader/patternplate-server/commit/653dc74))
+
+
+
 <a name="0.16.6"></a>
 ## [0.16.6](https://github.com/sinnerschrader/patternplate-server/compare/v0.16.5...v0.16.6) (2016-05-11)
 
