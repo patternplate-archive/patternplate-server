@@ -1,3 +1,13 @@
+<a name="0.17.1"></a>
+## [0.17.1](https://github.com/sinnerschrader/patternplate-server/compare/v0.17.0...v0.17.1) (2016-05-17)
+
+
+### Bug Fixes
+
+* **server:** use latest bug-fixed react transform ([c6beefc](https://github.com/sinnerschrader/patternplate-server/commit/c6beefc))
+
+
+
 <a name="0.17.0"></a>
 # [0.17.0](https://github.com/sinnerschrader/patternplate-server/compare/v0.16.6...v0.17.0) (2016-05-13)
 
