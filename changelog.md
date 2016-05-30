@@ -1,3 +1,13 @@
+<a name="0.17.2"></a>
+## [0.17.2](https://github.com/sinnerschrader/patternplate-server/compare/v0.17.1...v0.17.2) (2016-05-30)
+
+
+### Bug Fixes
+
+* **server:** fulfill node[@6](https://github.com/6)'s stricter type checks on path.resolve ([a657649](https://github.com/sinnerschrader/patternplate-server/commit/a657649)), closes [sinnerschrader/patternplate#71](https://github.com/sinnerschrader/patternplate/issues/71)
+
+
+
 <a name="0.17.1"></a>
 ## [0.17.1](https://github.com/sinnerschrader/patternplate-server/compare/v0.17.0...v0.17.1) (2016-05-17)
 
