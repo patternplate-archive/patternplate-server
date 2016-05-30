@@ -578,7 +578,7 @@ export class Pattern {
 						// - transforms do not receive demo buffers anymore
 						// - instead they receive the demo as file.buffer, too
 						// - when the basename is demo, map buffer to demoBuffer
-						if (basename(file, extname(file)) === 'demo') {
+						if (extname(fileBaseName) === 'demo') {
 							this.log.debug(`Using the results of ${transformName} for ${fileBaseName} of ${patternName} as demo`);
 							file.demoBuffer = result.demoBuffer || result.buffer;
 						} else {
