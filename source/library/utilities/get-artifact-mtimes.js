@@ -7,7 +7,7 @@ import {
 	dirname,
 	relative,
 	resolve,
-	sep,
+	sep
 } from 'path';
 
 import {
@@ -25,10 +25,10 @@ export default async function getArtifactMtimes(search, patterns) {
 	const types = Object.keys(patterns.formats)
 		.map(extension => patterns.formats[extension].name);
 
-	const typedFiles = await* [...new Set(types)].map(async type => {
+	const typedFiles = await Promise.all([...new Set(types)].map(async type => {
 		const files = await fs.listTree(resolve(search, 'distribution', type));
 		return files.filter(path => extname(path));
-	});
+	}));
 
 	const artifactPaths = typedFiles
 		.reduce((flattened, files) => [...flattened, ...files], []);
@@ -41,7 +41,7 @@ export default async function getArtifactMtimes(search, patterns) {
 
 			return {
 				id: artifactId,
-				path: path,
+				path,
 				patternId,
 				mtime: stats.mtime
 			};

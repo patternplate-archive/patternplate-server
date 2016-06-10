@@ -138,9 +138,10 @@ async function getPatterns(options, cache, cmds = ['read', 'transform']) {
 		// Initialize the pattern object
 		const initStart = new Date();
 		const filterString = JSON.stringify(filters);
-		log.info(`Initializing pattern "${patternID}" with filters: ${chalk.grey('[' + filterString + ']')}`);
+		const filterStamp = chalk.grey(`[${filterString}]`);
+		log.info(`Initializing pattern "${patternID}" with filters: ${filterStamp}`);
 		const pattern = await factory(patternID, base, patternConfiguration, transforms, filters);
-		log.info(`Initialized pattern "${patternID}" ${chalk.grey('[' + (new Date() - initStart) + 'ms]')}`);
+		log.info(`Initialized pattern "${patternID}" ${chalk.grey(`[${new Date() - initStart}ms]`)}`);
 
 		// Inject information about available environments
 		const availableEnvironments = userEnvironments.map(env => pick(env, ['name', 'displayName']));
@@ -166,7 +167,7 @@ async function getPatterns(options, cache, cmds = ['read', 'transform']) {
 
 		// Inject depending pattern information
 		pattern.manifest.dependentPatterns = await gettingDepending;
-		log.info(`Read pattern "${patternID}" ${chalk.grey('[' + (new Date() - readStart) + 'ms]')}`);
+		log.info(`Read pattern "${patternID}" ${chalk.grey(`[${new Date() - readStart}ms]`)}`);
 
 		// Exit if we do not have to transform
 		if (!cmds.includes('transform')) {
@@ -177,7 +178,7 @@ async function getPatterns(options, cache, cmds = ['read', 'transform']) {
 		const transformStart = new Date();
 		log.info(`Transforming pattern "${patternID}"`);
 		const transformed = await pattern.transform(!isEnvironment, isEnvironment);
-		log.info(`Transformed pattern "${patternID}" ${chalk.grey('[' + (new Date() - transformStart) + 'ms]')}`);
+		log.info(`Transformed pattern "${patternID}" ${chalk.grey(`[${new Date() - transformStart}ms]`)}`);
 		return transformed;
 	})));
 }

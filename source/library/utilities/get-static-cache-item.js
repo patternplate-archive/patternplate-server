@@ -50,7 +50,6 @@ export default async function getStaticCacheItem(options) {
 		createReadStream(cacheFilePath);
 
 	if (extension === 'json' && stream === false) {
-		console.log(name);
 		return JSON.parse(cacheFileContents);
 	}
 

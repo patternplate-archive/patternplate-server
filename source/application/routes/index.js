@@ -31,9 +31,8 @@ function getResolvedRoutes(routes, options) {
 		});
 }
 
-
-export default function indexRouteFactory (application, configuration) {
-	return async function indexRoute () {
+export default function indexRouteFactory(application) {
+	return async function indexRoute() {
 		const {
 			server: {
 				host: hostname,
@@ -72,7 +71,7 @@ export default function indexRouteFactory (application, configuration) {
 		});
 
 		// get patterns/readme.md
-		const renderingReadme = await getReadme('.', basePath, {
+		const renderingReadme = getReadme('.', basePath, {
 			cache
 		});
 

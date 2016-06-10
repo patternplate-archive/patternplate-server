@@ -1,8 +1,7 @@
 import {dirname, basename, resolve} from 'path';
-import {readFile} from 'fs';
+import {readFile, stat} from 'fs';
 import fs from 'q-io/fs';
 import denodeify from 'denodeify';
-import {stat} from 'fs';
 import {find} from 'lodash';
 import {pathToId} from 'patternplate-transforms-core';
 
@@ -17,10 +16,11 @@ async function readManifest(path) {
 async function getPatternFilesMtime(files) {
 	const tasks = files
 		.map(async file => {
-			return (await fsStat(file)).mtime;
+			const {mtime} = await fsStat(file);
+			return mtime;
 		});
 
-	return await * tasks;
+	return await Promise.all(tasks);
 }
 
 async function getModifiedFiles(mtime, files) {
@@ -84,9 +84,9 @@ async function getPatternMtimes(search, options) {
 		};
 	});
 
-	const readPatterns = await * readTasks;
+	const readPatterns = await Promise.all(readTasks);
 
-	return await * readPatterns.map(async readPattern => {
+	return await Promise.all(readPatterns.map(async readPattern => {
 		readPattern.manifest = await readPattern.manifest;
 		const dependencyMtimes = settings.resolveDependencies ?
 			getDependencyMtimes(readPattern, readPatterns) :
@@ -96,7 +96,7 @@ async function getPatternMtimes(search, options) {
 
 		readPattern.mtime = mtime;
 		return readPattern;
-	});
+	}));
 }
 
 export default getPatternMtimes;
