@@ -3,19 +3,25 @@ import {
 	resolve as pathResolve
 } from 'path';
 
+import Promise from 'bluebird';
 import chalk from 'chalk';
 import ensureArray from 'ensure-array';
 import hotswap from 'hotswap';
-import _, {find, partial, omit, throttle} from 'lodash';
+import _, {find, omit, merge, partial, throttle} from 'lodash';
 import nodeResolve from 'resolve';
 
 import {deprecation, ok, wait} from '../../../library/log/decorations';
 
-function resolve(input) {
+const packageRoot = pathResolve(__dirname, '..', '..');
+
+const defaults = {
+	basedir: process.cwd()
+};
+
+function resolve(name, options) {
+	const settings = merge({}, defaults, options);
 	return new Promise(resolver => {
-		nodeResolve(input, {
-			basedir: process.cwd()
-		}, (err, result) => {
+		nodeResolve(name, settings, (err, result) => {
 			if (err) {
 				resolver(null);
 			}
@@ -46,6 +52,16 @@ function getModulePool(root) {
 	}, []);
 }
 
+async function resolvePackage(name) {
+	const results = await Promise.all([
+		[name],
+		[name, {basedir: packageRoot}]
+	].map(task => resolve(...task)));
+
+	// Return the first match
+	return Array.find(results, Boolean) || null;
+}
+
 async function resolveTransform(name, search = []) {
 	// Search given local paths
 	const locals = await Promise.all(
@@ -57,7 +73,7 @@ async function resolveTransform(name, search = []) {
 		// load from local file
 		locals.filter(Boolean)[0] ||
 		// load from npm
-		await resolve(`patternplate-transform-${name}`);
+		await resolvePackage(`patternplate-transform-${name}`);
 
 	// yeay!
 	if (resolved) {
@@ -113,7 +129,8 @@ export default {
 
 		// load factories
 		// - from transformPaths
-		// - from node_modules
+		// - from node_modules (npm 3 edition)
+		// - from node_modules (npm 2 edition)
 		const resolve = partial(resolveTransform, _, transformPaths);
 		const factories = await Promise.all(names.map(async name => {
 			const resolved = await resolve(name);
