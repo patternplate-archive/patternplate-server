@@ -1,3 +1,13 @@
+<a name="0.17.3"></a>
+## [0.17.3](https://github.com/sinnerschrader/patternplate-server/compare/v0.17.2...v0.17.3) (2016-06-10)
+
+
+### Bug Fixes
+
+* **server:** resolve nested npm[@2](https://github.com/2) transform installs ([ec6ab7c](https://github.com/sinnerschrader/patternplate-server/commit/ec6ab7c)), closes [sinnerschrader/patternplate#73](https://github.com/sinnerschrader/patternplate/issues/73)
+
+
+
 <a name="0.17.2"></a>
 ## [0.17.2](https://github.com/sinnerschrader/patternplate-server/compare/v0.17.1...v0.17.2) (2016-05-30)
 
