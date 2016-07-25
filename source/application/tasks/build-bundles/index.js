@@ -76,7 +76,7 @@ export default async (application, settings) => {
 	// For each environment with include key, build a bundle for each format that has the build key on "true"
 	await Promise.all(environments
 		.filter(environment => environment.include && environment.include.length)
-		.map(async environment => {
+		.map(throat(1, async environment => {
 			const {environment: envConfig, include, exclude, formats: envFormats} = environment;
 			const includePatterns = include || [];
 			const excludePatterns = exclude || ['@'];
@@ -157,5 +157,6 @@ export default async (application, settings) => {
 				});
 
 			return await Promise.all(writing);
-		}));
+		}
+	)));
 };
