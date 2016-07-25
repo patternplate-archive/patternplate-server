@@ -1,3 +1,13 @@
+<a name="0.17.4"></a>
+## [0.17.4](https://github.com/sinnerschrader/patternplate-server/compare/v0.17.3...v0.17.4) (2016-07-25)
+
+
+### Bug Fixes
+
+* **task:** avoid cartesian envs^patterns explosion during build-bundles ([d094d6b](https://github.com/sinnerschrader/patternplate-server/commit/d094d6b))
+
+
+
 <a name="0.17.3"></a>
 ## [0.17.3](https://github.com/sinnerschrader/patternplate-server/compare/v0.17.2...v0.17.3) (2016-06-10)
 
