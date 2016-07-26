@@ -129,11 +129,6 @@ async function exportAsCommonjs(application, settings) {
 		application.log.info(wait`Building ${patternsToBuild.length} of ${patternMtimes.length} patterns`);
 	}
 
-
-	if (!hasManifest) {
-		application.log.info(ok`Target folder has no manifest file, building all patterns`);
-	}
-
 	// build patterns in parallel
 	const buildStart = new Date();
 	const building = Promise.all(patternsToBuild.map(throat(5, async pattern => {

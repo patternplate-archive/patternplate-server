@@ -1,6 +1,4 @@
-import {
-	extname
-} from 'path';
+import{extname, parse as parsePath} from 'path';
 
 import {
 	debuglog
@@ -20,7 +18,7 @@ export default function getPatternsToBuild(artifacts, patterns) {
 
 		// If no pattern artifact is found, build it
 		if (!artifact) {
-			debug('rebuild %s, no artifacts');
+			debug('rebuild %s, no artifacts found', pattern.id);
 			return true;
 		}
 
@@ -34,24 +32,25 @@ export default function getPatternsToBuild(artifacts, patterns) {
 			return true;
 		}
 
-		// Get the types in this pattern
+		// Get the applicable types in this pattern
 		const types = [...new Set(pattern.files
-			.map(path => extname(path).slice(1))
+			.map(path => parsePath(path))
+			.filter(parsed => parsed.name === 'index')
+			.map(parsed => parsed.ext.slice(1))
 			.filter(Boolean)
 			.map(extension => patterns.formats[extension])
 			.filter(Boolean)
 			.map(format => format.name))];
 
-		// Build if types do not match
-		if (
-			difference(types, artifact.types).length ||
-			difference(artifact.types, types).length
-		) {
+		// Build if pattern has types that are not in artifacts
+		if (difference(types, artifact.types).length) {
 			debug(
 				'rebuild %s, pattern types %s mismatch artifact types %s',
 				pattern.id, types, artifact.types
 			);
 			return true;
 		}
+
+		return false;
 	};
 }
