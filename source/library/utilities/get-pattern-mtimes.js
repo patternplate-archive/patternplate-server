@@ -4,6 +4,7 @@ import fs from 'q-io/fs';
 import denodeify from 'denodeify';
 import {find} from 'lodash';
 import {pathToId} from 'patternplate-transforms-core';
+import throat from 'throat';
 
 const fsStat = denodeify(stat);
 const read = denodeify(readFile);
@@ -72,7 +73,7 @@ async function getPatternMtimes(search, options) {
 			return {id, path, files, manifest};
 		});
 
-	const readTasks = items.map(async item => {
+	const readTasks = items.map(throat(5, async item => {
 		const mtimes = await getPatternFilesMtime(await item.files);
 		const mtime = await getLatestMtime(mtimes);
 
@@ -82,7 +83,7 @@ async function getPatternMtimes(search, options) {
 			mtime,
 			mtimes
 		};
-	});
+	}));
 
 	const readPatterns = await Promise.all(readTasks);
 

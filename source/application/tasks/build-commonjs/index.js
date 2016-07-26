@@ -115,14 +115,20 @@ async function exportAsCommonjs(application, settings) {
 	// obtain patterns we have to build
 	const selectionStart = new Date();
 	application.log.info(wait`Calculating pattern collection to build`);
+
 	const patternsToBuild = hasManifest ?
 		patternMtimes
 			.filter(getPatternsToBuild(artifactMtimes, application.configuration.patterns))
 			.sort((a, b) => b.mtime.getTime() - a.mtime.getTime()) :
 		patternMtimes;
 
-	application.log.info(ok`Calculated pattern collection to build ${selectionStart}`);
-	application.log.info(wait`Building ${patternsToBuild.length} of ${patternMtimes.length} patterns`);
+	if (!hasManifest) {
+		application.log.info(ok`No manifest at ${commonjsRoot}, building all ${patternMtimes.length} patterns`);
+	} else {
+		application.log.info(ok`Calculated pattern collection to build ${selectionStart}`);
+		application.log.info(wait`Building ${patternsToBuild.length} of ${patternMtimes.length} patterns`);
+	}
+
 
 	if (!hasManifest) {
 		application.log.info(ok`Target folder has no manifest file, building all patterns`);
