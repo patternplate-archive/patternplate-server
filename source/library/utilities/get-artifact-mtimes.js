@@ -10,6 +10,8 @@ import {
 	sep
 } from 'path';
 
+import throat from 'throat';
+
 import {
 	debuglog
 } from 'util';
@@ -21,6 +23,7 @@ const stat = denodeify(statNodeback);
 
 export default async function getArtifactMtimes(search, patterns) {
 	const debug = debuglog('artifact-mtimes');
+	const distributionDirectory = resolve(search, 'distribution');
 
 	const types = Object.keys(patterns.formats)
 		.map(extension => patterns.formats[extension].name);
@@ -34,9 +37,10 @@ export default async function getArtifactMtimes(search, patterns) {
 		.reduce((flattened, files) => [...flattened, ...files], []);
 
 	const artifactMtimes = await Promise.all(artifactPaths
-		.map(async path => {
-			const artifactId = dirname(relative(resolve(search, 'distribution'), path).split(sep).join('/'));
-			const patternId = artifactId.split(sep).slice(1).join('/');
+		.map(throat(1, async path => {
+			const relativeArtifactPath = relative(distributionDirectory, path);
+			const artifactId = dirname(relativeArtifactPath.split(sep).join('/'));
+			const patternId = artifactId.split('/').slice(1).join('/');
 			const stats = await stat(path);
 
 			return {
@@ -45,7 +49,7 @@ export default async function getArtifactMtimes(search, patterns) {
 				patternId,
 				mtime: stats.mtime
 			};
-		}));
+		})));
 
 	const artifactRegistry = artifactMtimes.reduce((registry, artifact) => {
 		const item = registry[artifact.patternId] || {
