@@ -10,5 +10,7 @@ export default function getPatternRetriever(application) {
 	const cwd = application.runtime.patterncwd || application.runtime.cwd;
 	const base = path.resolve(cwd, config.patterns.path);
 
-	return (id, filters = {}) => getPatterns({id, base, config, factory, transforms, log, filters});
+	return (id, filters = {}, environment) => getPatterns({
+		id, base, config, factory, transforms, log, filters, environment
+	});
 }

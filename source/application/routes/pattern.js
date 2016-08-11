@@ -1,5 +1,6 @@
 import path from 'path';
 
+import urlQuery from '../../library/utilities/url-query';
 import getPatternData from '../../library/get-pattern-data';
 import getPatternDemo from '../../library/get-pattern-demo';
 import getPatternFile from '../../library/get-pattern-file';
@@ -24,10 +25,11 @@ export default function patternRouteFactory(application) {
 	return async function patternRoute() {
 		const type = this.accepts('text', 'html', 'json');
 
-		const id = getPatternId(this.params.id);
-		const extension = getPatternExtension(this.params.id);
+		const parsed = urlQuery.parse(this.params.id);
+		const id = getPatternId(parsed.pathname);
+		const extension = getPatternExtension(parsed.pathname);
 
-		const {environment} = this.query;
+		const {environment} = parsed.query;
 
 		const filters = {
 			outFormats: [extension],
@@ -54,11 +56,11 @@ export default function patternRouteFactory(application) {
 
 		if (type === 'html' && extension === 'html') {
 			this.type = 'html';
-			this.body = await getPatternDemo(application, id, filters);
+			this.body = await getPatternDemo(application, id, filters, environment);
 			return;
 		}
 
 		this.type = extension;
-		this.body = await getPatternFile(application, id, filters, extension);
+		this.body = await getPatternFile(application, id, filters, extension, environment);
 	};
 }

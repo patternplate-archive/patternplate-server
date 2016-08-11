@@ -1,10 +1,28 @@
-import url from 'url';
-import querystring from 'querystring';
+// import url from 'url';
+// import querystring from 'querystring';
 import getPatternRetriever from './utilities/get-pattern-retriever';
+import urlQuery from './utilities/url-query';
 import layout from '../application/layouts';
 
+function getRouteURI(router, route, params) {
+	console.log({
+		route,
+		params,
+		url: router.url(route, params),
+		result: decodeURIComponent(
+			router.url(route, params)
+		).replace(/\+/g, '')
+	})
+	return decodeURIComponent(
+		router.url(route, params)
+	).replace(/\+/g, '');
+}
+
 function getRenderer(context) {
-	return (result, query = {}) => {
+	const toRoute = (route, id) => getRouteURI(context.router, route, {id});
+	const toPattern = id => toRoute('pattern', id);
+
+	return result => {
 		const template = {
 			title: result.id
 		};
@@ -32,13 +50,12 @@ function getRenderer(context) {
 					return referenceSection;
 				}
 
-				const built = context.router.url('pattern', {
-					id: `${result.id}/index.${outFormat.extension}`
-				}).replace('%2B', '');
+				const formatted = urlQuery.format({
+					pathname: `${result.id}`,
+					query: {environment: context.environment}
+				});
 
-				const parsed = url.parse(built);
-				parsed.search = querystring.stringify(query);
-				const uri = url.format(parsed);
+				const uri = toPattern(`${formatted}/index.${outFormat.extension}`);
 
 				referenceSection[outFormat.type].push({uri});
 				return referenceSection;
@@ -49,14 +66,7 @@ function getRenderer(context) {
 		if ((result.meta.scriptDependencies || []).length > 0) {
 			templateReferenceData.script = result.meta.scriptDependencies
 				.map(dependency => {
-					const built = context.router.url(dependency.path, {
-						id: dependency.id
-					}).replace('%2B', '');
-
-					const parsed = url.parse(built);
-					parsed.search = querystring.stringify(query);
-					const uri = url.format(parsed);
-					return {uri};
+					return {uri: toRoute(dependency.path, dependency.id)};
 				});
 		}
 
@@ -71,10 +81,12 @@ function getRenderer(context) {
 export default async function(application, ...rest) {
 	const [pattern] = await getPatternRetriever(application)(...rest);
 	const result = pattern.toJSON ? pattern.toJSON() : pattern;
+	const [,, environment] = rest;
 
 	const render = getRenderer({
 		router: application.router,
-		formats: application.configuration.patterns.formats
+		formats: application.configuration.patterns.formats,
+		environment
 	});
 
 	return render(result);
