@@ -11,7 +11,12 @@ async function getPattern(application, id) {
 
 export default async function(application, id) {
 	const [pattern] = await getPattern(application, id);
-	const result = pattern.toJSON ? pattern.toJSON() : pattern;
+	const result = pattern && pattern.toJSON ? pattern.toJSON() : pattern;
+
+	if (!result) {
+		return result;
+	}
+
 	const copy = omit(merge({}, result), ['results', 'dependencies']);
 	copy.results = {index: result.results};
 	copy.dependencies = flatPick(result, 'dependencies', ['id', 'manifest']);

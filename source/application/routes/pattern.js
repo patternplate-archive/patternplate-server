@@ -38,6 +38,12 @@ export default function patternRouteFactory(application) {
 			this.type = 'json';
 			const data = await getPatternData(application, id);
 
+			if (!data) {
+				const error = new Error(`Could not find pattern ${id}`);
+				error.fileName = id;
+				this.throw(404, error);
+			}
+
 			if (data.transform && data.message) {
 				throw data;
 			}
