@@ -15,7 +15,7 @@ function not(fn) {
 
 export function format(parsed = {}) {
 	const query = Object.entries(parsed.query || {})
-		.reduce((result, entry) => [...result, entry.join(':')], []);
+		.reduce((result, entry) => [...result, entry.join('--')], []);
 
 	const extension = path.extname(parsed.pathname || '');
 
@@ -29,12 +29,12 @@ export function parse(urlPath = '') {
 	const raw = parsed.pathname || '';
 
 	const pathname = raw.split('/')
-		.filter(not(has(':')))
+		.filter(not(has('--')))
 		.join('/');
 
 	const query = raw.split('/')
-		.filter((has(':')))
-		.map(div(':'))
+		.filter((has('--')))
+		.map(div('--'))
 		.reduce((registry, entry) => {
 			const [key, value] = entry;
 			registry[key] = value;

@@ -1,9 +1,9 @@
 import {find} from 'lodash';
 import getPatternRetriever from './utilities/get-pattern-retriever';
 
-export default async function(application, ...rest) {
-	const [, , out] = rest;
-	const [pattern] = await getPatternRetriever(application)(...rest);
+export default async function(application, id, filters, out, environment) {
+	filters.environments = [environment].filter(Boolean);
+	const [pattern] = await getPatternRetriever(application)(id, filters, out, environment);
 	const result = pattern.toJSON ? pattern.toJSON() : pattern;
 
 	// find a file with matching out format

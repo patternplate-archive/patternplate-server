@@ -5,14 +5,6 @@ import urlQuery from './utilities/url-query';
 import layout from '../application/layouts';
 
 function getRouteURI(router, route, params) {
-	console.log({
-		route,
-		params,
-		url: router.url(route, params),
-		result: decodeURIComponent(
-			router.url(route, params)
-		).replace(/\+/g, '')
-	})
 	return decodeURIComponent(
 		router.url(route, params)
 	).replace(/\+/g, '');
@@ -81,7 +73,7 @@ function getRenderer(context) {
 export default async function(application, ...rest) {
 	const [pattern] = await getPatternRetriever(application)(...rest);
 	const result = pattern.toJSON ? pattern.toJSON() : pattern;
-	const [,, environment] = rest;
+	const [,, environment = 'index'] = rest;
 
 	const render = getRenderer({
 		router: application.router,

@@ -29,7 +29,7 @@ export default function patternRouteFactory(application) {
 		const id = getPatternId(parsed.pathname);
 		const extension = getPatternExtension(parsed.pathname);
 
-		const {environment} = parsed.query;
+		const {environment = 'index'} = parsed.query;
 
 		const filters = {
 			outFormats: [extension],
@@ -38,7 +38,7 @@ export default function patternRouteFactory(application) {
 
 		if (type === 'json' && extension === 'json') {
 			this.type = 'json';
-			const data = await getPatternData(application, id);
+			const data = await getPatternData(application, id, environment);
 
 			if (!data) {
 				const error = new Error(`Could not find pattern ${id}`);
