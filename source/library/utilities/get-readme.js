@@ -1,18 +1,9 @@
-import {
-	resolve,
-	sep
-} from 'path';
+import {resolve, sep} from 'path';
 
-import denodeify from 'denodeify';
-import {
-	find
-} from 'lodash';
-import markedNodeBack from 'marked';
+import {find} from 'lodash';
 import pathExists from 'path-exists';
 
 import getReadFile from '../filesystem/read-file.js';
-
-const marked = denodeify(markedNodeBack);
 
 const defaults = {
 	fallback: true,
@@ -50,14 +41,12 @@ async function getMarkdown(id, base, options) {
 	if (markdownPath) {
 		const buffer = await readFile(markdownPath);
 		return buffer.toString('utf-8');
-	} else {
-		return '';
 	}
+
+	return '';
 }
 
-export default async function renderReadme(id, base, options) {
+export default async function getReadme(id, base, options) {
 	const settings = {...defaults, ...options};
-	return await marked(
-		await getMarkdown(id, base, settings)
-	);
+	return await getMarkdown(id, base, settings);
 }
