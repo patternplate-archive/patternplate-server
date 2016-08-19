@@ -70,10 +70,14 @@ function getRenderer(context) {
 	};
 }
 
-export default async function(application, ...rest) {
-	const [pattern] = await getPatternRetriever(application)(...rest);
+export default async function(application, id, filters, environment) {
+	const [pattern] = await getPatternRetriever(application)(id, filters, environment);
+
+	if (!pattern) {
+		return null;
+	}
+
 	const result = pattern.toJSON ? pattern.toJSON() : pattern;
-	const [,, environment = 'index'] = rest;
 
 	const render = getRenderer({
 		router: application.router,

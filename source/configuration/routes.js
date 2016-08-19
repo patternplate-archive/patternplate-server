@@ -29,10 +29,6 @@ const routes = {
 			enabled: true,
 			path: '/script/:path+'
 		},
-		demo: {
-			enabled: true,
-			path: '/demo/:id+'
-		},
 		'react-mount': {
 			enabled: true,
 			path: '/react-mount/:id+'

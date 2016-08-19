@@ -1,7 +1,8 @@
 import {
 	basename,
 	dirname,
-	resolve
+	resolve,
+	relative
 } from 'path';
 
 import {
@@ -10,7 +11,8 @@ import {
 } from 'util';
 
 import chalk from 'chalk';
-import fs from 'q-io/fs';
+import exists from 'path-exists';
+import qfs from 'q-io/fs';
 import {
 	merge,
 	omit,
@@ -24,6 +26,7 @@ import getStaticCacheItem from './get-static-cache-item.js';
 import getMatchingEnvironments from './get-matching-environments';
 
 const envDebug = debuglog('environments');
+const debug = debuglog('get-patterns');
 
 const defaults = {
 	isEnvironment: false,
@@ -50,21 +53,22 @@ async function getPatterns(options, cache, cmds = ['read', 'transform']) {
 	config.log = log;
 
 	// No patterns to find here
-	if (!await fs.exists(path)) {
+	if (!await exists(path)) {
+		debug(`Expected path ${path} for pattern ${id} does not exist.`);
 		return [];
 	}
 
-	const search = await fs.exists(resolve(path, 'pattern.json')) ?
+	const search = await exists(resolve(path, 'pattern.json')) ?
 		resolve(path, 'pattern.json') :
 		path;
 
 	// Get all pattern ids
-	const paths = await fs.listTree(search);
+	const paths = await qfs.listTree(search);
 	const patternIDs = paths
 		.filter(item => basename(item) === 'pattern.json')
 		.filter(item => isEnvironment ? true : !item.includes('@environments'))
 		.map(item => dirname(item))
-		.map(item => fs.relativeFromDirectory(options.base, item));
+		.map(item => relative(options.base, item));
 
 	// read and transform patterns at a concurrency of 5
 	return await Promise.all(patternIDs.map(throat(5, async patternID => {
