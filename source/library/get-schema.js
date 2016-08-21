@@ -1,4 +1,5 @@
 import {resolve} from 'path';
+import getPackageJSON from 'find-and-read-package-json';
 import getPatternTree from './utilities/get-pattern-tree';
 import getReadme from './utilities/get-readme';
 
@@ -28,39 +29,60 @@ function getResolvedRoutes(routes, options) {
 		});
 }
 
-export default async function getSchema(application) {
+export default async function getSchema(application, client, server) {
 	const {
-		server: {
-			host: hostname,
-			port
-		},
-		environment,
-		routes: {
-			enabled: routesConfiguration
-		},
-		pkg: {
-			name: pkgName,
-			version
-		}
-	} = application.configuration;
-
-	const {
-		patterncwd,
-		cwd
-	} = application.runtime;
-
-	const {
-		cache,
-		router: {
-			url: resolver
+		configuration: {
+			pkg: {
+				name: appName,
+				version: appVersion
+			}
 		}
 	} = application;
 
+	const {
+		cache,
+		configuration: {
+			environment,
+			pkg: {
+				name: serverName,
+				version: serverVersion
+			},
+			server: {
+				host,
+				port
+			},
+			routes: {
+				enabled: routesConfiguration
+			}
+		},
+		router: {
+			url: resolver
+		},
+		runtime: {
+			patterncwd,
+			cwd
+		}
+	} = server;
+
+	const {
+		configuration: {
+			pkg: {
+				name: clientName,
+				version: clientVersion
+			}
+		}
+	} = client;
+
 	const basePath = resolve(patterncwd || cwd, 'patterns');
+
+	const {
+		name,
+		version
+	} = await getPackageJSON(patterncwd || cwd);
 
 	// get resolved routes
 	const routes = getResolvedRoutes(routesConfiguration, {
-		hostname,
+		hostname: host,
 		port,
 		protocol: 'http',
 		resolver: resolver.bind(application.router)
@@ -77,10 +99,16 @@ export default async function getSchema(application) {
 	});
 
 	return Object.assign({}, {
-		name: pkgName,
+		name,
 		version,
+		appName,
+		clientName,
+		serverName,
+		appVersion,
+		clientVersion,
+		serverVersion,
 		environment,
-		host: hostname,
+		host,
 		port,
 		routes,
 		meta: await gettingPatternTree,
