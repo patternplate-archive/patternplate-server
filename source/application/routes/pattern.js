@@ -5,6 +5,25 @@ import getPatternData from '../../library/get-pattern-data';
 import getPatternDemo from '../../library/get-pattern-demo';
 import getPatternFile from '../../library/get-pattern-file';
 
+function withErrorHandling(fn) {
+	return async function(...args) {
+		const [, id] = args;
+		try {
+			const result = await fn(...args);
+			if (!result) {
+				const error = new Error(`Could not find pattern with id ${id}`);
+				error.fileName = id;
+				error.file = id;
+				error.status = 404;
+				throw error;
+			}
+			return [null, result];
+		} catch (error) {
+			return [error];
+		}
+	};
+}
+
 function getPatternId(raw) {
 	const parsed = path.parse(raw);
 	const extension = getPatternExtension(raw);
@@ -21,6 +40,10 @@ function getPatternExtension(raw) {
 	return path.extname(raw).slice(1) || 'html';
 }
 
+const getPatternDataOrError = withErrorHandling(getPatternData);
+const getPatternDemoOrError = withErrorHandling(getPatternDemo);
+const getPatternFileOrError = withErrorHandling(getPatternFile);
+
 export default function patternRouteFactory(application) {
 	return async function patternRoute() {
 		const parsed = urlQuery.parse(this.params.id);
@@ -34,40 +57,37 @@ export default function patternRouteFactory(application) {
 			environments: [environment].filter(Boolean)
 		};
 
-		if (type === 'json' && extension === 'json') {
+		if (type === 'json' || extension === 'json') {
+			const [error, data] = await getPatternDataOrError(application, id, environment);
+
+			if (error) {
+				this.throw(error);
+			}
+
 			this.type = 'json';
-			const data = await getPatternData(application, id, environment);
-
-			if (!data) {
-				const error = new Error(`Could not find pattern with id ${id}`);
-				error.fileName = id;
-				this.throw(404, error);
-				return;
-			}
-
-			if (data.transform && data.message) {
-				throw data;
-			}
-
 			this.body = data;
 			return;
 		}
 
 		if (type === 'html' && extension === 'html') {
-			this.type = 'html';
-			const demo = await getPatternDemo(application, id, filters, environment);
+			const [error, demo] = await getPatternDemoOrError(application, id, environment);
 
-			if (!demo) {
-				const error = new Error(`Could not find pattern with id ${id}`);
-				this.throw(404, error);
-				return;
+			if (error) {
+				this.throw(error);
 			}
 
+			this.type = 'html';
 			this.body = demo;
 			return;
 		}
 
+		const [error, file] = await getPatternFileOrError(application, id, filters, extension, environment);
+
+		if (error) {
+			this.throw(error);
+		}
+
 		this.type = extension;
-		this.body = await getPatternFile(application, id, filters, extension, environment);
+		this.body = file;
 	};
 }

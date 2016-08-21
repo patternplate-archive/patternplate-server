@@ -595,9 +595,10 @@ export class Pattern {
 						this.log.warn(`${signet}    Transform ${transformName} did not return a file object for ${fileBaseName} of ${patternName}`);
 					}
 				} catch (error) {
-					error.pattern = this.id;
+					error.pattern = error.pattern || this.id;
 					error.file = error.file || error.fileName || file.path;
-					error.transform = transform;
+					error.fileName = error.file;
+					error.transform = error.transform || transform;
 					this.log.error(`Error while transforming file "${error.file}" of pattern "${error.pattern}" with transform "${error.transform}".`);
 					throw error;
 				}
