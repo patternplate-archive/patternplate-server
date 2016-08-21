@@ -1,7 +1,7 @@
 // import url from 'url';
 // import querystring from 'querystring';
 import getPatternRetriever from './utilities/get-pattern-retriever';
-import urlQuery from './utilities/url-query';
+// import urlQuery from './utilities/url-query';
 import layout from '../application/layouts';
 
 function getRouteURI(router, route, params) {
@@ -12,7 +12,7 @@ function getRouteURI(router, route, params) {
 
 function getRenderer(context) {
 	const toRoute = (route, id) => getRouteURI(context.router, route, {id});
-	const toPattern = id => toRoute('pattern', id);
+	// const toPattern = id => toRoute('pattern', id);
 
 	return result => {
 		const template = {
@@ -42,12 +42,7 @@ function getRenderer(context) {
 					return referenceSection;
 				}
 
-				const formatted = urlQuery.format({
-					pathname: `${result.id}`,
-					query: {environment: context.environment}
-				});
-
-				const uri = toPattern(`${formatted}/index.${outFormat.extension}`);
+				const uri = `./index.${outFormat.extension}`;
 
 				referenceSection[outFormat.type].push({uri});
 				return referenceSection;

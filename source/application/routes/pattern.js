@@ -2,8 +2,6 @@ import path from 'path';
 
 import urlQuery from '../../library/utilities/url-query';
 import getPatternData from '../../library/get-pattern-data';
-import getPatternDemo from '../../library/get-pattern-demo';
-import getPatternFile from '../../library/get-pattern-file';
 
 function withErrorHandling(fn) {
 	return async function(...args) {
@@ -41,53 +39,25 @@ function getPatternExtension(raw) {
 }
 
 const getPatternDataOrError = withErrorHandling(getPatternData);
-const getPatternDemoOrError = withErrorHandling(getPatternDemo);
-const getPatternFileOrError = withErrorHandling(getPatternFile);
 
 export default function patternRouteFactory(application) {
 	return async function patternRoute() {
+		const extname = path.extname(this.path);
+
+		if (extname && extname !== '.json') {
+			this.throw(404);
+		}
+
 		const parsed = urlQuery.parse(this.params.id);
 		const id = getPatternId(parsed.pathname);
-		const extension = getPatternExtension(parsed.pathname);
-		const type = this.accepts('text', 'html', 'json') || extension;
 		const {environment = 'index'} = parsed.query;
-
-		const filters = {
-			outFormats: [extension],
-			environments: [environment].filter(Boolean)
-		};
-
-		if (type === 'json' || extension === 'json') {
-			const [error, data] = await getPatternDataOrError(application, id, environment);
-
-			if (error) {
-				this.throw(error);
-			}
-
-			this.type = 'json';
-			this.body = data;
-			return;
-		}
-
-		if (type === 'html' && extension === 'html') {
-			const [error, demo] = await getPatternDemoOrError(application, id, environment);
-
-			if (error) {
-				this.throw(error);
-			}
-
-			this.type = 'html';
-			this.body = demo;
-			return;
-		}
-
-		const [error, file] = await getPatternFileOrError(application, id, filters, extension, environment);
+		const [error, data] = await getPatternDataOrError(application, id, environment);
 
 		if (error) {
 			this.throw(error);
 		}
 
-		this.type = extension;
-		this.body = file;
+		this.type = 'json';
+		this.body = data;
 	};
 }
