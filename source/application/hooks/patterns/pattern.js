@@ -578,13 +578,17 @@ export class Pattern {
 						// - transforms do not receive demo buffers anymore
 						// - instead they receive the demo as file.buffer, too
 						// - when the basename is demo, map buffer to demoBuffer
-						if (extname(fileBaseName) === 'demo') {
+						/* if (file.basename === 'demo') {
+							file.concern = 'demo';
 							this.log.debug(`Using the results of ${transformName} for ${fileBaseName} of ${patternName} as demo`);
-							file.demoBuffer = result.demoBuffer || result.buffer;
+							file.buffer = result.demoBuffer || result.buffer;
 						} else {
+							file.concern = 'index';
 							file.buffer = result.buffer;
 							this.log.debug(`Using the results of ${transformName} for ${fileBaseName} of ${patternName} as index`);
-						}
+						} */
+						file.buffer = result.buffer;
+						file.concern = file.basename;
 						// set the in and out format for transforms
 						// this makes the corresponding lines in transforms obsolete
 						file.in = configuration.inFormat;
@@ -630,6 +634,7 @@ export class Pattern {
 			this.dependencies = omit(this.dependencies, 'Pattern');
 			this.results[resultName] = {
 				name: resultName,
+				concern: result.concern,
 				source: result.source.toString('utf-8'),
 				demoSource: result.demoSource ? result.demoSource.toString('utf-8') : '',
 				buffer: result.buffer.toString('utf-8'),

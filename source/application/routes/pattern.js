@@ -1,7 +1,7 @@
 import path from 'path';
 
 import urlQuery from '../../library/utilities/url-query';
-import getPatternData from '../../library/get-pattern-data';
+import getPatternMetaData from '../../library/get-pattern-meta-data';
 
 function withErrorHandling(fn) {
 	return async function(...args) {
@@ -38,7 +38,7 @@ function getPatternExtension(raw) {
 	return path.extname(raw).slice(1) || 'html';
 }
 
-const getPatternDataOrError = withErrorHandling(getPatternData);
+const getPatternMetaDataOrError = withErrorHandling(getPatternMetaData);
 
 export default function patternRouteFactory(application) {
 	return async function patternRoute() {
@@ -51,7 +51,7 @@ export default function patternRouteFactory(application) {
 		const parsed = urlQuery.parse(this.params.id);
 		const id = getPatternId(parsed.pathname);
 		const {environment = 'index'} = parsed.query;
-		const [error, data] = await getPatternDataOrError(application, id, environment);
+		const [error, data] = await getPatternMetaDataOrError(application, id, environment);
 
 		if (error) {
 			this.throw(error);
