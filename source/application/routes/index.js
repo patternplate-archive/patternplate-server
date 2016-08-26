@@ -6,3 +6,5 @@ export default function indexRouteFactory(application) {
 		this.body = await getSchema(application);
 	};
 }
+
+module.change_code = 1;

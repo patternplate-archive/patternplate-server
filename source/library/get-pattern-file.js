@@ -8,9 +8,7 @@ export default async function(application, id, filters, out, environment) {
 		id, filters, environment, ['read', 'transform']
 	);
 
-	const result = pattern.toJSON ? pattern.toJSON() : pattern;
-
 	// find a file with matching out format
-	const file = find(Object.values(result.results), {out}) || {};
+	const file = find(Object.values(pattern.results), {out}) || {};
 	return file.demoBuffer || file.buffer || '';
 }

@@ -72,13 +72,11 @@ export default async function(application, id, filters, environment) {
 		return null;
 	}
 
-	const result = pattern.toJSON ? pattern.toJSON() : pattern;
-
 	const render = getRenderer({
 		router: application.router,
 		formats: application.configuration.patterns.formats,
 		environment
 	});
 
-	return render(result);
+	return render(pattern);
 }

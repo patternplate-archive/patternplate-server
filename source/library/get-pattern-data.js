@@ -11,13 +11,13 @@ async function getPattern(application, id, environment, cmds) {
 
 export default async function(application, id, environment, cmds = ['read']) {
 	const [pattern] = await getPattern(application, id, environment, cmds);
-	const result = pattern && pattern.toJSON ? pattern.toJSON() : pattern;
 
-	if (!result) {
-		return result;
+	if (!pattern) {
+		return pattern;
 	}
 
-	const copy = omit(merge({}, result), ['results', 'dependencies']);
+	// backwards compatibility
+	const copy = merge({}, pattern));
 	copy.results = {index: result.results};
 	copy.dependencies = flatPick(result, 'dependencies', ['id', 'manifest']);
 	return copy;

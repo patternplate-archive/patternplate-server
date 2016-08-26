@@ -654,18 +654,6 @@ export class Pattern {
 		this.mtime = fileMtimes.sort((a, b) => b - a)[0];
 		return this;
 	}
-
-	toJSON() {
-		const copy = merge({}, this);
-		// things not needed in serialized form
-		delete copy.cache;
-		delete copy.files;
-		delete copy.config;
-		delete copy.base;
-		delete copy.path;
-		delete copy.transforms;
-		return copy;
-	}
 }
 
 export default async function patternFactory(...args) {
