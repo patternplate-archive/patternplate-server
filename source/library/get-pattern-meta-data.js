@@ -1,3 +1,4 @@
+import {omit} from 'lodash';
 import getPatternData from './get-pattern-data';
 
 module.change_code = 1;
@@ -10,8 +11,8 @@ async function getPatternMetaData(application, id) {
 	return {
 		id: data.id,
 		base: data.base,
-		dependencies: data.dependencies,
-		dependents: manifest.dependencyPatterns,
+		dependencies: omit(data.dependencies, ['Pattern']),
+		dependents: manifest.dependentPatterns,
 		display: manifest.display,
 		environments: manifest.demoEnvironments,
 		files: selectPatternFiles(data),
@@ -27,13 +28,13 @@ async function getPatternMetaData(application, id) {
 
 function selectPatternFiles(data) {
 	const {files} = data;
-
 	return data.outFormats.reduce((registry, outFormat) => {
 		const {name, type, extension} = outFormat;
-		const demo = `demo.${extension}` in files;
-		const index = `index.${extension}` in files;
 
-		if (!(index || demo)) {
+		const demo = `demo.${extension}` in files;
+		const file = files[`demo.${extension}`] || files[`index.${extension}`];
+
+		if (!file) {
 			return registry;
 		}
 
@@ -45,6 +46,8 @@ function selectPatternFiles(data) {
 			return {
 				concern,
 				displayName: name,
+				out: outFormat.extension,
+				in: file.format,
 				id,
 				type
 			};

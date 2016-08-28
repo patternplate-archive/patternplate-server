@@ -21,9 +21,12 @@ const routes = {
 			enabled: true,
 			path: '/pattern/:id+',
 			options: {
-				key: 'patterns',
-				maxage: 3600000
+				key: 'patterns'
 			}
+		},
+		file: {
+			enabled: true,
+			path: '/file/:id+'
 		},
 		script: {
 			enabled: true,
