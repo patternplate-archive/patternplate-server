@@ -1,7 +1,8 @@
+import path from 'path';
 import {omit} from 'lodash';
 import getPatternData from './get-pattern-data';
 
-module.change_code = 1;
+module.change_code = 1; // eslint-disable-line
 export default getPatternMetaData;
 
 async function getPatternMetaData(application, id) {
@@ -46,8 +47,9 @@ function selectPatternFiles(data) {
 			return {
 				concern,
 				displayName: name,
+				path: path.relative(data.base, file.path),
+				in: selectInFormat(data, file),
 				out: outFormat.extension,
-				in: file.format,
 				id,
 				type
 			};
@@ -55,4 +57,12 @@ function selectPatternFiles(data) {
 
 		return [...registry, ...items];
 	}, []);
+}
+
+function selectInFormat(data, file) {
+	const name = file.format;
+	const format = data.config.patterns.formats[name] || {transforms: []};
+	const entry = format.transforms[0];
+	const transform = data.config.transforms[entry] || {inFormat: name};
+	return transform.inFormat;
 }
