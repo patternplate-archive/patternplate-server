@@ -1,5 +1,6 @@
 // import url from 'url';
 // import querystring from 'querystring';
+import assert from 'assert';
 import getPatternRetriever from './utilities/get-pattern-retriever';
 // import urlQuery from './utilities/url-query';
 import layout from '../application/layouts';
