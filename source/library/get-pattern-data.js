@@ -1,4 +1,4 @@
-import {merge, omit} from 'lodash';
+import {merge} from 'lodash';
 
 import flatPick from './utilities/flat-pick';
 import getPatternRetriever from './utilities/get-pattern-retriever';
@@ -17,8 +17,8 @@ export default async function(application, id, environment, cmds = ['read']) {
 	}
 
 	// backwards compatibility
-	const copy = merge({}, pattern));
-	copy.results = {index: result.results};
-	copy.dependencies = flatPick(result, 'dependencies', ['id', 'manifest']);
+	const copy = merge({}, pattern);
+	copy.results = {index: pattern.results};
+	copy.dependencies = flatPick(pattern, 'dependencies', ['id', 'manifest']);
 	return copy;
 }

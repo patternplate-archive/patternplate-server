@@ -47,11 +47,12 @@ function selectPatternFiles(data) {
 			return {
 				concern,
 				displayName: name,
-				path: path.relative(data.base, file.path),
+				id,
 				in: selectInFormat(data, file),
 				out: outFormat.extension,
-				id,
-				type
+				path: path.relative(data.base, file.path),
+				type,
+				transforms: selectTransforms(data, file)
 			};
 		});
 
@@ -59,10 +60,14 @@ function selectPatternFiles(data) {
 	}, []);
 }
 
-function selectInFormat(data, file) {
+function selectTransforms(data, file) {
 	const name = file.format;
 	const format = data.config.patterns.formats[name] || {transforms: []};
-	const entry = format.transforms[0];
-	const transform = data.config.transforms[entry] || {inFormat: name};
+	return format.transforms;
+}
+
+function selectInFormat(data, file) {
+	const entry = selectTransforms(data, file)[0];
+	const transform = data.config.transforms[entry] || {inFormat: file.format};
 	return transform.inFormat;
 }
