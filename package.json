@@ -123,6 +123,7 @@
     "rimraf": "^2.5.1",
     "semver": "^4.3.6",
     "sprintf": "^0.1.5",
+    "string-to-stream": "^1.1.0",
     "throat": "^2.0.2",
     "through": "^2.3.7",
     "try-require": "^1.2.1"

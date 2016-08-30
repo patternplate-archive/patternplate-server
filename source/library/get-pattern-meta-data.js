@@ -7,6 +7,8 @@ export default getPatternMetaData;
 
 async function getPatternMetaData(application, id) {
 	const data = await getPatternData(application, id, 'index');
+	const {transforms} = application.configuration;
+	const {formats} = application.configuration.patterns;
 	const {manifest} = data;
 
 	return {
@@ -16,7 +18,7 @@ async function getPatternMetaData(application, id) {
 		dependents: manifest.dependentPatterns,
 		display: manifest.display,
 		environments: manifest.demoEnvironments,
-		files: selectPatternFiles(data),
+		files: selectPatternFiles(data, {transforms, formats}),
 		manifest: {
 			displayName: manifest.displayName,
 			flag: manifest.flag,
@@ -27,13 +29,20 @@ async function getPatternMetaData(application, id) {
 	};
 }
 
-function selectPatternFiles(data) {
+function selectPatternFiles(data, config) {
 	const {files} = data;
 	return data.outFormats.reduce((registry, outFormat) => {
 		const {name, type, extension} = outFormat;
 
-		const demo = `demo.${extension}` in files;
-		const file = files[`demo.${extension}`] || files[`index.${extension}`];
+		const candidates = Object.entries(config.formats)
+			.filter(entry => entry[1].name === outFormat.name)
+			.map(entry => entry[0]);
+
+		const demo = candidates.some(ext => `demo.${ext}` in data.files);
+
+		const file = candidates
+			.map(ext => files[`demo.${ext}`] || files[`index.${ext}`])
+			.filter(Boolean)[0];
 
 		if (!file) {
 			return registry;
@@ -42,7 +51,7 @@ function selectPatternFiles(data) {
 		const concerns = demo ? ['demo', 'index'] : ['index'];
 
 		const items = concerns.map(concern => {
-			const id = [data.id, `${concern}.${extension}`].join('/');
+			const id = [data.id, `${concern}${file.ext}`].join('/');
 
 			return {
 				concern,
@@ -70,4 +79,8 @@ function selectInFormat(data, file) {
 	const entry = selectTransforms(data, file)[0];
 	const transform = data.config.transforms[entry] || {inFormat: file.format};
 	return transform.inFormat;
+}
+
+function selectTransform(outFormat, config) {
+	const format = config.formats[outFormat.extensons];
 }
