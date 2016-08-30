@@ -18,11 +18,33 @@ function getPatternSource(application) {
 		}
 
 		const id = path.dirname(pathname);
-		const format = path.extname(pathname).slice(1);
+		const inFormatName = path.extname(pathname).slice(1);
+		const format = application.configuration.patterns.formats[inFormatName] || {};
+		const transforms = format.transforms || [];
+		const transformName = transforms[transforms.length - 1];
+		const transform = application.configuration.transforms[transformName];
+
 		const basename = path.basename(pathname);
 		const concern = path.basename(pathname, path.extname(pathname));
+
+		if (!transformName) {
+			const error = new Error(`Could not determine last transform for "${basename}" of "${id}"`);
+			error.status = 404;
+			throw error;
+		}
+
+		if (!transform) {
+			const error = new Error(`Transform "${transformName}" to be applied on "${basename}" of "${id}" is not configured`);
+			error.status = 404;
+			throw error;
+		}
+
+		const outFormatName = transform.outFormat;
+
 		const filters = {
-			baseNames: [concern], environments: [environment], outFormats: [format]
+			baseNames: [concern],
+			environments: [environment],
+			outFormats: [outFormatName]
 		};
 
 		const retrieve = getPatternRetriever(application);
