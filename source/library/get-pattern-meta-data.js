@@ -32,23 +32,30 @@ async function getPatternMetaData(application, id, env = 'index') {
 function selectPatternFiles(data, config) {
 	const {files} = data;
 	return data.outFormats.reduce((registry, outFormat) => {
-		const {name, type, extension} = outFormat;
+		const {name, type} = outFormat;
 
 		const candidates = Object.entries(config.formats)
 			.filter(entry => entry[1].name === outFormat.name)
 			.map(entry => entry[0]);
 
-		const demo = candidates.some(ext => `demo.${ext}` in data.files);
-
-		const file = candidates
-			.map(ext => files[`demo.${ext}`] || files[`index.${ext}`])
+		const demoFile = candidates
+			.map(ext => files[`demo.${ext}`])
 			.filter(Boolean)[0];
+
+		const indexFile = candidates
+			.map(ext => files[`index.${ext}`])
+			.filter(Boolean)[0];
+
+		const file = demoFile || indexFile;
 
 		if (!file) {
 			return registry;
 		}
 
-		const concerns = demo ? ['demo', 'index'] : ['index'];
+		const concerns = [
+			demoFile ? 'demo' : null,
+			indexFile ? 'index' : null
+		].filter(Boolean);
 
 		const items = concerns.map(concern => {
 			const id = [data.id, `${concern}${file.ext}`].join('/');
