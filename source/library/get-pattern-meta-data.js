@@ -5,8 +5,8 @@ import getPatternData from './get-pattern-data';
 module.change_code = 1; // eslint-disable-line
 export default getPatternMetaData;
 
-async function getPatternMetaData(application, id) {
-	const data = await getPatternData(application, id, 'index');
+async function getPatternMetaData(application, id, env = 'index') {
+	const data = await getPatternData(application, id, env);
 	const {transforms} = application.configuration;
 	const {formats} = application.configuration.patterns;
 	const {manifest} = data;
