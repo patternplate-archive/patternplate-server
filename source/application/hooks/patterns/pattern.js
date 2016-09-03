@@ -1,3 +1,4 @@
+/* eslint-disable max-len*/
 import {
 	basename,
 	extname,
@@ -20,15 +21,14 @@ import minimatch from 'minimatch';
 import qfs from 'q-io/fs';
 import throat from 'throat';
 
+import getPatternManifests from '../../../library/utilities/get-pattern-manifests';
 import getReadFile from '../../../library/filesystem/read-file.js';
 
-async function getPatternManifests(base, patterns = {}, fs = qfs) {
-	return await Promise.all(Object.values(patterns).map(async id => {
-		const json = await fs.read(resolve(base, id, 'pattern.json'));
-		const manifest = {...JSON.parse(json), __id: id};
-		const subManifests = await getPatternManifests(base, manifest.patterns, fs);
-		return [manifest, ...subManifests];
-	}));
+function getPatternManifestsData(base, patterns = {}, pool = []) {
+	return Object.values(patterns).map(id => {
+		const dependency = find(pool, {id});
+		return [dependency, ...getPatternManifestsData(base, dependency.patterns, pool)];
+	});
 }
 
 function getDependenciesToRead(patterns = {}, pool = []) {
@@ -36,6 +36,9 @@ function getDependenciesToRead(patterns = {}, pool = []) {
 		.values(patterns)
 		.reduce((result, id) => {
 			const dependency = find(pool, {id});
+			if (!dependency) {
+				return result;
+			}
 			const sub = getDependenciesToRead(dependency.manifest.patterns, pool);
 			const add = [...sub, id].filter(item => result.indexOf(item) === -1);
 			return [...result, ...add];
@@ -48,6 +51,9 @@ function constructDependencies(patterns = {}, pool = []) {
 		.reduce((result, entry) => {
 			const [name, id] = entry;
 			const dependency = find(pool, {id});
+			if (!dependency) {
+				return result;
+			}
 			dependency.dependencies = constructDependencies(dependency.manifest.patterns, pool);
 			result[name] = dependency;
 			return result;
@@ -66,7 +72,9 @@ function constructFileDependencies(dependencies, search) {
 			const dependencyFileName = searchResults[0];
 			const dependencyFile = dependencyPattern.files[dependencyFileName] || {};
 			if (dependencyFile.path) {
-				dependencyFile.dependencies = constructFileDependencies(dependencyPattern.dependencies, search);
+				dependencyFile.dependencies = constructFileDependencies(
+					dependencyPattern.dependencies, search
+				);
 				results[dependencyName] = dependencyFile;
 			}
 			return results;
@@ -206,12 +214,19 @@ export class Pattern {
 
 			this.manifest.patterns.Pattern = this.id; // should be set for demos only?
 
-			const manifests = await getPatternManifests(this.base, this.manifest.patterns, this.fs);
-			const dependencies = uniq(flattenDeep(manifests), '__id');
+			const manifestsStart = new Date();
+
+			this.log.silly(`Fetching manifests for ${this.id}`);
+			const pool = await getPatternManifests('.', this.base, {cache: this.cache});
+			const manifests = getPatternManifestsData(this.base, this.manifest.patterns, pool);
+			const manifestDuration = chalk.grey(`[${new Date() - manifestsStart}ms]`);
+			this.log.silly(`Fetched manifests for ${this.id} ${manifestDuration}`);
+
+			const dependencies = uniq(flattenDeep(manifests), 'id');
 
 			const dependencyPatterns = dependencies
 				.map(manifest => {
-					const {__id: id} = manifest;
+					const {id} = manifest;
 					const config = {
 						...this.config,
 						parents: [...this.config.parents, this.id]
@@ -240,9 +255,12 @@ export class Pattern {
 				this.log.silly(`↳  ${chalk.bold(name)} → ${item}`);
 			});
 
-			const readDependencies = await Promise.all(dependenciesToRead.map(async id => {
+			const readDependency = async id => {
 				return find(dependencyPatterns, {id}).read();
-			}));
+			};
+
+			const dependencyJobs = dependenciesToRead.map(throat(5, readDependency));
+			const readDependencies = await Promise.all(dependencyJobs);
 
 			this.dependencies = constructDependencies(this.manifest.patterns, readDependencies);
 		}
@@ -384,10 +402,8 @@ export class Pattern {
 		await this.readManifest(path, fs);
 
 		// read manifest information
-		if (this.config.parents.length === 0) {
-			const manifestReadDuration = chalk.grey(`[${new Date() - manifestStart}ms]`);
-			this.log.silly(`Read manifest for ${this.id} ${manifestReadDuration}`);
-		}
+		const manifestReadDuration = chalk.grey(`[${new Date() - manifestStart}ms]`);
+		this.log.silly(`Read manifest for ${this.id} ${manifestReadDuration}`);
 
 		// read in relevant file information
 		const fileData = await Promise.all(matchingFiles.map(throat(5, async file => {

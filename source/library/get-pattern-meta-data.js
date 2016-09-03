@@ -87,7 +87,3 @@ function selectInFormat(data, file) {
 	const transform = data.config.transforms[entry] || {inFormat: file.format};
 	return transform.inFormat;
 }
-
-function selectTransform(outFormat, config) {
-	const format = config.formats[outFormat.extensons];
-}
