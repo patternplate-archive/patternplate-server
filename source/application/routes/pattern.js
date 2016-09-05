@@ -1,7 +1,7 @@
 import path from 'path';
 
-import urlQuery from '../../library/utilities/url-query';
 import getPatternMetaData from '../../library/get-pattern-meta-data';
+import urlQuery from '../../library/utilities/url-query';
 
 function withErrorHandling(fn) {
 	return async function(...args) {
