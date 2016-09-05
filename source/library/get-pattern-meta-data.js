@@ -20,11 +20,12 @@ async function getPatternMetaData(application, id, env = 'index') {
 		environments: manifest.demoEnvironments,
 		files: selectPatternFiles(data, {transforms, formats}),
 		manifest: {
-			displayName: manifest.displayName,
-			flag: manifest.flag,
+			displayName: manifest.displayName || '',
+			flag: manifest.flag || '',
 			name: manifest.name,
 			version: manifest.version,
-			tags: manifest.tags
+			tags: manifest.tags || [],
+			options: manifest.options || {}
 		}
 	};
 }
