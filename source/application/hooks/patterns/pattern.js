@@ -14,9 +14,9 @@ import {
 	flattenDeep,
 	invert,
 	omit,
+	merge,
 	uniq
 } from 'lodash';
-import merge from 'lodash.merge';
 import minimatch from 'minimatch';
 import qfs from 'q-io/fs';
 import throat from 'throat';

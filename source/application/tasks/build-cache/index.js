@@ -1,6 +1,7 @@
 import {resolve} from 'path';
 
-import merge from 'lodash.merge';
+import ARSON from 'arson';
+import {merge} from 'lodash';
 import throat from 'throat';
 import denodeify from 'denodeify';
 import mkdirpNodeback from 'mkdirp';
@@ -147,7 +148,7 @@ async function build(application, configuration) {
 								// cut some slack
 								patternItem.dependencies = flatPick(patternItem, 'dependencies', ['id', 'manifest']);
 								const resultPath = resolve(staticCacheDirectory, `${patternItem.id.split('/').join('-')}.json`);
-								return writeSafe(resultPath, JSON.stringify(patternItem));
+								return writeSafe(resultPath, ARSON.stringify(patternItem));
 							})
 					);
 
@@ -174,7 +175,7 @@ async function build(application, configuration) {
 								environmentPatterns.map(async envPattern => {
 									envPattern.dependencies = flatPick(envPattern, 'dependencies', ['id', 'manifest']);
 									const resultPath = resolve(staticCacheDirectory, `${envPattern.id.split('/').join('-')}--${environmentName}.json`);
-									return writeSafe(resultPath, JSON.stringify(envPattern));
+									return writeSafe(resultPath, ARSON.stringify(envPattern));
 								})
 							);
 						}));

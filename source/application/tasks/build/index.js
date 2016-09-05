@@ -1,4 +1,4 @@
-import merge from 'lodash.merge';
+import {merge} from 'lodash';
 
 import {deprecation, wait, ready} from '../../../library/log/decorations';
 import archiveTask from '../build-archive';
