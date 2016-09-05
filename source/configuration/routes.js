@@ -5,7 +5,7 @@ const routes = {
 		'application/routes',
 		'application/patternplate-server/routes'
 	],
-	enabled: { // eslint-disable-line quote-props
+	enabled: {
 		index: {
 			enabled: true,
 			path: '/'
@@ -31,10 +31,6 @@ const routes = {
 		script: {
 			enabled: true,
 			path: '/script/:path+'
-		},
-		'react-mount': {
-			enabled: true,
-			path: '/react-mount/:id+'
 		},
 		static: {
 			options: {

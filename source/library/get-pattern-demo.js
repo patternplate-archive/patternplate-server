@@ -1,26 +1,45 @@
-// import url from 'url';
-// import querystring from 'querystring';
-import assert from 'assert';
+import {merge} from 'lodash';
+
 import getPatternRetriever from './utilities/get-pattern-retriever';
-// import urlQuery from './utilities/url-query';
 import layout from '../application/layouts';
 
-function getRouteURI(router, route, params) {
-	return decodeURIComponent(
-		router.url(route, params)
-	).replace(/\+/g, '');
+export default getPatternDemo;
+
+async function getPatternDemo(application, id, filters, environment) {
+	const [pattern] = await getPatternRetriever(application)(id, filters, environment);
+
+	if (!pattern) {
+		return null;
+	}
+
+	const {formats} = application.configuration.patterns;
+	const automount = selectAutoMount(application, pattern);
+	const render = getRenderer(formats, automount);
+	return render(pattern);
 }
 
-function getRenderer(context) {
-	const toRoute = (route, id) => getRouteURI(context.router, route, {id});
-	// const toPattern = id => toRoute('pattern', id);
+function selectAutoMount(a, p) {
+	const transform = a.configuration.transforms['react-to-markup'] || {};
+	const pattern = selectReactToMarkup(selectManifestOptions(p));
+	const settings = merge({}, transform.opts, pattern.opts);
+	return settings.automount || false;
+}
 
+function selectReactToMarkup(o) {
+	return o['react-to-markup'] || {};
+}
+
+function selectManifestOptions(p) {
+	return p.manifest.options || {};
+}
+
+function getRenderer(formats, component = false) {
 	return result => {
 		const template = {
 			title: result.id
 		};
 
-		const sectionSeed = Object.values(context.formats)
+		const sectionSeed = Object.values(formats)
 			.reduce((seed, format) => {
 				return {...seed, [format.name.toLowerCase()]: []};
 			}, {});
@@ -49,13 +68,9 @@ function getRenderer(context) {
 				return referenceSection;
 			}, sectionSeed);
 
-		// Reset the script references if the transforms pass
-		// explicit script dependencies
-		if ((result.meta.scriptDependencies || []).length > 0) {
-			templateReferenceData.script = result.meta.scriptDependencies
-				.map(dependency => {
-					return {uri: toRoute(dependency.path, dependency.id)};
-				});
+		// Reset the script references if we request a component
+		if (component) {
+			templateReferenceData.script = [{uri: './component.js'}];
 		}
 
 		return layout({
@@ -64,20 +79,4 @@ function getRenderer(context) {
 			reference: templateReferenceData
 		});
 	};
-}
-
-export default async function(application, id, filters, environment) {
-	const [pattern] = await getPatternRetriever(application)(id, filters, environment);
-
-	if (!pattern) {
-		return null;
-	}
-
-	const render = getRenderer({
-		router: application.router,
-		formats: application.configuration.patterns.formats,
-		environment
-	});
-
-	return render(pattern);
 }
