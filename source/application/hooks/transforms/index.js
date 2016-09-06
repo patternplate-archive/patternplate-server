@@ -178,7 +178,7 @@ export default {
 			}, 2500, {trailing: false}));
 
 			hotswap.on('error', error => {
-				application.log.info(`Error while hot-swapping:`);
+				application.log.error(`Error while hot-swapping:`);
 				application.log.error(error);
 			});
 		}

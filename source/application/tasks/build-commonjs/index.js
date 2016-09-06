@@ -27,7 +27,7 @@ import {
 	resolvePathFormatString
 } from 'patternplate-transforms-core';
 
-import {deprecation} from '../../../library/log/decorations';
+import {deprecation, ok, wait, ready} from '../../../library/log/decorations';
 import copyDirectory from '../../../library/filesystem/copy-directory';
 import removeFile from '../../../library/filesystem/remove-file';
 import writeSafe from '../../../library/filesystem/write-safe';
@@ -37,12 +37,6 @@ import getPatterns from '../../../library/utilities/get-patterns';
 import getPatternMtimes from '../../../library/utilities/get-pattern-mtimes';
 import getPatternsToBuild from '../../../library/utilities/get-patterns-to-build';
 import getPackageString from './get-package-string';
-
-import {
-	ok,
-	wait,
-	ready
-} from '../../../library/log/decorations';
 
 const pkg = require(resolve(process.cwd(), 'package.json'));
 const readFile = denodeify(readFileNodeback);
@@ -91,14 +85,13 @@ async function exportAsCommonjs(application, settings) {
 
 	// start reading pattern mtimes, ignore dependencies
 	const mtimesStart = new Date();
-	application.log.info(wait`Obtaining pattern modification times`);
+	application.log.debug(wait`Obtaining pattern modification times`);
 	const readingPatternMtimes = getPatternMtimes('./patterns', {
 		resolveDependencies: false
 	});
 
 	// start reading artifact mtimes
 	const artifactMtimesStart = new Date();
-	application.log.info(wait`Obtaining artifact modification times`);
 	const readingArtifactMtimes = getArtifactMtimes('./', application.configuration.patterns);
 
 	// wait for all mtimes to trickle in
@@ -107,14 +100,14 @@ async function exportAsCommonjs(application, settings) {
 
 	// wait for all artifact mtimes
 	const artifactMtimes = await readingArtifactMtimes;
-	application.log.info(ok`Read artifact modification times ${artifactMtimesStart}`);
+	application.log.debug(ok`Read artifact modification times ${artifactMtimesStart}`);
 
 	// check if package.json is in distribution
 	const hasManifest = await exists(resolve(commonjsRoot, 'package.json'));
 
 	// obtain patterns we have to build
 	const selectionStart = new Date();
-	application.log.info(wait`Calculating pattern collection to build`);
+	application.log.debug(wait`Calculating pattern collection to build`);
 
 	const patternsToBuild = hasManifest ?
 		patternMtimes
@@ -122,18 +115,18 @@ async function exportAsCommonjs(application, settings) {
 			.sort((a, b) => b.mtime.getTime() - a.mtime.getTime()) :
 		patternMtimes;
 
-	if (!hasManifest) {
-		application.log.info(ok`No manifest at ${commonjsRoot}, building all ${patternMtimes.length} patterns`);
-	} else {
-		application.log.info(ok`Calculated pattern collection to build ${selectionStart}`);
+	if (hasManifest) {
+		application.log.debug(ok`Calculated pattern collection to build ${selectionStart}`);
 		application.log.info(wait`Building ${patternsToBuild.length} of ${patternMtimes.length} patterns`);
+	} else {
+		application.log.info(ok`No manifest at ${commonjsRoot}, building all ${patternMtimes.length} patterns`);
 	}
 
 	// build patterns in parallel
 	const buildStart = new Date();
 	const building = Promise.all(patternsToBuild.map(throat(5, async pattern => {
 		const filterStart = new Date();
-		application.log.info(wait`Checking for files of ${pattern.id} to exclude from transform.`);
+		application.log.debug(wait`Checking for files of ${pattern.id} to exclude from transform.`);
 
 		const filters = {...application.configuration.filters};
 		let changedFiles = [];
@@ -189,10 +182,10 @@ async function exportAsCommonjs(application, settings) {
 		if (artifact) {
 			filters.inFormats = changedFiles.map(file => extname(file).slice(1));
 			const formats = chalk.grey(`[${filters.inFormats.join(', ')}]`);
-			application.log.info(
+			application.log.debug(
 				ok`Building ${filters.inFormats.length} files for ${pattern.id} ${formats} ${filterStart}`);
 		} else {
-			application.log.info(ok`Building all files for ${pattern.id} ${filterStart}`);
+			application.log.debug(ok`Building all files for ${pattern.id} ${filterStart}`);
 		}
 
 		if (settings['dry-run']) {
@@ -200,7 +193,7 @@ async function exportAsCommonjs(application, settings) {
 		}
 
 		const transformStart = new Date();
-		application.log.info(wait`Transforming pattern ${pattern.id}`);
+		application.log.debug(wait`Transforming pattern ${pattern.id}`);
 
 		// obtain transformed pattern by id
 		const patternList = await getPatterns({
@@ -213,10 +206,10 @@ async function exportAsCommonjs(application, settings) {
 			filters
 		}, application.cache);
 
-		application.log.info(ok`Transformed pattern ${pattern.id} ${transformStart}`);
+		application.log.debug(ok`Transformed pattern ${pattern.id} ${transformStart}`);
 
 		const writeStart = new Date();
-		application.log.info(ok`Writing artifacts of ${pattern.id}`);
+		application.log.debug(ok`Writing artifacts of ${pattern.id}`);
 
 		// Write results to disk
 		const writingArtifacts = Promise.all(patternList.map(async patternItem => {
@@ -241,12 +234,12 @@ async function exportAsCommonjs(application, settings) {
 		}));
 
 		const written = await writingArtifacts;
-		application.log.info(ok`Wrote ${written.length} artifacts for ${pattern.id} ${writeStart}`);
+		application.log.debug(ok`Wrote ${written.length} artifacts for ${pattern.id} ${writeStart}`);
 		return patternList;
 	})));
 
 	const pruneDetectionStart = new Date();
-	application.log.info(wait`Searching for artifacts to prune`);
+	application.log.debug(wait`Searching for artifacts to prune`);
 	const artifactsToPrune = getArtifactsToPrune(
 		patternMtimes,
 		artifactMtimes,
@@ -255,7 +248,7 @@ async function exportAsCommonjs(application, settings) {
 	application.log.info(ok`Detected ${artifactsToPrune.length} artifacts to prune ${pruneDetectionStart}`);
 
 	const pruneStart = new Date();
-	application.log.info(wait`Pruning ${artifactsToPrune.length} artifacts`);
+	application.log.debug(wait`Pruning ${artifactsToPrune.length} artifacts`);
 	const pruning = Promise.all(artifactsToPrune.map(path => {
 		// for now we can assume the whole folder has to be nixed
 		if (settings['dry-run']) {
@@ -271,21 +264,21 @@ async function exportAsCommonjs(application, settings) {
 	}
 
 	const copyStart = new Date();
-	application.log.info(wait`Copying static files`);
+	application.log.debug(wait`Copying static files`);
 	const copying = copyDirectory(staticRoot, resolve(commonjsRoot, 'static'));
 
 	const copied = await copying;
-	application.log.info(ready`Copied ${copied.length} static files. ${copyStart}`);
+	application.log.debug(ready`Copied ${copied.length} static files. ${copyStart}`);
 
 	const pruned = await pruning;
-	application.log.info(ready`Pruned ${pruned.length} artifact files ${pruneStart}`);
+	application.log.debug(ready`Pruned ${pruned.length} artifact files ${pruneStart}`);
 
 	const built = await building;
 	application.log.info(ready`Built ${built.length} from ${patternsToBuild.length} planned and ${patternMtimes.length} artifacts overall ${buildStart}`);
 
 	if (built.length > 0) {
 		const pkgStart = new Date();
-		application.log.info(wait`Writing package.json`);
+		application.log.debug(wait`Writing package.json`);
 
 		const previousPkg = hasManifest ?
 			JSON.parse(await readFile(manifestPath)) :
@@ -326,19 +319,19 @@ async function exportAsCommonjs(application, settings) {
 					[...(config.ignoredDependencies || []), coreModuleNames]
 				),
 				previousPkg,
-			{
-				devDependencies: omit(
-					devDependencies,
-					[...(config.ignoredDevDependencies || []), coreModuleNames, ...Object.keys(dependencies)]
-				)
-			},
+				{
+					devDependencies: omit(
+						devDependencies,
+						[...(config.ignoredDevDependencies || []), coreModuleNames, ...Object.keys(dependencies)]
+					)
+				},
 			omit(pkg, ['dependencies', 'devDependencies', 'scripts', 'config', 'main']),
 			config.pkg
 			)
 		);
 
 		await writingPkg;
-		application.log.info(ready`Wrote package.json ${pkgStart}`);
+		application.log.debug(ready`Wrote package.json ${pkgStart}`);
 	}
 	application.log.info(ready`Task completed ${taskStart}`);
 }

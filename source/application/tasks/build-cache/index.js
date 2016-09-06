@@ -125,7 +125,7 @@ async function build(application, configuration) {
 			.map(
 				throat(5, async pattern => {
 					const transformStart = new Date();
-					application.log.info(wait`Transforming pattern ${pattern.id}`);
+					application.log.debug(wait`Transforming pattern ${pattern.id}`);
 
 					const patternList = await getPatterns({
 						id: pattern.id,
@@ -136,11 +136,11 @@ async function build(application, configuration) {
 						log: application.log
 					}, application.cache);
 
-					application.log.info(ok`Transformed pattern ${pattern.id} ${transformStart}`);
+					application.log.debug(ok`Transformed pattern ${pattern.id} ${transformStart}`);
 
 					// dump results in the cache
 					const writeStart = new Date();
-					application.log.info(ok`Writing cache for ${pattern.id}`);
+					application.log.debug(ok`Writing cache for ${pattern.id}`);
 
 					const writingCache = Promise.all(
 						patternList
@@ -196,7 +196,7 @@ async function build(application, configuration) {
 							})
 							// get automounting result and write it to cache
 							.map(async patternItem => {
-								application.log.info(ok`Creating automount cache for ${patternItem.id}`);
+								application.log.debug(ok`Creating automount cache for ${patternItem.id}`);
 
 								const autoMountPatterns = await getPatterns({
 									id: patternItem.id,
@@ -257,7 +257,7 @@ async function build(application, configuration) {
 							})
 					);
 
-					application.log.info(ok`Wrote cache for ${pattern.id} ${writeStart}`);
+					application.log.debug(ok`Wrote cache for ${pattern.id} ${writeStart}`);
 					await writingCache;
 					await writingAutoMountCache;
 				})
