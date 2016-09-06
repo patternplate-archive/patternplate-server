@@ -1,8 +1,10 @@
-import {resolve} from 'path';
+import path from 'path';
 import {debuglog} from 'util';
 
-import {merge} from 'lodash';
+import boxen from 'boxen';
+import {merge, uniq} from 'lodash';
 import minimatch from 'minimatch';
+import ora from 'ora';
 import throat from 'throat';
 
 import getEnvironments from '../../../library/utilities/get-environments';
@@ -13,6 +15,8 @@ import writeSafe from '../../../library/filesystem/write-safe';
 
 export default async (application, settings) => {
 	const debug = debuglog('bundles');
+	const spinner = ora().start();
+
 	debug('calling bundles with');
 	debug(settings);
 
@@ -23,13 +27,13 @@ export default async (application, settings) => {
 	);
 
 	const cwd = application.runtime.patterncwd || application.runtime.cwd;
-	const pkg = require(resolve(cwd, 'package.json'));
+	const pkg = require(path.resolve(cwd, 'package.json'));
 	const revision = await git.short();
 	const version = pkg.version;
 	const environment = application.runtime.env;
 	const patternHook = application.hooks.filter(hook => hook.name === 'patterns')[0];
-	const base = resolve(cwd, patternHook.configuration.path);
-	const buildBase = resolve(
+	const base = path.resolve(cwd, patternHook.configuration.path);
+	const buildBase = path.resolve(
 		cwd,
 		application.configuration.build.bundles.target,
 		`build-v${version}-${environment}-${revision}`
@@ -41,7 +45,7 @@ export default async (application, settings) => {
 	} = application;
 
 	// Get applicable filters
-	const {filters} = application.configuration;
+	const {filters: confFilters} = application.configuration;
 
 	// Reconfigure the cache
 	application.cache.config = merge({},
@@ -55,6 +59,16 @@ export default async (application, settings) => {
 		const override = application.configuration.build.bundles.patterns.formats[name] || {};
 		present.transforms = override.transforms ? override.transforms : present.transforms;
 	}
+
+	const warnings = [];
+	const warn = application.log.warn;
+	application.log.warn = (...args) => {
+		if (args.some(arg => arg.includes('Deprecation'))) {
+			warnings.push(args);
+			return;
+		}
+		warn(...args);
+	};
 
 	// Get environments
 	const loadedEnvironments = await getEnvironments(base, {
@@ -88,6 +102,8 @@ export default async (application, settings) => {
 					!excludePatterns.concat('@environments/**/*').some(pattern => minimatch(id, pattern));
 			});
 
+			spinner.text = `${environment.name} 0/${includedPatterns.length}`;
+
 			// Merge environment config into transform config
 			const config = merge(
 				{},
@@ -101,11 +117,11 @@ export default async (application, settings) => {
 				}
 			);
 
-			const environmentFilters = merge({}, filters);
-			environmentFilters.inFormats = envFormats;
+			const filters = merge({}, confFilters, {inFormats: envFormats, environments: [environment.name]});
+			let read = 0;
 
 			// build all patterns matching the include config
-			const builtPatterns = await Promise.all(includedPatterns
+			const readPatterns = await Promise.all(includedPatterns
 				.map(throat(5, async pattern => {
 					const {id} = pattern;
 
@@ -116,11 +132,16 @@ export default async (application, settings) => {
 						factory,
 						transforms,
 						log,
-						filters: environmentFilters
+						filters,
+						environment
 					}, cache, ['read']);
 
+					read += 1;
+					spinner.text = `reading ${environment.name} ${read}/${includedPatterns.length}`;
 					return result;
 				})));
+
+			spinner.text = `transforming ${environment.name}`;
 
 			// construct a virtual pattern
 			const bundlePattern = await factory(
@@ -133,13 +154,8 @@ export default async (application, settings) => {
 			);
 
 			// add the built patterns as dependencies
-			bundlePattern.inject(
-				{
-					name: environment.name,
-					version: environment.version
-				},
-				builtPatterns
-			);
+			const env = {name: environment.name, version: environment.version};
+			bundlePattern.inject(env, readPatterns);
 
 			// build the bundle
 			const builtBundle = await bundlePattern.transform();
@@ -148,15 +164,27 @@ export default async (application, settings) => {
 			const writing = Object.entries(builtBundle.results)
 				.map(async entry => {
 					const [resultName, result] = entry;
-					const resultPath = resolve(
+					const resultPath = path.resolve(
 						buildBase,
 						resultName.toLowerCase(),
 						`${environment.name}.${result.out}`
 					);
-					return writeSafe(resultPath, result.buffer);
+					const relativePath = path.relative(process.cwd(), resultPath);
+					spinner.text = `${environment.name}.${result.in} => ${relativePath}`;
+					const written = await writeSafe(resultPath, result.buffer);
+					spinner.succeed();
+					return written;
 				});
 
-			return await Promise.all(writing);
+			await Promise.all(writing);
 		}
 	)));
+	spinner.stop();
+
+	const messages = uniq(warnings)
+		.map(warning => warning.join(' '));
+
+	messages.forEach(message => {
+		console.log(boxen(message, {borderColor: 'yellow', padding: 1}));
+	});
 };

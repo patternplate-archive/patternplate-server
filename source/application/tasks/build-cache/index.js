@@ -1,10 +1,12 @@
 import {resolve} from 'path';
 
 import ARSON from 'arson';
-import {merge} from 'lodash';
+import boxen from 'boxen';
+import {merge, uniq} from 'lodash';
 import throat from 'throat';
 import denodeify from 'denodeify';
 import mkdirpNodeback from 'mkdirp';
+import ora from 'ora';
 
 import flatPick from '../../../library/utilities/flat-pick';
 import getMountTransformChain from '../../../library/utilities/get-mount-transform-chain';
@@ -13,12 +15,7 @@ import getPatternMtimes from '../../../library/utilities/get-pattern-mtimes';
 import git from '../../../library/utilities/git';
 import writeSafe from '../../../library/filesystem/write-safe';
 
-import {
-	deprecation,
-	ok,
-	wait,
-	warn
-} from '../../../library/log/decorations.js';
+import {deprecation, ok, wait, warn} from '../../../library/log/decorations.js';
 
 const mkdirp = denodeify(mkdirpNodeback);
 const pkg = require(resolve(process.cwd(), 'package.json'));
@@ -110,14 +107,26 @@ async function build(application, configuration) {
 		application.log.warn(deprecation`The patterns sub-task of build was removed. Use the commonjs task instead. You can disable it by specifying patternplate-server.configuration.build.tasks.patterns=false`);
 	}
 
-	// build the static cache
-	// TODO: save the artifacts instead of a kind-of-giant json file
-	// - when client and server negotiate about single files
-	// - read times are better
-	// for now we just use the ids, later we could do incremental builds
+	const warnings = [];
+	const warn = application.log.warn;
+	application.log.warn = (...args) => {
+		if (args.some(arg => arg.includes('Deprecation'))) {
+			warnings.push(args);
+			return;
+		}
+		warn(...args);
+	};
+
+	const spinner = ora().start();
+
+	spinner.text = 'Listing patterns';
+
 	const patternMtimes = await getPatternMtimes('./patterns', {
 		resolveDependencies: false
 	});
+
+	let cached = 1;
+	spinner.text = `Caching patterns ${cached}/${patternMtimes.length}`;
 
 	// build all the artifacts
 	await Promise.all(
@@ -126,6 +135,8 @@ async function build(application, configuration) {
 				throat(5, async pattern => {
 					const transformStart = new Date();
 					application.log.debug(wait`Transforming pattern ${pattern.id}`);
+
+					spinner.text = `${pattern.id} ${cached}/${patternMtimes.length}`;
 
 					const patternList = await getPatterns({
 						id: pattern.id,
@@ -181,88 +192,100 @@ async function build(application, configuration) {
 						}));
 					}));
 
+					await writingCache;
+
+					const autoMountPatterns = patternList
+						// get patterns that have automounting enabled
+						.filter(patternItem => {
+							const manifestConfig = (patternItem.manifest.options || {})['react-to-markup'] || {};
+							const config = merge(
+								{},
+								patternConfig.transforms['react-to-markup'].opts,
+								manifestConfig.opts
+							);
+							return config.automount;
+						});
+
 					// if automounting is enabled create cache entry for it
 					const writingAutoMountCache = Promise.all(
-						patternList
-							// get patterns that have automounting enabled
-							.filter(patternItem => {
-								const manifestConfig = (patternItem.manifest.options || {})['react-to-markup'] || {};
-								const config = merge(
-									{},
-									patternConfig.transforms['react-to-markup'].opts,
-									manifestConfig.opts
-								);
-								return config.automount;
-							})
-							// get automounting result and write it to cache
-							.map(async patternItem => {
-								application.log.debug(ok`Creating automount cache for ${patternItem.id}`);
+						// get automounting result and write it to cache
+						autoMountPatterns.map(async patternItem => {
+							application.log.debug(ok`Creating automount cache for ${patternItem.id}`);
 
-								const autoMountPatterns = await getPatterns({
-									id: patternItem.id,
-									base: patternRoot,
-									config: automountConfiguration,
-									factory: application.pattern.factory,
-									transforms: application.transforms,
-									log: application.log
-								}, application.cache);
+							const autoMountPatterns = await getPatterns({
+								id: patternItem.id,
+								base: patternRoot,
+								config: automountConfiguration,
+								factory: application.pattern.factory,
+								transforms: application.transforms,
+								log: application.log
+							}, application.cache);
 
-								const [pattern = {}] = autoMountPatterns;
-								const {results = {}} = pattern;
-								const {Component} = results;
+							const [pattern = {}] = autoMountPatterns;
+							const {results = {}} = pattern;
+							const {Component} = results;
 
-								if (typeof Component === 'undefined') {
-									// TODO: This should be an error some day
-									application.log.warn(warn`${patternItem.id} provides no automount Component`);
-									return null;
-								}
+							if (typeof Component === 'undefined') {
+								// TODO: This should be an error some day
+								application.log.warn(warn`${patternItem.id} provides no automount Component`);
+								return null;
+							}
 
-								// Write cache for each applicable environment
-								await Promise.all(autoMountPatterns.map(async pattern => {
-									const environmentNames = pattern.manifest.demoEnvironments
-										.filter(({name}) => name !== 'index')
-										.map(({name}) => name);
+							// Write cache for each applicable environment
+							await Promise.all(autoMountPatterns.map(async pattern => {
+								const environmentNames = pattern.manifest.demoEnvironments
+									.filter(({name}) => name !== 'index')
+									.map(({name}) => name);
 
-									return await Promise.all(environmentNames.map(async environmentName => {
-										const environmentPatterns = await getPatterns({
-											id: patternItem.id,
-											base: patternRoot,
-											config: automountConfiguration,
-											factory: application.pattern.factory,
-											transforms: application.transforms,
-											log: application.log,
-											filters: {
-												environments: [environmentName]
-											}
-										}, application.cache);
+								return await Promise.all(environmentNames.map(async environmentName => {
+									const environmentPatterns = await getPatterns({
+										id: patternItem.id,
+										base: patternRoot,
+										config: automountConfiguration,
+										factory: application.pattern.factory,
+										transforms: application.transforms,
+										log: application.log,
+										filters: {
+											environments: [environmentName]
+										}
+									}, application.cache);
 
-										return Promise.all(
-											environmentPatterns.map(async envPattern => {
-												const resultPath = resolve(
-													automountCacheDirectory,
-													`${pattern.id.split('/').join('-')}--${environmentName}.js`
-												);
-												return writeSafe(resultPath, envPattern.results.Component.buffer);
-											})
-										);
-									}));
+									return Promise.all(
+										environmentPatterns.map(async envPattern => {
+											const resultPath = resolve(
+												automountCacheDirectory,
+												`${pattern.id.split('/').join('-')}--${environmentName}.js`
+											);
+											return writeSafe(resultPath, envPattern.results.Component.buffer);
+										})
+									);
 								}));
+							}));
 
-								const resultPath = resolve(
-									automountCacheDirectory,
-									`${pattern.id.split('/').join('-')}.js`
-								);
-
-								return writeSafe(resultPath, Component.buffer);
-							})
+							const resultPath = resolve(
+								automountCacheDirectory,
+								`${pattern.id.split('/').join('-')}.js`
+							);
+							return writeSafe(resultPath, Component.buffer);
+						})
 					);
 
-					application.log.debug(ok`Wrote cache for ${pattern.id} ${writeStart}`);
-					await writingCache;
 					await writingAutoMountCache;
+
+					application.log.debug(ok`Wrote cache for ${pattern.id} ${writeStart}`);
+					spinner.text = `${pattern.id} ${cached}/${patternMtimes.length}`;
+					spinner.succeed();
+					cached += 1;
 				})
 		)
 	);
+
+	const messages = uniq(warnings)
+		.map(warning => warning.join(' '));
+
+	messages.forEach(message => {
+		console.log(boxen(message, {borderColor: 'yellow', padding: 1}));
+	});
 }
 
 export default build;

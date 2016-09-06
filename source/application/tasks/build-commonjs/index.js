@@ -1,31 +1,18 @@
 import {debuglog} from 'util';
 import denodeify from 'denodeify';
 
-import {
-	resolve,
-	join,
-	dirname,
-	extname,
-	relative
-} from 'path';
+import {resolve, join, dirname, extname, relative} from 'path';
 
-import {
-	readFile as readFileNodeback
-} from 'fs';
+import {readFile as readFileNodeback} from 'fs';
 
-import {
-	find,
-	flatten,
-	omit,
-	merge
-} from 'lodash';
+import boxen from 'boxen';
+import {find, flatten, omit, merge, uniq} from 'lodash';
 import throat from 'throat';
 import chalk from 'chalk';
 import exists from 'path-exists';
 import coreModuleNames from 'node-core-module-names';
-import {
-	resolvePathFormatString
-} from 'patternplate-transforms-core';
+import {resolvePathFormatString} from 'patternplate-transforms-core';
+import ora from 'ora';
 
 import {deprecation, ok, wait, ready} from '../../../library/log/decorations';
 import copyDirectory from '../../../library/filesystem/copy-directory';
@@ -42,11 +29,11 @@ const pkg = require(resolve(process.cwd(), 'package.json'));
 const readFile = denodeify(readFileNodeback);
 
 async function exportAsCommonjs(application, settings) {
+	const spinner = ora().start();
 	const debug = debuglog('commonjs');
 	debug('calling commonjs with');
 	debug(settings);
 
-	const taskStart = new Date();
 	const cwd = application.runtime.patterncwd || application.runtime.cwd;
 
 	const patternHook = application.hooks.filter(hook => hook.name === 'patterns')[0];
@@ -55,8 +42,18 @@ async function exportAsCommonjs(application, settings) {
 	const commonjsRoot = resolve(cwd, 'distribution');
 	const manifestPath = resolve(commonjsRoot, 'package.json');
 
+	const warnings = [];
+	const warn = application.log.warn;
+	application.log.warn = (...args) => {
+		if (args.some(arg => arg.includes('Deprecation'))) {
+			warnings.push(args);
+			return;
+		}
+		warn(...args);
+	};
+
 	if (application.configuration.commonjs) {
-		application.log.debug(deprecation`The 'patternplate-server.configuration.commonjs' key moved to 'patternplate-server.configuration.build.commonjs' and is deprecated.`);
+		application.log.warn(deprecation`The 'patternplate-server.configuration.commonjs' key moved to 'patternplate-server.configuration.build.commonjs' and is deprecated.`);
 	}
 
 	const config = merge(
@@ -96,7 +93,7 @@ async function exportAsCommonjs(application, settings) {
 
 	// wait for all mtimes to trickle in
 	const patternMtimes = await readingPatternMtimes;
-	application.log.info(ok`Read pattern modification times ${mtimesStart}`);
+	application.log.debug(ok`Read pattern modification times ${mtimesStart}`);
 
 	// wait for all artifact mtimes
 	const artifactMtimes = await readingArtifactMtimes;
@@ -117,14 +114,18 @@ async function exportAsCommonjs(application, settings) {
 
 	if (hasManifest) {
 		application.log.debug(ok`Calculated pattern collection to build ${selectionStart}`);
-		application.log.info(wait`Building ${patternsToBuild.length} of ${patternMtimes.length} patterns`);
+		application.log.debug(wait`Building ${patternsToBuild.length} of ${patternMtimes.length} patterns`);
 	} else {
-		application.log.info(ok`No manifest at ${commonjsRoot}, building all ${patternMtimes.length} patterns`);
+		application.log.debug(ok`No manifest at ${commonjsRoot}, building all ${patternMtimes.length} patterns`);
 	}
+
+	let buildCount = 1;
 
 	// build patterns in parallel
 	const buildStart = new Date();
 	const building = Promise.all(patternsToBuild.map(throat(5, async pattern => {
+		spinner.text = `${pattern.id} ${buildCount}/${patternsToBuild.length}`;
+		buildCount += 1;
 		const filterStart = new Date();
 		application.log.debug(wait`Checking for files of ${pattern.id} to exclude from transform.`);
 
@@ -235,6 +236,7 @@ async function exportAsCommonjs(application, settings) {
 
 		const written = await writingArtifacts;
 		application.log.debug(ok`Wrote ${written.length} artifacts for ${pattern.id} ${writeStart}`);
+		spinner.succeed();
 		return patternList;
 	})));
 
@@ -245,7 +247,7 @@ async function exportAsCommonjs(application, settings) {
 		artifactMtimes,
 		application.configuration);
 
-	application.log.info(ok`Detected ${artifactsToPrune.length} artifacts to prune ${pruneDetectionStart}`);
+	application.log.debug(ok`Detected ${artifactsToPrune.length} artifacts to prune ${pruneDetectionStart}`);
 
 	const pruneStart = new Date();
 	application.log.debug(wait`Pruning ${artifactsToPrune.length} artifacts`);
@@ -259,7 +261,7 @@ async function exportAsCommonjs(application, settings) {
 
 	if (settings['dry-run']) {
 		await building;
-		application.log.info(ready`Dry-run executed successfully ${buildStart}`);
+		application.log.debug(ready`Dry-run executed successfully ${buildStart}`);
 		return;
 	}
 
@@ -269,12 +271,18 @@ async function exportAsCommonjs(application, settings) {
 
 	const copied = await copying;
 	application.log.debug(ready`Copied ${copied.length} static files. ${copyStart}`);
+	spinner.text = `static files copied`;
+	spinner.succeed();
 
 	const pruned = await pruning;
 	application.log.debug(ready`Pruned ${pruned.length} artifact files ${pruneStart}`);
+	spinner.text = `${pruned.length} pruned`;
+	spinner.succeed();
 
 	const built = await building;
-	application.log.info(ready`Built ${built.length} from ${patternsToBuild.length} planned and ${patternMtimes.length} artifacts overall ${buildStart}`);
+	application.log.debug(ready`Built ${built.length} from ${patternsToBuild.length} planned and ${patternMtimes.length} artifacts overall ${buildStart}`);
+	spinner.text = `${built.length}/${patternsToBuild.length} built`;
+	spinner.succeed();
 
 	if (built.length > 0) {
 		const pkgStart = new Date();
@@ -333,7 +341,13 @@ async function exportAsCommonjs(application, settings) {
 		await writingPkg;
 		application.log.debug(ready`Wrote package.json ${pkgStart}`);
 	}
-	application.log.info(ready`Task completed ${taskStart}`);
+
+	const messages = uniq(warnings)
+		.map(warning => warning.join(' '));
+
+	messages.forEach(message => {
+		console.log(boxen(message, {borderColor: 'yellow', padding: 1}));
+	});
 }
 
 export default exportAsCommonjs;
