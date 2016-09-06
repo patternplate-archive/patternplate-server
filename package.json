@@ -11,7 +11,7 @@
     "changelog": "conventional-changelog --preset angular --infile changelog.md --same-file --output-unreleased",
     "push": "git push && git push --tags && hub release create \"v$(cat .git/RELEASE_VERSION.tmp)\" --message=\"v$(cat .git/RELEASE_VERSION.tmp)\n$(cat .git/COMMITMSG.tmp)\" && npm publish && rm .git/RELEASE_VERSION.tmp && rm .git/COMMITMSG.tmp",
     "release": "npm version $(conventional-recommended-bump -p angular)",
-    "test": "eslint source/**/*.js && jsonlint-cli **/*.json",
+    "test": "eslint source/**/*.js",
     "build": "npm run clean && npm run babel",
     "watch": "npm run babel -- --watch",
     "babel": "babel source --out-dir ./",
