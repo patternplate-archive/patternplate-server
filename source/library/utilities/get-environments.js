@@ -1,22 +1,11 @@
-import {
-	basename,
-	resolve
-} from 'path';
-
-import {
-	debuglog
-} from 'util';
-
+import {basename, resolve} from 'path';
+import {debuglog} from 'util';
 import exists from 'path-exists';
-import {
-	merge
-} from 'lodash';
-import fs from 'q-io/fs';
+import {merge} from 'lodash';
 
 import getReadFile from '../filesystem/read-file';
-import {
-	fail
-} from '../log/decorations';
+import readTree from '../filesystem/read-tree';
+import {fail} from '../log/decorations';
 
 const envDebug = debuglog('environments');
 
@@ -40,7 +29,7 @@ export default async function getEnvironments(base, options = {}) {
 
 	// Get available environments ids
 	const userEnvironmentPaths = hasUserEnvironments ?
-		(await fs.listTree(environmentBase))
+		(await readTree(environmentBase))
 			.filter(item => basename(item) === 'pattern.json') :
 		[];
 

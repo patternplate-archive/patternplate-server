@@ -1,23 +1,20 @@
 import {dirname, basename, resolve} from 'path';
-import {readFile, stat} from 'fs';
-import fs from 'q-io/fs';
-import denodeify from 'denodeify';
+import {readFile, stat} from 'mz/fs';
 import {find} from 'lodash';
 import {pathToId} from 'patternplate-transforms-core';
 import throat from 'throat';
 
-const fsStat = denodeify(stat);
-const read = denodeify(readFile);
+import readTree from '../filesystem/read-tree';
 
 async function readManifest(path) {
-	return await read(resolve(path, 'pattern.json'))
+	return await readFile(resolve(path, 'pattern.json'))
 		.then(content => JSON.parse(content.toString('utf-8')));
 }
 
 async function getPatternFilesMtime(files) {
 	const tasks = files
 		.map(async file => {
-			const {mtime} = await fsStat(file);
+			const {mtime} = await stat(file);
 			return mtime;
 		});
 
@@ -59,7 +56,7 @@ const defaults = {
 };
 
 async function getPatternMtimes(search, options) {
-	const paths = await fs.listTree(search);
+	const paths = await readTree(search);
 	const settings = {...defaults, ...options};
 
 	const items = paths
@@ -68,7 +65,7 @@ async function getPatternMtimes(search, options) {
 		.map(item => {
 			const id = pathToId(search, item);
 			const path = dirname(item);
-			const files = fs.listTree(path);
+			const files = readTree(path);
 			const manifest = readManifest(path);
 			return {id, path, files, manifest};
 		});

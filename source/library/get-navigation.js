@@ -1,5 +1,5 @@
 import {resolve} from 'path';
-import getPatternTree from '../library/utilities/get-pattern-tree';
+import getPatternTree from './utilities/get-pattern-tree';
 
 export default async function getNavigation(application, client, server) {
 	const {

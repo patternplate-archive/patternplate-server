@@ -15,6 +15,7 @@ async function getPatternDemo(application, id, filters, environment) {
 	const {formats} = application.configuration.patterns;
 	const automount = selectAutoMount(application, pattern);
 	const render = getRenderer(formats, automount);
+
 	return render(pattern);
 }
 
@@ -50,7 +51,7 @@ function getRenderer(formats, component = false) {
 				const name = sectionName.toLowerCase();
 
 				templateSection[name].push({
-					content: sectionResult.demoBuffer || sectionResult.buffer
+					content: sectionResult.buffer
 				});
 
 				return templateSection;

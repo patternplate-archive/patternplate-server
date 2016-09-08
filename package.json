@@ -109,7 +109,6 @@
     "patternplate-transform-resolve-includes": "^0.1.0",
     "patternplate-transform-uglify": "^0.1.0",
     "patternplate-transforms-core": "^0.1.1",
-    "q-io": "^1.12.0",
     "resolve": "^1.1.7",
     "rimraf": "^2.5.1",
     "string-to-stream": "^1.1.0",

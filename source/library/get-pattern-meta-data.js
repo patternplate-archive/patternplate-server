@@ -2,7 +2,6 @@ import path from 'path';
 import {omit} from 'lodash';
 import getPatternData from './get-pattern-data';
 
-module.change_code = 1; // eslint-disable-line
 export default getPatternMetaData;
 
 async function getPatternMetaData(application, id, env = 'index') {

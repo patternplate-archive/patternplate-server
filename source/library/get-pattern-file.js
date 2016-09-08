@@ -10,5 +10,5 @@ export default async function(application, id, filters, out, environment) {
 
 	// find a file with matching out format
 	const file = find(Object.values(pattern.results), {out}) || {};
-	return file.demoBuffer || file.buffer || '';
+	return file.buffer;
 }

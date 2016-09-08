@@ -1,5 +1,4 @@
-import patternFactory from './pattern';
-import {Pattern} from './pattern';
+import patternFactory, {Pattern} from './pattern';
 
 export default {
 	wait: true,
@@ -9,7 +8,7 @@ export default {
 			factory(...args) {
 				return patternFactory(...[...args, application.cache]);
 			},
-			'class': Pattern
+			class: Pattern
 		};
 
 		return this;

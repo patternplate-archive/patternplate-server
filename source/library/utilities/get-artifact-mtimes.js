@@ -1,25 +1,9 @@
-import {
-	stat as statNodeback
-} from 'fs';
-
-import {
-	extname,
-	dirname,
-	relative,
-	resolve,
-	sep
-} from 'path';
-
+import {extname, dirname, relative, resolve, sep} from 'path';
+import {stat} from 'mz/fs';
 import throat from 'throat';
+import {debuglog} from 'util';
 
-import {
-	debuglog
-} from 'util';
-
-import denodeify from 'denodeify';
-import fs from 'q-io/fs';
-
-const stat = denodeify(statNodeback);
+import readTree from '../filesystem/read-tree';
 
 export default async function getArtifactMtimes(search, patterns) {
 	const debug = debuglog('artifact-mtimes');
@@ -29,7 +13,7 @@ export default async function getArtifactMtimes(search, patterns) {
 		.map(extension => patterns.formats[extension].name);
 
 	const typedFiles = await Promise.all([...new Set(types)].map(async type => {
-		const files = await fs.listTree(resolve(search, 'distribution', type));
+		const files = await readTree(resolve(search, 'distribution', type));
 		return files.filter(path => extname(path));
 	}));
 

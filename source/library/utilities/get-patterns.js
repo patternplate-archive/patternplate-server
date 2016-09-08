@@ -1,29 +1,17 @@
-import {
-	basename,
-	dirname,
-	resolve,
-	relative
-} from 'path';
+import {basename, dirname, resolve, relative} from 'path';
 
-import {
-	debuglog,
-	inspect
-} from 'util';
+import {debuglog, inspect} from 'util';
 
 import chalk from 'chalk';
 import exists from 'path-exists';
-import qfs from 'q-io/fs';
-import {
-	merge,
-	omit,
-	pick
-} from 'lodash';
+import {merge, omit, pick} from 'lodash';
 import throat from 'throat';
 
 import getEnvironments, {defaultEnvironment} from './get-environments';
 import getDependentPatterns from './get-dependent-patterns';
 import getStaticCacheItem from './get-static-cache-item.js';
 import getMatchingEnvironments from './get-matching-environments';
+import readTree from '../filesystem/read-tree';
 
 const envDebug = debuglog('environments');
 const debug = debuglog('get-patterns');
@@ -63,7 +51,8 @@ async function getPatterns(options, cache, cmds = ['read', 'transform']) {
 		path;
 
 	// Get all pattern ids
-	const paths = await qfs.listTree(search);
+	const paths = await readTree(search);
+
 	const patternIDs = paths
 		.filter(item => basename(item) === 'pattern.json')
 		.filter(item => isEnvironment ? true : !item.includes('@environments'))
