@@ -1,6 +1,8 @@
 import path from 'path';
 
 import {merge} from 'lodash';
+import streamToString from 'stream-to-string';
+
 import getPatterns from './utilities/get-patterns';
 import getMountTransformChain from './utilities/get-mount-transform-chain';
 import getStaticCacheItem from './utilities/get-static-cache-item';
@@ -48,7 +50,8 @@ async function getComponent(app, id, env = 'index') {
 	});
 
 	if (cached) {
-		return {buffer: cached};
+		const buffer = await streamToString(cached);
+		return {buffer};
 	}
 
 	const passed = {

@@ -4,7 +4,6 @@ import {basename, extname, dirname, resolve, relative, sep} from 'path';
 
 import chalk from 'chalk';
 import exists from 'path-exists';
-// import memoize from 'memoize-promise';
 import {find, flattenDeep, invert, last, merge, uniq} from 'lodash';
 import minimatch from 'minimatch';
 import throat from 'throat';
@@ -14,11 +13,12 @@ import constructFileDependencies from './construct-file-dependencies';
 import fauxCache from './faux-cache';
 import fauxLog from './faux-log';
 import getDependenciesToRead from './get-dependencies-to-read';
-import getPatternManifestsData from './get-pattern-manifest-data';
 import getPatternManifests from '../../../library/utilities/get-pattern-manifests';
-import readDirectory from '../../../library/filesystem/read-directory';
+import getPatternManifestsData from './get-pattern-manifest-data';
 import getReadFile from '../../../library/filesystem/read-file';
 import getTransform from './get-transform';
+import readDirectory from '../../../library/filesystem/read-directory';
+import toString from './to-string';
 
 const defaultFilters = {environments: [], inFormats: [], outFormats: []};
 
@@ -481,8 +481,8 @@ export class Pattern {
 		// Reduce to format.name => result map
 		this.results = sanitizedResults.reduce((results, transformResult) => {
 			const format = formats[transformResult.format];
-			const source = String(transformResult.source);
-			const buffer = String(transformResult.buffer);
+			const source = toString(transformResult.source);
+			const buffer = toString(transformResult.buffer);
 
 			const base = {
 				name: transformResult.name,
@@ -494,8 +494,8 @@ export class Pattern {
 			};
 
 			const amend = transformResult.baseName === 'demo' ? {
-				demoBuffer: String(transformResult.demoBuffer || ''),
-				demoSource: String(transformResults.demoSource || '')
+				demoBuffer: toString(transformResult.demoBuffer),
+				demoSource: toString(transformResults.demoSource)
 			} : {};
 			results[format.name] = merge(base, amend);
 			return results;

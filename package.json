@@ -111,6 +111,7 @@
     "patternplate-transforms-core": "^0.1.1",
     "resolve": "^1.1.7",
     "rimraf": "^2.5.1",
+    "stream-to-string": "^1.1.0",
     "string-to-stream": "^1.1.0",
     "throat": "^2.0.2",
     "try-require": "^1.2.1"
