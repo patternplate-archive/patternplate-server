@@ -14,11 +14,15 @@ async function getPatternManifest(id, base, cache = null) {
 	const idPath = id.split('/').join(sep);
 	const content = await readFile(resolve(base, idPath, 'pattern.json'));
 	const data = JSON.parse(content);
+	const options = data.options || {};
 
 	data.id = id;
 	data.version = data.version || defaultManifest.version;
-	data.build = data.build || defaultManifest.build;
-	data.display = data.display || defaultManifest.display;
-
+	data.build = defined(data.build, defaultManifest.build);
+	data.display = defined(!options.hidden, data.display, defaultManifest.display);
 	return data;
+}
+
+function defined(...args) {
+	return args.find(arg => typeof arg !== 'undefined');
 }
