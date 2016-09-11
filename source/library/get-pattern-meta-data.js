@@ -1,5 +1,5 @@
 import path from 'path';
-import {omit, uniq} from 'lodash';
+import {omit, uniqBy} from 'lodash';
 import getPatternData from './get-pattern-data';
 
 export default getPatternMetaData;
@@ -72,7 +72,7 @@ function selectPatternFiles(data, config) {
 			};
 		});
 
-		return uniq([...registry, ...items], ['id']);
+		return uniqBy([...registry, ...items], ['id']);
 	}, []);
 }
 
