@@ -3,6 +3,9 @@
   "version": "1.0.0-beta1",
   "description": "Programmatically serve atomic patterns via a REST API",
   "main": "library/",
+  "bin": {
+    "patternplate-server": "binary/patternplate-server.js"
+  },
   "scripts": {
     "start": "node --harmony binary/patternplate-server.js",
     "console": "node --harmony binary/patternplate-server-console.js",
@@ -34,9 +37,6 @@
     "commitizen": {
       "path": "cz-conventional-changelog-lint"
     }
-  },
-  "bin": {
-    "patternplate-server": "binary/patternplate-server.js"
   },
   "repository": {
     "type": "git",
@@ -85,7 +85,7 @@
     "git-rev": "^0.2.1",
     "hotswap": "^1.1.0",
     "koa-cors": "0.0.16",
-    "lodash": "^3.9.3",
+    "lodash": "^4.15.0",
     "lru-cache": "^2.6.3",
     "memoize-promise": "^0.2.2",
     "memory-streams": "^0.1.0",
