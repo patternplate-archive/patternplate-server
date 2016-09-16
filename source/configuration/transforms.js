@@ -1,9 +1,6 @@
 /* eslint-disable */
 export default {
-	path: [
-		'./application/transforms',
-		'./application/patternplate-server/transforms'
-	],
+	path: [],
 	markdown: {
 		inFormat: 'md',
 		outFormats: 'html'
@@ -32,90 +29,19 @@ export default {
 		inFormat: 'js',
 		outFormat: 'js',
 		rewrite: true,
-		opts: {
-			debug: true
-		},
-		transforms: {
-			babelify: {
-				enabled: true,
-				opts: {}
-			},
-			uglifyify: {
-				enabled: false,
-				opts: {
-					global: true
-				}
-			},
-			envify: {
-				enabled: true,
-				opts: {
-					global: true,
-					_: 'purge'
-				}
-			},
-			'unreachable-branch-transform': {
-				enabled: false,
-				opts: {
-					global: true
-				}
-			}
-		}
+		opts: {},
+		transforms: {}
 	},
 	uglify: {
 		inFormat: 'js',
 		outFormat: 'js',
-		opts: {
-			sequences: true,
-			properties: true,
-			dead_code: true,
-			drop_debugger: true,
-			unsafe: true,
-			conditionals: true,
-			comparisons: true,
-			evaluate: true,
-			booleans: true,
-			loops: true,
-			unused: true,
-			hoist_funs: true,
-			if_return: true,
-			join_vars: true,
-			cascade: true,
-			warnings: false,
-			negate_iife: true,
-			pure_getters: true,
-			drop_console: true
-		}
+		opts: {}
 	},
 	less: {
 		inFormat: 'less',
 		outFormat: 'css',
-		opts: {
-			compress: false,
-			sourceMap: {
-				outputSourceFiles: true,
-				sourceMapFileInline: true
-			}
-		},
-		plugins: {
-			'clean-css': {
-				enabled: false,
-				opts: {
-					advanced: true,
-					aggressiveMerging: true,
-					compatibility: '*',
-					mediaMerging: true,
-					processImport: false,
-					restructuring: true,
-					shorthandCompacting: true
-				}
-			},
-			autoprefix: {
-				enabled: true,
-				opts: {
-					browsers: ['last 2 versions']
-				}
-			}
-		}
+		opts: {},
+		plugins: {}
 	},
 	'resolve-includes': {
 		outFormat: 'less',
