@@ -59,7 +59,6 @@ function selectPatternFiles(data, config) {
 
 		const items = concerns.map(concern => {
 			const id = [data.id, `${concern}${file.ext}`].join('/');
-
 			return {
 				concern,
 				displayName: name,
@@ -72,7 +71,7 @@ function selectPatternFiles(data, config) {
 			};
 		});
 
-		return uniqBy([...registry, ...items], ['id']);
+		return uniqBy([...registry, ...items], 'id');
 	}, []);
 }
 

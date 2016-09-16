@@ -4,7 +4,7 @@ import {basename, extname, dirname, resolve, relative, sep} from 'path';
 
 import chalk from 'chalk';
 import exists from 'path-exists';
-import {find, flattenDeep, invert, last, merge, uniq} from 'lodash';
+import {find, flattenDeep, invert, last, merge, uniq, uniqBy} from 'lodash';
 import minimatch from 'minimatch';
 import throat from 'throat';
 
@@ -114,7 +114,7 @@ export class Pattern {
 			const manifestDuration = chalk.grey(`[${new Date() - manifestsStart}ms]`);
 			this.log.silly(`Fetched manifests for ${this.id} ${manifestDuration}`);
 
-			const dependencies = uniq(flattenDeep(manifests), 'id');
+			const dependencies = uniqBy(flattenDeep(manifests), 'id');
 
 			const dependencyPatterns = dependencies
 				.map(manifest => {
