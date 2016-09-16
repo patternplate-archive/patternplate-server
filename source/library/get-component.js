@@ -36,9 +36,10 @@ async function getComponent(app, id, env = 'index') {
 	const transforms = getMountTransformChain(jsxFormat, app.configuration.transforms);
 	const name = 'Component';
 	const componentFormat = {name, transforms};
+	const useCache = app.cache && app.cache.config.static;
 
 	// special cache for react-mount
-	const cached = await getStaticCacheItem({
+	const cached = useCache && await getStaticCacheItem({
 		id,
 		base: mountableCacheRoot,
 		cache: app.cache,
