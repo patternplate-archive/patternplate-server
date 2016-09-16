@@ -3,7 +3,6 @@ import {
 	resolve as pathResolve
 } from 'path';
 
-import Promise from 'bluebird';
 import chalk from 'chalk';
 import ensureArray from 'ensure-array';
 import hotswap from 'hotswap';

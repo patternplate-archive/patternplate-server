@@ -1,10 +1,7 @@
 import {resolve} from 'path';
 
 const routes = {
-	path: [
-		'application/routes',
-		'application/patternplate-server/routes'
-	],
+	path: ['application/routes'],
 	enabled: {
 		index: {
 			enabled: true,
