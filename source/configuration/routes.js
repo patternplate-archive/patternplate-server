@@ -25,10 +25,6 @@ const routes = {
 			enabled: true,
 			path: '/file/:id+'
 		},
-		script: {
-			enabled: true,
-			path: '/script/:path+'
-		},
 		static: {
 			options: {
 				root: [
