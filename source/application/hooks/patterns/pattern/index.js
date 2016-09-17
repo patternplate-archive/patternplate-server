@@ -179,36 +179,26 @@ export class Pattern {
 		// determine available requested out formats
 		const outFormats = inFormats
 			.reduce((result, format) => {
-				// if there are no transforms configured
-				// fall back to formatName
-				const formatConfig = this.config.patterns.formats[format] || {};
-				if (formatConfig.transforms && formatConfig.transforms.length === 0) {
-					return [...result, format];
+				const formatConfig = this.config.patterns.formats[format] || {transforms: []};
+				const {transforms: transformNames} = formatConfig;
+
+				if (!transformNames.length) {
+					result.push(format);
+					return result;
 				}
 
-				const transforms = Object.entries(this.config.transforms)
-					.map(entry => {
-						const [name, config] = entry;
-						return config.outFormat === format ? name : null;
-					})
-					.filter(Boolean);
+				const transformOutFormats = transformNames
+					.map(transformName => [transformName, this.config.transforms[transformName] || {}])
+					.map(entry => entry[1].outFormat || entry[0]);
 
-				const formatNames = Object.entries(this.config.patterns.formats)
-					.map(entry => {
-						const [name, config] = entry;
-						return transforms.indexOf(
-							config.transforms[config.transforms.length - 1]) > -1 ?
-								name : null;
-					})
-					.filter(Boolean);
-
-				return [...result, ...formatNames];
+				result.push(transformOutFormats[transformOutFormats.length - 1]);
+				return result;
 			}, [])
 			.filter(outFormat => {
 				if (this.filters.outFormats.length === 0) {
 					return true;
 				}
-				return this.filters.outFormats.indexOf(outFormat) > -1;
+				return this.filters.outFormats.includes(outFormat);
 			});
 
 		// determine in formats for available out formats
