@@ -4,7 +4,16 @@ function applyTransforms(file, transformNames, options) {
 	const {transformConfigs, transformFunctions} = options;
 	return transformNames.reduce(async (queue, name) => {
 		const config = {...transformConfigs[name], name};
-		const fn = transformFunctions[name] || {};
+
+		if (!(name in transformFunctions)) {
+			const available = Object.keys(transformFunctions).join(', ');
+			const instructions = `Be sure to install "patternplate-transform-${name}" and configure it in ${process.cwd()}configuration/patternplate-server/transforms.js`;
+			const message = `Transform "${name}" is not configured. Configured transforms: ${available}.\n${instructions}`;
+			throw new Error(message);
+		}
+
+		const fn = transformFunctions[name];
+
 		const results = await queue;
 		const file = results[results.length - 1];
 		const result = await applyTransform(fn, file, config);
