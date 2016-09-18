@@ -1,22 +1,36 @@
 import {merge} from 'lodash';
 
 import getPatternRetriever from './utilities/get-pattern-retriever';
+import getPatternSource from './get-pattern-source';
 import layout from '../application/layouts';
 
 export default getPatternDemo;
 
 async function getPatternDemo(application, id, filters, environment) {
-	const [pattern] = await getPatternRetriever(application)(id, filters, environment);
+	const getFile = getPatternSource(application);
+	const [pattern] = await getPatternRetriever(application)(id, filters, environment, ['read']);
 
 	if (!pattern) {
 		return null;
 	}
 
+	const order = ['demo', 'index'];
+
+	const path = Object.values(pattern.files)
+		.sort((a, b) => order.indexOf(a.basename) - order.indexOf(b.basename))
+		.map(file => file.path)[0];
+
+	if (!path) {
+		return null;
+	}
+
+	const content = await getFile(path, 'transformed', environment);
+
 	const {formats} = application.configuration.patterns;
 	const automount = selectAutoMount(application, pattern);
 	const render = getRenderer(formats, automount);
 
-	return render(pattern);
+	return render(content.body, pattern);
 }
 
 function selectAutoMount(a, p) {
@@ -35,13 +49,11 @@ function selectManifestOptions(p) {
 }
 
 function getRenderer(formats, component = false) {
-	return result => {
+	return (content, result) => {
 		const transforms = result.config.transforms;
-		const markupFormat = getFormat(formats, transforms, 'markup');
 		const styleFormat = getFormat(formats, transforms, 'style');
 		const scriptFormat = getFormat(formats, transforms, 'scripts');
 
-		const markupContent = getFileBufferByFormat(result, markupFormat);
 		const styleReference = getUriByFormat(result, styleFormat);
 
 		const scriptCandidates = component ?
@@ -51,7 +63,7 @@ function getRenderer(formats, component = false) {
 		return layout({
 			title: result.id,
 			content: {
-				markup: [{content: markupContent}].filter(i => i.content)
+				markup: [{content}]
 			},
 			reference: {
 				style: [{uri: styleReference}].filter(i => i.uri),
@@ -72,21 +84,6 @@ function getUriByFormat(pattern, format) {
 	const match = outFormats.find(outFormat => outFormat.type === format);
 	if (match) {
 		return `./index.${match.extension}`;
-	}
-
-	return null;
-}
-
-function getFileBufferByFormat(pattern, format) {
-	const results = Object.values(pattern.results);
-	const demoFile = results.find(result => result.name === `demo.${format}`);
-	if (demoFile) {
-		return demoFile.buffer;
-	}
-
-	const indexFile = results.find(result => result.name === `index.${format}`);
-	if (indexFile) {
-		return indexFile.buffer;
 	}
 
 	return null;
