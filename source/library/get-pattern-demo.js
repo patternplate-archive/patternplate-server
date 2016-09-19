@@ -52,7 +52,7 @@ function getRenderer(formats, component = false) {
 	return (content, result) => {
 		const transforms = result.config.transforms;
 		const styleFormat = getFormat(formats, transforms, 'style');
-		const scriptFormat = getFormat(formats, transforms, 'scripts');
+		const scriptFormat = getFormat(formats, transforms, 'script');
 
 		const styleReference = getUriByFormat(result, styleFormat);
 
