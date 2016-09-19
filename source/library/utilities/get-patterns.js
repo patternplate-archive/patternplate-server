@@ -62,7 +62,7 @@ async function getPatterns(options, cache, cmds = ['read', 'transform']) {
 	// read and transform patterns at a concurrency of 5
 	return await Promise.all(patternIDs.map(throat(5, async patternID => {
 		// try to use the static cache
-		const cached = cache && cache.config.static ?
+		const cached = cache.config.static ?
 			await getStaticCacheItem({
 				id: patternID,
 				base: staticCacheRoot,
@@ -99,7 +99,6 @@ async function getPatterns(options, cache, cmds = ['read', 'transform']) {
 
 		// merge environment configs
 		// fall back to default environment if none is matching
-		// TODO: should move to getEnvironments
 		const environmentsConfig = matchingEnvironments
 			.reduce((results, environmentConfig) => {
 				const {environment} = environmentConfig;

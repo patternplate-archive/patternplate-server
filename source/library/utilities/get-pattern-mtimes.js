@@ -1,4 +1,4 @@
-import {dirname, basename, resolve} from 'path';
+import {basename, dirname, extname, resolve} from 'path';
 import {readFile, stat} from 'mz/fs';
 import {find} from 'lodash';
 import {pathToId} from 'patternplate-transforms-core';
@@ -51,6 +51,26 @@ function getDependencyMtimes(pattern, patterns) {
 		}, []);
 }
 
+function isPatternJson(filePath) {
+	return basename(filePath) === 'pattern.json';
+}
+
+function getFilter(filters = {}) {
+	const inFormats = Array.isArray(filters.inFormats) ? filters.inFormats : [];
+	const baseNames = Array.isArray(filters.baseNames) ? filters.baseNames : [];
+
+	const filterByInFormat = inFormats.length ?
+		filePath => inFormats.includes(extname(filePath).slice(1)) :
+		filePath => filePath;
+
+	const filterByBasename = baseNames.length ?
+		filePath => inFormats.includes(extname(filePath).slice(1)) :
+		filePath => filePath;
+
+	return filePath => isPatternJson(filePath) ||
+		(filterByBasename(filePath) && filterByInFormat(filePath));
+}
+
 const defaults = {
 	resolveDependencies: false
 };
@@ -58,6 +78,7 @@ const defaults = {
 async function getPatternMtimes(search, options) {
 	const paths = await readTree(search);
 	const settings = {...defaults, ...options};
+	const filter = getFilter(settings.filters);
 
 	const items = paths
 		.filter(item => basename(item) === 'pattern.json')
@@ -74,9 +95,12 @@ async function getPatternMtimes(search, options) {
 		const mtimes = await getPatternFilesMtime(await item.files);
 		const mtime = await getLatestMtime(mtimes);
 
+		const files = (await item.files)
+			.filter(filter);
+
 		return {
 			...item,
-			files: await item.files,
+			files,
 			mtime,
 			mtimes
 		};
@@ -84,17 +108,23 @@ async function getPatternMtimes(search, options) {
 
 	const readPatterns = await Promise.all(readTasks);
 
-	return await Promise.all(readPatterns.map(async readPattern => {
-		readPattern.manifest = await readPattern.manifest;
-		const dependencyMtimes = settings.resolveDependencies ?
-			getDependencyMtimes(readPattern, readPatterns) :
-			[];
+	const measurePatterns = readPatterns
+		.filter(readPattern => {
+			return readPattern.files.length > 1;
+		})
+		.map(async readPattern => {
+			readPattern.manifest = await readPattern.manifest;
+			const dependencyMtimes = settings.resolveDependencies ?
+				getDependencyMtimes(readPattern, readPatterns) :
+				[];
 
-		const mtime = getLatestMtime([readPattern.mtime, ...dependencyMtimes]);
+			const mtime = getLatestMtime([readPattern.mtime, ...dependencyMtimes]);
 
-		readPattern.mtime = mtime;
-		return readPattern;
-	}));
+			readPattern.mtime = mtime;
+			return readPattern;
+		});
+
+	return await Promise.all(measurePatterns);
 }
 
 export default getPatternMtimes;

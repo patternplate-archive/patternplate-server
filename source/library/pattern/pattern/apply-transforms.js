@@ -2,6 +2,7 @@ export default applyTransforms;
 
 function applyTransforms(file, transformNames, options) {
 	const {transformConfigs, transformFunctions} = options;
+
 	return transformNames.reduce(async (queue, name) => {
 		const config = {...transformConfigs[name], name};
 

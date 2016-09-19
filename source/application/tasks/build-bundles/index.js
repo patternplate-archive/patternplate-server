@@ -10,55 +10,73 @@ import throat from 'throat';
 import getEnvironments from '../../../library/utilities/get-environments';
 import getPatternMtimes from '../../../library/utilities/get-pattern-mtimes';
 import getPatterns from '../../../library/utilities/get-patterns';
-import git from '../../../library/utilities/git';
 import writeSafe from '../../../library/filesystem/write-safe';
+import {loadTransforms} from '../../../library/transforms';
+
+/*
+import {resolve} from 'path';
+
+import exists from 'path-exists';
+
+import copyDirectory from '../../../library/filesystem/copy-directory';
+import makeDirectory from '../../../library/filesystem/make-directory';
+import {ok, wait, warn} from '../../../library/log/decorations';
+
+export default async application => {
+	const cwd = application.runtime.patterncwd || application.runtime.cwd;
+	const staticRoot = resolve(cwd, 'static');
+	const assetRoot = resolve(cwd, 'assets');
+
+	const buildRoot = resolve(cwd, 'build');
+	const buildDirectory = resolve(buildRoot, `build-bundles`);
+	const patternBuildDirectory = resolve(buildDirectory, 'patterns');
+
+	if (await exists(staticRoot)) {
+		const staticTarget = resolve(patternBuildDirectory, 'static');
+		application.log.info(wait`Copying asset files from "${assetRoot}" to ${staticTarget}`);
+		await makeDirectory(staticTarget);
+		await copyDirectory(staticRoot, staticTarget);
+		application.log.info(ok`Copied asset files`);
+	} else {
+		application.log.warn(warn`No asset files at "${staticRoot}"`);
+	}
+};
+*/
 
 export default async (application, settings) => {
+	if (!settings) {
+		throw new Error('build-bundles is not configured in .tasks');
+	}
+
+	if (!settings.patterns) {
+		throw new Error('build-bundles dependens on valid patterns config');
+	}
+
+	if (!settings.transforms) {
+		throw new Error('build-bundles dependens on valid transfoms config');
+	}
+
 	const debug = debuglog('bundles');
 	const spinner = ora().start();
 
 	debug('calling bundles with');
 	debug(settings);
 
-	application.configuration = merge(
-		{},
-		application.configuration,
-		application.configuration.build.bundles
-	);
-
-	const cwd = application.runtime.patterncwd || application.runtime.cwd;
-	const pkg = require(path.resolve(cwd, 'package.json'));
-	const revision = await git.short();
-	const version = pkg.version;
-	const environment = application.runtime.env;
-	const patternHook = application.hooks.filter(hook => hook.name === 'patterns')[0];
-	const base = path.resolve(cwd, patternHook.configuration.path);
-	const buildBase = path.resolve(
-		cwd,
-		application.configuration.build.bundles.target,
-		`build-v${version}-${environment}-${revision}`
-	);
+	const cwd = process.cwd();
+	const base = path.resolve(cwd, 'patterns');
+	const buildBase = path.resolve(cwd, 'build', `build-bundles`);
 
 	const {
 		cache, log, transforms,
 		pattern: {factory}
 	} = application;
 
-	// Get applicable filters
-	const {filters: confFilters} = application.configuration;
+	// Override pattern config
+	application.configuration.patterns = settings.patterns;
 
-	// Reconfigure the cache
-	application.cache.config = merge({},
-		application.cache.config,
-		application.configuration.patterns.cache
-	);
-
-	// Update formats to the current buildFormats (this is required to e.g. reduce transformers for build)
-	for (const name of Object.keys(application.configuration.build.bundles.patterns.formats || {})) {
-		const present = application.configuration.patterns.formats[name] || {};
-		const override = application.configuration.build.bundles.patterns.formats[name] || {};
-		present.transforms = override.transforms ? override.transforms : present.transforms;
-	}
+	// Reinitialize transforms
+	application.configuration.transforms = settings.transforms || {};
+	application.transforms = (await loadTransforms(settings.transforms || {}))(application);
 
 	const warnings = [];
 	const warn = application.log.warn;
@@ -108,8 +126,8 @@ export default async (application, settings) => {
 			const config = merge(
 				{},
 				{
-					patterns: application.configuration.patterns,
-					transforms: application.configuration.transforms
+					patterns: settings.patterns,
+					transforms: settings.transforms
 				},
 				envConfig,
 				{
@@ -117,7 +135,10 @@ export default async (application, settings) => {
 				}
 			);
 
-			const filters = merge({}, confFilters, {inFormats: envFormats, environments: [environment.name]});
+			const filters = merge({}, settings.filters, {
+				inFormats: envFormats,
+				environments: [environment.name]
+			});
 			let read = 0;
 
 			// build all patterns matching the include config

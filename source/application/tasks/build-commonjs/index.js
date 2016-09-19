@@ -6,7 +6,8 @@ import {resolve, join, dirname, extname, relative} from 'path';
 import {readFile as readFileNodeback} from 'fs';
 
 import boxen from 'boxen';
-import {find, flatten, omit, merge, uniq} from 'lodash';
+import {find, flatten, omit, uniq} from 'lodash';
+import {padEnd} from 'lodash/fp';
 import throat from 'throat';
 import chalk from 'chalk';
 import exists from 'path-exists';
@@ -14,7 +15,7 @@ import coreModuleNames from 'node-core-module-names';
 import {resolvePathFormatString} from 'patternplate-transforms-core';
 import ora from 'ora';
 
-import {deprecation, ok, wait, ready} from '../../../library/log/decorations';
+import {ok, wait, ready} from '../../../library/log/decorations';
 import copyDirectory from '../../../library/filesystem/copy-directory';
 import removeFile from '../../../library/filesystem/remove-file';
 import writeSafe from '../../../library/filesystem/write-safe';
@@ -24,23 +25,25 @@ import getPatterns from '../../../library/utilities/get-patterns';
 import getPatternMtimes from '../../../library/utilities/get-pattern-mtimes';
 import getPatternsToBuild from '../../../library/utilities/get-patterns-to-build';
 import getPackageString from './get-package-string';
+import {loadTransforms} from '../../../library/transforms';
 
 const pkg = require(resolve(process.cwd(), 'package.json'));
 const readFile = denodeify(readFileNodeback);
+const pathFormatString = '%(outputName)s/%(patternId)s/index.%(extension)s';
 
 async function exportAsCommonjs(application, settings) {
-	const spinner = ora().start();
+	let spinner = ora().start();
 	const debug = debuglog('commonjs');
 	debug('calling commonjs with');
 	debug(settings);
 
 	const cwd = application.runtime.patterncwd || application.runtime.cwd;
 
-	const patternHook = application.hooks.filter(hook => hook.name === 'patterns')[0];
-	const patternRoot = resolve(cwd, patternHook.configuration.path);
+	const patternRoot = resolve(cwd, 'patterns');
 	const staticRoot = resolve(cwd, 'static');
-	const commonjsRoot = resolve(cwd, 'distribution');
+	const commonjsRoot = resolve(cwd, 'build', 'build-commonjs');
 	const manifestPath = resolve(commonjsRoot, 'package.json');
+	const filters = {...settings.filters, baseNames: ['index']};
 
 	const warnings = [];
 	const warn = application.log.warn;
@@ -52,44 +55,25 @@ async function exportAsCommonjs(application, settings) {
 		warn(...args);
 	};
 
-	if (application.configuration.commonjs) {
-		application.log.warn(deprecation`The 'patternplate-server.configuration.commonjs' key moved to 'patternplate-server.configuration.build.commonjs' and is deprecated.`);
-	}
+	// Override pattern config
+	application.configuration.patterns = settings.patterns;
 
-	const config = merge(
-		{},
-		application.configuration.commonjs,
-		application.configuration.build.commonjs
-	);
-
-	application.configuration = merge({},
-		application.configuration,
-		config
-	);
-
-	// Reconfigure the cache
-	application.cache.config = merge({},
-		application.cache.config,
-		application.configuration.patterns.cache
-	);
-
-	// Update formats to the current buildFormats (this is required to e.g. reduce transformers for build)
-	for (const name of Object.keys(config.patterns.formats || {})) {
-		const present = application.configuration.patterns.formats[name] || {};
-		const override = config.patterns.formats[name] || {};
-		present.transforms = override.transforms ? override.transforms : present.transforms;
-	}
+	// Reinitialize transforms
+	application.configuration.transforms = settings.transforms || {};
+	application.transforms = (await loadTransforms(settings.transforms || {}))(application);
 
 	// start reading pattern mtimes, ignore dependencies
 	const mtimesStart = new Date();
 	application.log.debug(wait`Obtaining pattern modification times`);
+
 	const readingPatternMtimes = getPatternMtimes('./patterns', {
-		resolveDependencies: false
+		resolveDependencies: false,
+		filters
 	});
 
 	// start reading artifact mtimes
 	const artifactMtimesStart = new Date();
-	const readingArtifactMtimes = getArtifactMtimes('./', application.configuration.patterns);
+	const readingArtifactMtimes = getArtifactMtimes(commonjsRoot, application.configuration.patterns);
 
 	// wait for all mtimes to trickle in
 	const patternMtimes = await readingPatternMtimes;
@@ -106,11 +90,14 @@ async function exportAsCommonjs(application, settings) {
 	const selectionStart = new Date();
 	application.log.debug(wait`Calculating pattern collection to build`);
 
+	let buildCount = 1;
 	const patternsToBuild = hasManifest ?
 		patternMtimes
 			.filter(getPatternsToBuild(artifactMtimes, application.configuration.patterns))
 			.sort((a, b) => b.mtime.getTime() - a.mtime.getTime()) :
 		patternMtimes;
+	const padMaxBuild = padEnd(patternsToBuild.map(pattern => pattern.id.length)
+		.reduce((a, b) => a > b ? a : b, 0) + 1);
 
 	if (hasManifest) {
 		application.log.debug(ok`Calculated pattern collection to build ${selectionStart}`);
@@ -119,17 +106,46 @@ async function exportAsCommonjs(application, settings) {
 		application.log.debug(ok`No manifest at ${commonjsRoot}, building all ${patternMtimes.length} patterns`);
 	}
 
-	let buildCount = 1;
+	const pruneDetectionStart = new Date();
+	application.log.debug(wait`Searching for artifacts to prune`);
+
+	let pruneCount = 1;
+	const artifactsToPrune = getArtifactsToPrune(commonjsRoot, patternMtimes, artifactMtimes, {
+		resolve: pathFormatString,
+		formats: settings.patterns.formats,
+		transforms: settings.transforms
+	});
+	const padMaxPrune = padEnd(artifactsToPrune.map(artifact => artifact.length)
+		.reduce((a, b) => a > b ? a : b, 0) + 1);
+
+	application.log.debug(ok`Detected ${artifactsToPrune.length} artifacts to prune ${pruneDetectionStart}`);
+
+	const pruneStart = new Date();
+	application.log.debug(wait`Pruning ${artifactsToPrune.length} artifacts`);
+
+	const pruning = Promise.all(artifactsToPrune.map(throat(1, async path => {
+		if (settings['dry-run']) {
+			return Promise.resolve();
+		}
+		spinner.text = `prune ${padMaxPrune(path)} ${pruneCount}/${artifactsToPrune.length}`;
+		await removeFile(dirname(path));
+		pruneCount += 1;
+	})));
+
+	const pruned = await pruning;
+	application.log.debug(ready`Pruned ${pruned.length} artifact files ${pruneStart}`);
+
+	spinner.text = `${pruned.length}/${artifactsToPrune.length} pruned`;
+	spinner.succeed();
+	spinner.stop();
+
+	spinner = ora().start();
 
 	// build patterns in parallel
 	const buildStart = new Date();
-	const building = Promise.all(patternsToBuild.map(throat(5, async pattern => {
-		spinner.text = `${pattern.id} ${buildCount}/${patternsToBuild.length}`;
-		buildCount += 1;
+	const building = Promise.all(patternsToBuild.map(throat(1, async pattern => {
 		const filterStart = new Date();
 		application.log.debug(wait`Checking for files of ${pattern.id} to exclude from transform.`);
-
-		const filters = {...application.configuration.filters};
 		let changedFiles = [];
 
 		// enhance filters config to build only files that are modified
@@ -162,7 +178,7 @@ async function exportAsCommonjs(application, settings) {
 				const lastTransform = application.configuration.transforms[lastTransformName] || {};
 				const targetExtension = lastTransform.outFormat || formatKey;
 				const targetFile = resolvePathFormatString(
-					config.resolve,
+					pathFormatString,
 					pattern.id,
 					format.name,
 					targetExtension
@@ -196,6 +212,9 @@ async function exportAsCommonjs(application, settings) {
 		const transformStart = new Date();
 		application.log.debug(wait`Transforming pattern ${pattern.id}`);
 
+		spinner.text = `build ${padMaxBuild(pattern.id)} ${buildCount}/${patternsToBuild.length}`;
+		buildCount += 1;
+
 		// obtain transformed pattern by id
 		const patternList = await getPatterns({
 			id: pattern.id,
@@ -214,10 +233,6 @@ async function exportAsCommonjs(application, settings) {
 
 		// Write results to disk
 		const writingArtifacts = Promise.all(patternList.map(async patternItem => {
-			// Read pathFormatString from matching transform config for now,
-			// will be fed from pattern result meta information when we approach the new transform system
-			const pathFormatString = application.configuration.resolve;
-
 			const writingPatternItems = Promise.all(
 					Object.entries(patternItem.results)
 						.map(async resultsEntry => {
@@ -236,32 +251,19 @@ async function exportAsCommonjs(application, settings) {
 
 		const written = await writingArtifacts;
 		application.log.debug(ok`Wrote ${written.length} artifacts for ${pattern.id} ${writeStart}`);
-		spinner.succeed();
 		return patternList;
 	})));
 
-	const pruneDetectionStart = new Date();
-	application.log.debug(wait`Searching for artifacts to prune`);
-	const artifactsToPrune = getArtifactsToPrune(
-		patternMtimes,
-		artifactMtimes,
-		application.configuration);
+	const built = await building;
+	application.log.debug(ready`Built ${built.length} from ${patternsToBuild.length} planned and ${patternMtimes.length} artifacts overall ${buildStart}`);
 
-	application.log.debug(ok`Detected ${artifactsToPrune.length} artifacts to prune ${pruneDetectionStart}`);
-
-	const pruneStart = new Date();
-	application.log.debug(wait`Pruning ${artifactsToPrune.length} artifacts`);
-	const pruning = Promise.all(artifactsToPrune.map(path => {
-		// for now we can assume the whole folder has to be nixed
-		if (settings['dry-run']) {
-			return Promise.resolve();
-		}
-		return removeFile(dirname(path));
-	}));
+	spinner.text = `${built.length}/${patternsToBuild.length} built`;
+	spinner.succeed();
 
 	if (settings['dry-run']) {
 		await building;
-		application.log.debug(ready`Dry-run executed successfully ${buildStart}`);
+		spinner.text = `Dry-run executed successfully ${buildStart}`;
+		spinner.succeed();
 		return;
 	}
 
@@ -272,16 +274,6 @@ async function exportAsCommonjs(application, settings) {
 	const copied = await copying;
 	application.log.debug(ready`Copied ${copied.length} static files. ${copyStart}`);
 	spinner.text = `static files copied`;
-	spinner.succeed();
-
-	const pruned = await pruning;
-	application.log.debug(ready`Pruned ${pruned.length} artifact files ${pruneStart}`);
-	spinner.text = `${pruned.length} pruned`;
-	spinner.succeed();
-
-	const built = await building;
-	application.log.debug(ready`Built ${built.length} from ${patternsToBuild.length} planned and ${patternMtimes.length} artifacts overall ${buildStart}`);
-	spinner.text = `${built.length}/${patternsToBuild.length} built`;
 	spinner.succeed();
 
 	if (built.length > 0) {
@@ -324,17 +316,17 @@ async function exportAsCommonjs(application, settings) {
 			getPackageString(
 				omit(
 					dependencies,
-					[...(config.ignoredDependencies || []), coreModuleNames]
+					[...(settings.ignoredDependencies || []), coreModuleNames]
 				),
 				previousPkg,
 				{
 					devDependencies: omit(
 						devDependencies,
-						[...(config.ignoredDevDependencies || []), coreModuleNames, ...Object.keys(dependencies)]
+						[...(settings.ignoredDevDependencies || []), coreModuleNames, ...Object.keys(dependencies)]
 					)
 				},
 			omit(pkg, ['dependencies', 'devDependencies', 'scripts', 'config', 'main']),
-			config.pkg
+			settings.pkg
 			)
 		);
 

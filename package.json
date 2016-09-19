@@ -81,7 +81,6 @@
     "ensure-array": "0.0.5",
     "find-and-read-package-json": "^1.0.0",
     "find-root": "^0.1.1",
-    "git-rev": "^0.2.1",
     "hotswap": "^1.1.0",
     "koa-cors": "0.0.16",
     "lodash": "^4.15.0",

@@ -1,4 +1,3 @@
 export default {
-	read: true,
-	static: false
+	read: true
 };

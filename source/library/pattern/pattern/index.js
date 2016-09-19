@@ -13,11 +13,11 @@ import constructFileDependencies from './construct-file-dependencies';
 import fauxCache from './faux-cache';
 import fauxLog from './faux-log';
 import getDependenciesToRead from './get-dependencies-to-read';
-import getPatternManifests from '../../../../library/utilities/get-pattern-manifests';
+import getPatternManifests from '../../utilities/get-pattern-manifests';
 import getPatternManifestsData from './get-pattern-manifest-data';
-import getReadFile from '../../../../library/filesystem/read-file';
+import getReadFile from '../../filesystem/read-file';
 import getTransform from './get-transform';
-import readDirectory from '../../../../library/filesystem/read-directory';
+import readDirectory from '../../filesystem/read-directory';
 import toString from './to-string';
 
 const defaultFilters = {environments: [], inFormats: [], outFormats: []};
@@ -318,6 +318,7 @@ export class Pattern {
 			};
 
 			const dependencies = constructFileDependencies(this.dependencies, [`index${data.ext}`]);
+
 			return {
 				...data,
 				dependencies

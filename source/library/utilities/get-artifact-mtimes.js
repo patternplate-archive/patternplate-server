@@ -7,13 +7,13 @@ import readTree from '../filesystem/read-tree';
 
 export default async function getArtifactMtimes(search, patterns) {
 	const debug = debuglog('artifact-mtimes');
-	const distributionDirectory = resolve(search, 'distribution');
+	const distributionDirectory = resolve(search);
 
 	const types = Object.keys(patterns.formats)
 		.map(extension => patterns.formats[extension].name);
 
 	const typedFiles = await Promise.all([...new Set(types)].map(async type => {
-		const files = await readTree(resolve(search, 'distribution', type));
+		const files = await readTree(resolve(search, type));
 		return files.filter(path => extname(path));
 	}));
 
