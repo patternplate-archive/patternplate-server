@@ -54,7 +54,7 @@ export default async (application, settings) => {
 	);
 
 	// Update formats to the current buildFormats (this is required to e.g. reduce transformers for build)
-	for (const name of Object.keys(application.configuration.build.bundles.patterns.formats)) {
+	for (const name of Object.keys(application.configuration.build.bundles.patterns.formats || {})) {
 		const present = application.configuration.patterns.formats[name] || {};
 		const override = application.configuration.build.bundles.patterns.formats[name] || {};
 		present.transforms = override.transforms ? override.transforms : present.transforms;
