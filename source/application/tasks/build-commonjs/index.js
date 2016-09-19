@@ -26,6 +26,7 @@ import getPatternMtimes from '../../../library/utilities/get-pattern-mtimes';
 import getPatternsToBuild from '../../../library/utilities/get-patterns-to-build';
 import getPackageString from './get-package-string';
 import {loadTransforms} from '../../../library/transforms';
+import {normalizeFormats} from '../../../library/pattern';
 
 const pkg = require(resolve(process.cwd(), 'package.json'));
 const readFile = denodeify(readFileNodeback);
@@ -56,6 +57,7 @@ async function exportAsCommonjs(application, settings) {
 	};
 
 	// Override pattern config
+	settings.patterns.formats = normalizeFormats(settings.patterns.formats);
 	application.configuration.patterns = settings.patterns;
 
 	// Reinitialize transforms
