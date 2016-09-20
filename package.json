@@ -69,7 +69,6 @@
     "npm": ">= 2.5.1"
   },
   "dependencies": {
-    "archiver": "^0.14.4",
     "arson": "^0.2.3",
     "babel-polyfill": "^6.5.0",
     "babel-runtime": "^5.8.24",
