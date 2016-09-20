@@ -61,5 +61,3 @@ export default function patternRouteFactory(application) {
 		this.body = data;
 	};
 }
-
-module.change_code = 1;

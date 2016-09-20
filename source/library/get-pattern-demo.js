@@ -8,6 +8,8 @@ export default getPatternDemo;
 
 async function getPatternDemo(application, id, filters, environment) {
 	const getFile = getPatternSource(application);
+	filters.outFormats = ['html'];
+
 	const [pattern] = await getPatternRetriever(application)(id, filters, environment, ['read']);
 
 	if (!pattern) {
