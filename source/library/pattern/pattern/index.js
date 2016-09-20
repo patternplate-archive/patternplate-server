@@ -32,23 +32,23 @@ export class Pattern {
 		});
 	}
 
-	inject(args) {
-		inject(...[this, ...args]);
+	inject(manifest, patterns) {
+		inject(this, manifest, patterns);
 		return this;
 	}
 
 	async read(path = this.path) {
-		await read(...[this, path]);
+		await read(this, path);
 		return this;
 	}
 
 	async readManifest(path = this.path) {
-		await readManifest(...[this, path]);
+		await readManifest(this, path);
 		return this;
 	}
 
-	async transform(...args) {
-		await transform(...[this, ...args]);
+	async transform() {
+		await transform(this);
 		return this;
 	}
 }
