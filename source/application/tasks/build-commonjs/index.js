@@ -16,23 +16,23 @@ import {resolvePathFormatString} from 'patternplate-transforms-core';
 import ora from 'ora';
 
 import {ok, wait, ready} from '../../../library/log/decorations';
-import copyDirectory from '../../../library/filesystem/copy-directory';
-import removeFile from '../../../library/filesystem/remove-file';
-import writeSafe from '../../../library/filesystem/write-safe';
-import getArtifactMtimes from '../../../library/utilities/get-artifact-mtimes';
-import getArtifactsToPrune from '../../../library/utilities/get-artifacts-to-prune';
-import getPatterns from '../../../library/utilities/get-patterns';
-import getPatternMtimes from '../../../library/utilities/get-pattern-mtimes';
-import getPatternsToBuild from '../../../library/utilities/get-patterns-to-build';
-import getPackageString from './get-package-string';
 import {loadTransforms} from '../../../library/transforms';
 import {normalizeFormats} from '../../../library/pattern';
+import copyStatic from '../common/copy-static';
+import getArtifactMtimes from '../../../library/utilities/get-artifact-mtimes';
+import getArtifactsToPrune from '../../../library/utilities/get-artifacts-to-prune';
+import getPackageString from './get-package-string';
+import getPatternMtimes from '../../../library/utilities/get-pattern-mtimes';
+import getPatterns from '../../../library/utilities/get-patterns';
+import getPatternsToBuild from '../../../library/utilities/get-patterns-to-build';
+import removeFile from '../../../library/filesystem/remove-file';
+import writeSafe from '../../../library/filesystem/write-safe';
 
 const pkg = require(resolve(process.cwd(), 'package.json'));
 const readFile = denodeify(readFileNodeback);
 const pathFormatString = '%(outputName)s/%(patternId)s/index.%(extension)s';
 
-async function exportAsCommonjs(application, settings) {
+async function exportAsCommonjs(application, settings, args) {
 	let spinner = ora().start();
 	const debug = debuglog('commonjs');
 	debug('calling commonjs with');
@@ -41,7 +41,6 @@ async function exportAsCommonjs(application, settings) {
 	const cwd = application.runtime.patterncwd || application.runtime.cwd;
 
 	const patternRoot = resolve(cwd, 'patterns');
-	const staticRoot = resolve(cwd, 'static');
 	const commonjsRoot = resolve(cwd, 'build', 'build-commonjs');
 	const manifestPath = resolve(commonjsRoot, 'package.json');
 	const filters = {...settings.filters, baseNames: ['index']};
@@ -98,6 +97,7 @@ async function exportAsCommonjs(application, settings) {
 			.filter(getPatternsToBuild(artifactMtimes, application.configuration.patterns))
 			.sort((a, b) => b.mtime.getTime() - a.mtime.getTime()) :
 		patternMtimes;
+
 	const padMaxBuild = padEnd(patternsToBuild.map(pattern => pattern.id.length)
 		.reduce((a, b) => a > b ? a : b, 0) + 1);
 
@@ -271,10 +271,8 @@ async function exportAsCommonjs(application, settings) {
 
 	const copyStart = new Date();
 	application.log.debug(wait`Copying static files`);
-	const copying = copyDirectory(staticRoot, resolve(commonjsRoot, 'static'));
-
-	const copied = await copying;
-	application.log.debug(ready`Copied ${copied.length} static files. ${copyStart}`);
+	await copyStatic(cwd, commonjsRoot);
+	application.log.debug(ready`Copied static files. ${copyStart}`);
 	spinner.text = `static files copied`;
 	spinner.succeed();
 

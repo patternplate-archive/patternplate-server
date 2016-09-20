@@ -8,44 +8,15 @@ import minimatch from 'minimatch';
 import ora from 'ora';
 import throat from 'throat';
 
+import {loadTransforms} from '../../../library/transforms';
+import {normalizeFormats} from '../../../library/pattern';
+import copyStatic from '../common/copy-static';
 import getEnvironments from '../../../library/utilities/get-environments';
 import getPatternMtimes from '../../../library/utilities/get-pattern-mtimes';
 import getPatterns from '../../../library/utilities/get-patterns';
 import writeSafe from '../../../library/filesystem/write-safe';
-import {loadTransforms} from '../../../library/transforms';
-import {normalizeFormats} from '../../../library/pattern';
 
-/*
-import {resolve} from 'path';
-
-import exists from 'path-exists';
-
-import copyDirectory from '../../../library/filesystem/copy-directory';
-import makeDirectory from '../../../library/filesystem/make-directory';
-import {ok, wait, warn} from '../../../library/log/decorations';
-
-export default async application => {
-	const cwd = application.runtime.patterncwd || application.runtime.cwd;
-	const staticRoot = resolve(cwd, 'static');
-	const assetRoot = resolve(cwd, 'assets');
-
-	const buildRoot = resolve(cwd, 'build');
-	const buildDirectory = resolve(buildRoot, `build-bundles`);
-	const patternBuildDirectory = resolve(buildDirectory, 'patterns');
-
-	if (await exists(staticRoot)) {
-		const staticTarget = resolve(patternBuildDirectory, 'static');
-		application.log.info(wait`Copying asset files from "${assetRoot}" to ${staticTarget}`);
-		await makeDirectory(staticTarget);
-		await copyDirectory(staticRoot, staticTarget);
-		application.log.info(ok`Copied asset files`);
-	} else {
-		application.log.warn(warn`No asset files at "${staticRoot}"`);
-	}
-};
-*/
-
-export default async (application, settings) => {
+export default async (application, settings, args) => {
 	if (!settings) {
 		throw new Error('build-bundles is not configured in .tasks');
 	}
@@ -58,8 +29,10 @@ export default async (application, settings) => {
 		throw new Error('build-bundles dependens on valid transfoms config');
 	}
 
+	const filterEnvironments = settings.env ? env => settings.env.includes(env.name) : () => true;
+
 	const debug = debuglog('bundles');
-	const spinner = ora().start();
+	const spinner = args.command ? {stop() {}, text: '', succeed() {}} : ora().start();
 
 	debug('calling bundles with');
 	debug(settings);
@@ -98,10 +71,17 @@ export default async (application, settings) => {
 	});
 
 	// Environments have to apply on all patterns
-	const environments = loadedEnvironments.map(environment => {
-		environment.applyTo = '**/*';
-		return environment;
-	});
+	const environments = loadedEnvironments
+		.filter(filterEnvironments)
+		.map(environment => {
+			environment.applyTo = '**/*';
+			return environment;
+		});
+
+	if (args.command === 'list') {
+		environments.forEach(env => console.log(`${env.name}`));
+		return;
+	}
 
 	// Get available patterns
 	const availablePatterns = await getPatternMtimes(base, {
@@ -226,7 +206,12 @@ export default async (application, settings) => {
 		}
 	)));
 
-	spinner.stop();
+	const copySpinner = ora().start();
+	copySpinner.text = `copying static files`;
+	await copyStatic(cwd, buildBase);
+	copySpinner.text = `copied static files`;
+	copySpinner.succeed();
+	copySpinner.stop();
 
 	const messages = uniq(warnings)
 		.map(warning => warning.join(' '));
