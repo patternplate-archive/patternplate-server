@@ -42,7 +42,7 @@ function getPatternSource(application) {
 		}
 
 		// fall back to in format
-		const outFormatName = transform.outFormat || inFormatName;
+		const outFormatName = (transform || {}).outFormat || inFormatName;
 
 		const filters = {
 			baseNames: [concern],
