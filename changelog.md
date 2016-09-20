@@ -1,3 +1,26 @@
+<a name="1.0.0-beta3"></a>
+# [1.0.0-beta3](https://github.com/sinnerschrader/patternplate-server/compare/v1.0.0-beta2...v1.0.0-beta3) (2016-09-20)
+
+
+### Bug Fixes
+
+* correct type access key ([57523c4](https://github.com/sinnerschrader/patternplate-server/commit/57523c4))
+* correctly select outFormats based on formats[ext].transforms ([d27e594](https://github.com/sinnerschrader/patternplate-server/commit/d27e594))
+* ensure correct format for files used by get-pattern-demo ([df8d4a8](https://github.com/sinnerschrader/patternplate-server/commit/df8d4a8))
+* fall back to informat if possible ([dd41496](https://github.com/sinnerschrader/patternplate-server/commit/dd41496))
+* harden prop lookup ([df86287](https://github.com/sinnerschrader/patternplate-server/commit/df86287))
+* harden tasks against missing config ([0e825a0](https://github.com/sinnerschrader/patternplate-server/commit/0e825a0))
+* normalize pattern.formats[ext] ([3f5531a](https://github.com/sinnerschrader/patternplate-server/commit/3f5531a))
+* speed up getPatternDemo by transforming only one file ([7b2f1ea](https://github.com/sinnerschrader/patternplate-server/commit/7b2f1ea))
+
+
+### Features
+
+* expose pattern.use ([a323eca](https://github.com/sinnerschrader/patternplate-server/commit/a323eca))
+* simplify outFormat => format matching for demos ([0627682](https://github.com/sinnerschrader/patternplate-server/commit/0627682))
+
+
+
 <a name="0.17.5"></a>
 ## [0.17.5](https://github.com/sinnerschrader/patternplate-server/compare/v0.17.4...v0.17.5) (2016-07-26)
 
