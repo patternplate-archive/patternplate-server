@@ -1,5 +1,6 @@
 import path from 'path';
 import chalk from 'chalk';
+import {uniq} from 'lodash';
 import mzFs from 'mz/fs';
 import throat from 'throat';
 import constructFileDependencies from './construct-file-dependencies';
@@ -20,7 +21,11 @@ async function read(pattern, subPath) {
 	// use filter, use all formats if none given
 	const inFormats = pattern.filters.inFormats.length > 0 ?
 		pattern.filters.inFormats :
-		Object.keys(pattern.config.patterns.formats);
+		uniq(Object.keys(pattern.config.patterns.formats));
+
+	const filterOutFormats = pattern.filters.outFormats.length ?
+		outFormat => pattern.filters.outFormats.includes(outFormat) :
+		() => true;
 
 	// determine available requested out formats
 	const outFormats = inFormats
@@ -37,15 +42,15 @@ async function read(pattern, subPath) {
 				.map(transformName => [transformName, pattern.config.transforms[transformName] || {}])
 				.map(entry => entry[1].outFormat || entry[0]);
 
-			result.push(transformOutFormats[transformOutFormats.length - 1]);
+			const formatName = transformOutFormats[transformOutFormats.length - 1];
+
+			if (!result.includes(formatName)) {
+				result.push(formatName);
+			}
+
 			return result;
 		}, [])
-		.filter(outFormat => {
-			if (pattern.filters.outFormats.length === 0) {
-				return true;
-			}
-			return pattern.filters.outFormats.includes(outFormat);
-		});
+		.filter(filterOutFormats);
 
 	// determine in formats for available out formats
 	const inOutFormats = outFormats
@@ -106,9 +111,13 @@ async function read(pattern, subPath) {
 	pattern.outFormats = out;
 	pattern.inFormats = inFormats;
 
+	const filterFiles = filteredFormats.length ?
+		file => filteredFormats.includes(path.extname(file).slice(1)) :
+		() => true;
+
 	// get the files matching our current filter
 	const matchingFiles = files
-		.filter(file => filteredFormats.indexOf(path.extname(file).slice(1)) > -1)
+		.filter(filterFiles)
 		.map(file => path.resolve(pattern.base, pattern.id, file));
 
 	const matchingFilesList = chalk.grey(`[${matchingFiles.map(file => path.basename(file))}]`);
@@ -176,8 +185,16 @@ async function read(pattern, subPath) {
 		return {...results, [data.name]: data};
 	}, {});
 
+	// expose which file to use for rendering
+	const basenames = matchingFiles.map(matchingFile => rump(matchingFile));
+	pattern.use = basenames.includes('demo') ? ['demo'] : ['index'];
+
 	// read last-modified
 	const readDuration = chalk.grey(`[${new Date() - readStart}ms]`);
 	pattern.log.silly(`Read files for ${pattern.id}. ${readDuration}`);
 	return pattern;
+}
+
+function rump(filePath) {
+	return path.basename(filePath, path.extname(filePath));
 }

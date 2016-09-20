@@ -11,13 +11,13 @@ async function getPatternMetaData(application, id, env = 'index') {
 	const {manifest} = data;
 
 	return {
-		id: data.id,
 		base: data.base,
 		dependencies: omit(data.dependencies, ['Pattern']),
 		dependents: manifest.dependentPatterns,
 		display: manifest.display,
 		environments: manifest.demoEnvironments,
 		files: selectPatternFiles(data, {transforms, formats}),
+		id: data.id,
 		manifest: {
 			displayName: manifest.displayName || '',
 			flag: manifest.flag || '',
@@ -25,7 +25,8 @@ async function getPatternMetaData(application, id, env = 'index') {
 			version: manifest.version,
 			tags: manifest.tags || [],
 			options: manifest.options || {}
-		}
+		},
+		use: data.use
 	};
 }
 
