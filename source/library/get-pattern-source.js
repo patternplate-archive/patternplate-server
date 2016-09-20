@@ -27,19 +27,22 @@ function getPatternSource(application) {
 		const basename = path.basename(pathname);
 		const concern = path.basename(pathname, path.extname(pathname));
 
-		if (!transformName) {
+		// configured transfoms, but invalid
+		if (transforms.length && !transformName) {
 			const error = new Error(`Could not determine last transform for "${basename}" of "${id}"`);
 			error.status = 404;
 			throw error;
 		}
 
-		if (!transform) {
+		// configured transforms for format, but no matching transform config
+		if (transformName && !transform) {
 			const error = new Error(`Transform "${transformName}" to be applied on "${basename}" of "${id}" is not configured`);
 			error.status = 404;
 			throw error;
 		}
 
-		const outFormatName = transform.outFormat;
+		// fall back to in format
+		const outFormatName = transform.outFormat || inFormatName;
 
 		const filters = {
 			baseNames: [concern],
