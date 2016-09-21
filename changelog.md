@@ -1,3 +1,14 @@
+<a name="1.0.0"></a>
+# [1.0.0](https://github.com/sinnerschrader/patternplate-server/compare/v1.0.0-beta3...v1.0.0) (2016-09-21)
+
+
+### Bug Fixes
+
+* ensure presence of at least one environment ([a59872c](https://github.com/sinnerschrader/patternplate-server/commit/a59872c))
+* ensure reference formats are read correct for named formats ([6cc5b15](https://github.com/sinnerschrader/patternplate-server/commit/6cc5b15))
+
+
+
 <a name="1.0.0-beta3"></a>
 # [1.0.0-beta3](https://github.com/sinnerschrader/patternplate-server/compare/v1.0.0-beta2...v1.0.0-beta3) (2016-09-20)
 
