@@ -4,11 +4,11 @@ import {
 	relative
 } from 'path';
 
-import fs from 'q-io/fs';
+import readTree from './read-tree';
 import copySafe from './copy-safe';
 
 export default async function copyDirectory(source, target) {
-	const files = await fs.listTree(source);
+	const files = await readTree(source);
 
 	return Promise.all(
 		files
@@ -19,4 +19,3 @@ export default async function copyDirectory(source, target) {
 			})
 	);
 }
-

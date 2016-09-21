@@ -1,17 +1,13 @@
 import getPatternManifests from './get-pattern-manifests';
 
-export default async function getPatternTree (patternID, path, options = {}) {
+export default async function getPatternTree(patternID, path, options = {}) {
 	const manifests = await getPatternManifests(patternID, path, {
 		cache: options.cache
 	});
 
 	const patterns = manifests.map(manifest => {
-		const { id, ...rest } = manifest;
-		return {
-			type: 'pattern',
-			id: id,
-			manifest: rest
-		};
+		const {id, ...rest} = manifest;
+		return {type: 'pattern', id, manifest: rest};
 	});
 
 	// TODO: this needs a rewrite, badly

@@ -2,6 +2,7 @@ import {createReadStream} from 'fs';
 import {resolve} from 'path';
 import {debuglog} from 'util';
 
+import ARSON from 'arson';
 import exists from 'path-exists';
 import {merge} from 'lodash';
 
@@ -50,7 +51,7 @@ export default async function getStaticCacheItem(options) {
 		createReadStream(cacheFilePath);
 
 	if (extension === 'json' && stream === false) {
-		return JSON.parse(cacheFileContents);
+		return ARSON.parse(cacheFileContents);
 	}
 
 	return cacheFileContents;

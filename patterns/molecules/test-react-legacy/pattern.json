@@ -1,7 +1,0 @@
-{
-	"name": "test-react-legacy",
-	"version": "0.1.0",
-	"patterns": {
-		"button": "atoms/test-react-atom"
-	}
-}

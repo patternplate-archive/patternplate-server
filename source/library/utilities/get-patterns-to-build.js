@@ -1,13 +1,7 @@
-import{extname, parse as parsePath} from 'path';
+import {parse as parsePath} from 'path';
 
-import {
-	debuglog
-} from 'util';
-
-import {
-	difference,
-	find
-} from 'lodash';
+import {debuglog} from 'util';
+import {difference, find} from 'lodash';
 
 export default function getPatternsToBuild(artifacts, patterns) {
 	const debug = debuglog('commonjs');

@@ -43,4 +43,3 @@ export default options => {
 
 	return cacheFn(readFile);
 };
-

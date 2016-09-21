@@ -1,23 +1,20 @@
-import {dirname, basename, resolve} from 'path';
-import {readFile, stat} from 'fs';
-import fs from 'q-io/fs';
-import denodeify from 'denodeify';
+import {basename, dirname, extname, resolve} from 'path';
+import {readFile, stat} from 'mz/fs';
 import {find} from 'lodash';
 import {pathToId} from 'patternplate-transforms-core';
 import throat from 'throat';
 
-const fsStat = denodeify(stat);
-const read = denodeify(readFile);
+import readTree from '../filesystem/read-tree';
 
 async function readManifest(path) {
-	return await read(resolve(path, 'pattern.json'))
+	return await readFile(resolve(path, 'pattern.json'))
 		.then(content => JSON.parse(content.toString('utf-8')));
 }
 
 async function getPatternFilesMtime(files) {
 	const tasks = files
 		.map(async file => {
-			const {mtime} = await fsStat(file);
+			const {mtime} = await stat(file);
 			return mtime;
 		});
 
@@ -54,13 +51,34 @@ function getDependencyMtimes(pattern, patterns) {
 		}, []);
 }
 
+function isPatternJson(filePath) {
+	return basename(filePath) === 'pattern.json';
+}
+
+function getFilter(filters = {}) {
+	const inFormats = Array.isArray(filters.inFormats) ? filters.inFormats : [];
+	const baseNames = Array.isArray(filters.baseNames) ? filters.baseNames : [];
+
+	const filterByInFormat = inFormats.length ?
+		filePath => inFormats.includes(extname(filePath).slice(1)) :
+		filePath => filePath;
+
+	const filterByBasename = baseNames.length ?
+		filePath => inFormats.includes(extname(filePath).slice(1)) :
+		filePath => filePath;
+
+	return filePath => isPatternJson(filePath) ||
+		(filterByBasename(filePath) && filterByInFormat(filePath));
+}
+
 const defaults = {
 	resolveDependencies: false
 };
 
 async function getPatternMtimes(search, options) {
-	const paths = await fs.listTree(search);
+	const paths = await readTree(search);
 	const settings = {...defaults, ...options};
+	const filter = getFilter(settings.filters);
 
 	const items = paths
 		.filter(item => basename(item) === 'pattern.json')
@@ -68,7 +86,7 @@ async function getPatternMtimes(search, options) {
 		.map(item => {
 			const id = pathToId(search, item);
 			const path = dirname(item);
-			const files = fs.listTree(path);
+			const files = readTree(path);
 			const manifest = readManifest(path);
 			return {id, path, files, manifest};
 		});
@@ -77,9 +95,12 @@ async function getPatternMtimes(search, options) {
 		const mtimes = await getPatternFilesMtime(await item.files);
 		const mtime = await getLatestMtime(mtimes);
 
+		const files = (await item.files)
+			.filter(filter);
+
 		return {
 			...item,
-			files: await item.files,
+			files,
 			mtime,
 			mtimes
 		};
@@ -87,17 +108,23 @@ async function getPatternMtimes(search, options) {
 
 	const readPatterns = await Promise.all(readTasks);
 
-	return await Promise.all(readPatterns.map(async readPattern => {
-		readPattern.manifest = await readPattern.manifest;
-		const dependencyMtimes = settings.resolveDependencies ?
-			getDependencyMtimes(readPattern, readPatterns) :
-			[];
+	const measurePatterns = readPatterns
+		.filter(readPattern => {
+			return readPattern.files.length > 1;
+		})
+		.map(async readPattern => {
+			readPattern.manifest = await readPattern.manifest;
+			const dependencyMtimes = settings.resolveDependencies ?
+				getDependencyMtimes(readPattern, readPatterns) :
+				[];
 
-		const mtime = getLatestMtime([readPattern.mtime, ...dependencyMtimes]);
+			const mtime = getLatestMtime([readPattern.mtime, ...dependencyMtimes]);
 
-		readPattern.mtime = mtime;
-		return readPattern;
-	}));
+			readPattern.mtime = mtime;
+			return readPattern;
+		});
+
+	return await Promise.all(measurePatterns);
 }
 
 export default getPatternMtimes;

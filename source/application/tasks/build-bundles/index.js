@@ -1,60 +1,68 @@
-import {resolve} from 'path';
+import path from 'path';
 import {debuglog} from 'util';
 
-import {merge} from 'lodash';
+import boxen from 'boxen';
+import {merge, uniq} from 'lodash';
+import {padEnd, padStart} from 'lodash/fp';
 import minimatch from 'minimatch';
+import ora from 'ora';
 import throat from 'throat';
 
+import {loadTransforms} from '../../../library/transforms';
+import {normalizeFormats} from '../../../library/pattern';
+import copyStatic from '../common/copy-static';
 import getEnvironments from '../../../library/utilities/get-environments';
 import getPatternMtimes from '../../../library/utilities/get-pattern-mtimes';
 import getPatterns from '../../../library/utilities/get-patterns';
-import git from '../../../library/utilities/git';
 import writeSafe from '../../../library/filesystem/write-safe';
 
-export default async (application, settings) => {
+export default async (application, settings, args) => {
+	if (!settings) {
+		throw new Error('build-bundles is not configured in .tasks');
+	}
+
+	if (!settings.patterns) {
+		throw new Error('build-bundles dependens on valid patterns config');
+	}
+
+	if (!settings.transforms) {
+		throw new Error('build-bundles dependens on valid transfoms config');
+	}
+
+	const filterEnvironments = settings.env ? env => settings.env.includes(env.name) : () => true;
+
 	const debug = debuglog('bundles');
+	const spinner = args.command ? {stop() {}, text: '', succeed() {}} : ora().start();
+
 	debug('calling bundles with');
 	debug(settings);
 
-	application.configuration = merge(
-		{},
-		application.configuration,
-		application.configuration.build.bundles
-	);
-
-	const cwd = application.runtime.patterncwd || application.runtime.cwd;
-	const pkg = require(resolve(cwd, 'package.json'));
-	const revision = await git.short();
-	const version = pkg.version;
-	const environment = application.runtime.env;
-	const patternHook = application.hooks.filter(hook => hook.name === 'patterns')[0];
-	const base = resolve(cwd, patternHook.configuration.path);
-	const buildBase = resolve(
-		cwd,
-		application.configuration.build.bundles.target,
-		`build-v${version}-${environment}-${revision}`
-	);
+	const cwd = process.cwd();
+	const base = path.resolve(cwd, 'patterns');
+	const buildBase = path.resolve(cwd, 'build', `build-bundles`);
 
 	const {
 		cache, log, transforms,
 		pattern: {factory}
 	} = application;
 
-	// Get applicable filters
-	const {filters} = application.configuration;
+	// Override pattern config
+	settings.patterns.formats = normalizeFormats(settings.patterns.formats);
+	application.configuration.patterns = settings.patterns;
 
-	// Reconfigure the cache
-	application.cache.config = merge({},
-		application.cache.config,
-		application.configuration.patterns.cache
-	);
+	// Reinitialize transforms
+	application.configuration.transforms = settings.transforms || {};
+	application.transforms = (await loadTransforms(settings.transforms || {}))(application);
 
-	// Update formats to the current buildFormats (this is required to e.g. reduce transformers for build)
-	for (const name of Object.keys(application.configuration.build.bundles.patterns.formats)) {
-		const present = application.configuration.patterns.formats[name] || {};
-		const override = application.configuration.build.bundles.patterns.formats[name] || {};
-		present.transforms = override.transforms ? override.transforms : present.transforms;
-	}
+	const warnings = [];
+	const warn = application.log.warn;
+	application.log.warn = (...args) => {
+		if (args.some(arg => arg.includes('Deprecation'))) {
+			warnings.push(args);
+			return;
+		}
+		warn(...args);
+	};
 
 	// Get environments
 	const loadedEnvironments = await getEnvironments(base, {
@@ -63,23 +71,41 @@ export default async (application, settings) => {
 	});
 
 	// Environments have to apply on all patterns
-	const environments = loadedEnvironments.map(environment => {
-		environment.applyTo = '**/*';
-		return environment;
-	});
+	const environments = loadedEnvironments
+		.filter(filterEnvironments)
+		.map(environment => {
+			environment.applyTo = '**/*';
+			return environment;
+		});
+
+	if (args.command === 'list') {
+		environments.forEach(env => console.log(`${env.name}`));
+		return;
+	}
 
 	// Get available patterns
 	const availablePatterns = await getPatternMtimes(base, {
 		resolveDependencies: true
 	});
 
-	// For each environment with include key, build a bundle for each format that has the build key on "true"
-	await Promise.all(environments
-		.filter(environment => environment.include && environment.include.length)
+	let envCount = 1;
+	const envs = environments
+		.filter(environment => environment.include && environment.include.length);
+
+	spinner.stop();
+
+	const envMaxLength = envs.map(e => e.name.length).reduce((a, b) => a > b ? a : b, 0);
+	const envMaxPad = padEnd(envMaxLength + 1);
+	const envCountPad = padStart(String(envs.length).length);
+
+	// For each environment with an include key, build a bundle for each enabled format
+	await Promise.all(envs
 		.map(throat(1, async environment => {
-			const {environment: envConfig, include, exclude, formats: envFormats} = environment;
+			const {environment: envConfig, include, exclude, formats} = environment;
 			const includePatterns = include || [];
 			const excludePatterns = exclude || ['@'];
+			const envSpinner = ora().start();
+			const envr = `${envMaxPad(environment.name)} [env: ${envCountPad(envCount)}/${envs.length}]`;
 
 			// Get patterns matching the include config
 			const includedPatterns = availablePatterns.filter(available => {
@@ -88,12 +114,16 @@ export default async (application, settings) => {
 					!excludePatterns.concat('@environments/**/*').some(pattern => minimatch(id, pattern));
 			});
 
+			if (!includedPatterns.length) {
+				application.log.warn(`No patterns to read for environment ${environment.name}. Check the .includes key of the environment configuration.`);
+			}
+
 			// Merge environment config into transform config
 			const config = merge(
 				{},
 				{
-					patterns: application.configuration.patterns,
-					transforms: application.configuration.transforms
+					patterns: settings.patterns,
+					transforms: settings.transforms
 				},
 				envConfig,
 				{
@@ -101,13 +131,19 @@ export default async (application, settings) => {
 				}
 			);
 
-			const environmentFilters = merge({}, filters);
-			environmentFilters.inFormats = envFormats;
+			const filters = merge({}, settings.filters, {
+				inFormats: formats,
+				environments: [environment.name]
+			});
+
+			let read = 0;
+			const readPad = padStart(String(includedPatterns.length).length);
 
 			// build all patterns matching the include config
-			const builtPatterns = await Promise.all(includedPatterns
-				.map(throat(5, async pattern => {
+			const readPatterns = await Promise.all(includedPatterns
+				.map(throat(1, async pattern => {
 					const {id} = pattern;
+					envSpinner.text = `${envr}: read [patterns: ${readPad(read)}/${includedPatterns.length}] ${pattern.id}`;
 
 					const [result] = await getPatterns({
 						id,
@@ -116,9 +152,11 @@ export default async (application, settings) => {
 						factory,
 						transforms,
 						log,
-						filters: environmentFilters
+						filters,
+						environment
 					}, cache, ['read']);
 
+					read += 1;
 					return result;
 				})));
 
@@ -132,31 +170,53 @@ export default async (application, settings) => {
 				cache
 			);
 
+			envSpinner.text = `${envr}: read ✔`;
+
 			// add the built patterns as dependencies
-			bundlePattern.inject(
-				{
-					name: environment.name,
-					version: environment.version
-				},
-				builtPatterns
-			);
+			const env = {name: environment.name, version: environment.version};
+			envSpinner.text = `${envr}: read ✔ | transform`;
+			bundlePattern.inject(env, readPatterns);
 
 			// build the bundle
 			const builtBundle = await bundlePattern.transform();
+			envSpinner.text = `${envr}: read ✔ | transform ✔`;
 
+			let writeCount = 0;
+			const artifacts = Object.entries(builtBundle.results);
 			// write the bundle
-			const writing = Object.entries(builtBundle.results)
-				.map(async entry => {
+			const writing = artifacts
+				.map(throat(1, async entry => {
 					const [resultName, result] = entry;
-					const resultPath = resolve(
+					const resultPath = path.resolve(
 						buildBase,
 						resultName.toLowerCase(),
 						`${environment.name}.${result.out}`
 					);
-					return writeSafe(resultPath, result.buffer);
-				});
+					envSpinner.text = `${envr}: read ✔ | transform ✔ | write [files: ${writeCount}/${artifacts.length}]`;
+					const written = await writeSafe(resultPath, result.buffer);
+					writeCount += 1;
+					return written;
+				}));
 
-			return await Promise.all(writing);
+			await Promise.all(writing);
+			envSpinner.text = `${envr}: read ✔ | transform ✔ | write ✔`;
+			envSpinner.succeed();
+			envSpinner.stop();
+			envCount += 1;
 		}
 	)));
+
+	const copySpinner = ora().start();
+	copySpinner.text = `copying static files`;
+	await copyStatic(cwd, buildBase);
+	copySpinner.text = `copied static files`;
+	copySpinner.succeed();
+	copySpinner.stop();
+
+	const messages = uniq(warnings)
+		.map(warning => warning.join(' '));
+
+	messages.forEach(message => {
+		console.log(boxen(message, {borderColor: 'yellow', padding: 1}));
+	});
 };

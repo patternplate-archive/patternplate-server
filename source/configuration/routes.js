@@ -1,11 +1,8 @@
 import {resolve} from 'path';
 
 const routes = {
-	path: [
-		'application/routes',
-		'application/patternplate-server/routes'
-	],
-	enabled: { // eslint-disable-line quote-props
+	path: ['application/routes'],
+	enabled: {
 		index: {
 			enabled: true,
 			path: '/'
@@ -21,21 +18,12 @@ const routes = {
 			enabled: true,
 			path: '/pattern/:id+',
 			options: {
-				key: 'patterns',
-				maxage: 3600000
+				key: 'patterns'
 			}
 		},
-		script: {
+		file: {
 			enabled: true,
-			path: '/script/:path+'
-		},
-		demo: {
-			enabled: true,
-			path: '/demo/:id+'
-		},
-		'react-mount': {
-			enabled: true,
-			path: '/react-mount/:id+'
+			path: '/file/:id+'
 		},
 		static: {
 			options: {
