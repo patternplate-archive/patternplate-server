@@ -136,11 +136,19 @@ async function getPatterns(options, cache, cmds = ['read', 'transform']) {
 		log.debug(`Initialized pattern "${patternID}" ${chalk.grey(`[${new Date() - initStart}ms]`)}`);
 
 		// Inject information about available environments
-		const availableEnvironments = userEnvironments.map(env => pick(env, ['name', 'displayName']));
-		const demoEnvironments = userEnvironments.filter(env => env.display).map(env => pick(env, ['name', 'displayName']));
+		const availableEnvironments = userEnvironments
+			.map(env => pick(env, ['name', 'displayName']));
 
-		pattern.manifest.availableEnvironments = availableEnvironments;
-		pattern.manifest.demoEnvironments = demoEnvironments;
+		// Select environments that should be displayed
+		const demoEnvironments = userEnvironments
+			.filter(env => env.display)
+			.map(env => pick(env, ['name', 'displayName']));
+
+		pattern.manifest.availableEnvironments = availableEnvironments.length ?
+			availableEnvironments : [pick(defaultEnvironment, ['name', 'displayName'])];
+
+		pattern.manifest.demoEnvironments = demoEnvironments.length ?
+			demoEnvironments : [pick(defaultEnvironment, ['name', 'displayName'])];
 
 		// Determine dependening patterns
 		const gettingDepending = await getDependentPatterns(patternID, base, {cache});

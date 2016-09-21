@@ -11,6 +11,8 @@ const envDebug = debuglog('environments');
 
 export const defaultEnvironment = {
 	name: 'index',
+	display: true,
+	displayName: 'Default',
 	version: '0.1.0',
 	applyTo: ['**/*'],
 	include: ['**/*'],
