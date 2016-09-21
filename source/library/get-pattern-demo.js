@@ -55,7 +55,6 @@ function getRenderer(formats, component = false) {
 		const transforms = result.config.transforms;
 		const styleFormat = getFormat(formats, transforms, 'style');
 		const scriptFormat = getFormat(formats, transforms, 'script');
-
 		const styleReference = getUriByFormat(result, styleFormat);
 
 		const scriptCandidates = component ?
@@ -81,9 +80,10 @@ const formatNames = {
 	script: 'js'
 };
 
-function getUriByFormat(pattern, format) {
+function getUriByFormat(pattern, format = '') {
 	const outFormats = pattern.outFormats || [];
-	const match = outFormats.find(outFormat => outFormat.type === format);
+	const type = format.toLowerCase();
+	const match = outFormats.find(o => o.type === type);
 	if (match) {
 		return `./index.${match.extension}`;
 	}
@@ -101,14 +101,14 @@ function getFormat(formats, transforms, type) {
 	const found = entries.find(findByOutFormat(formatName, transforms));
 
 	if (found) {
-		return found[0];
+		return (found[1] || {}).name || found[0];
 	}
 
 	// Legacy get format by name
 	// {name: 'Format'}
 	const legacy = entries.find(findByName(type));
 	if (legacy) {
-		return legacy[0];
+		return (legacy[0] || {}).name || legacy[0];
 	}
 
 	return null;
