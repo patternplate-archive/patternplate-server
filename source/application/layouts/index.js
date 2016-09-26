@@ -4,6 +4,7 @@ function layout(props) {
 		<head>
 			<title>${props.title}</title>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+			<link rel="icon" href="data:;base64,iVBORw0KGgo=">
 			${(props.reference.style || [])
 				.filter(Boolean)
 				.filter(style => Boolean(style.uri))
