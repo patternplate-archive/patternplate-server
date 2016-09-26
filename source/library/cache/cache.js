@@ -1,6 +1,12 @@
 import lrucache from 'lru-cache';
+import {get} from 'lodash';
 
 const namespace = new WeakMap();
+
+function select(instance, keyPath) {
+	const context = namespace.get(instance) || {};
+	return get(context, keyPath);
+}
 
 class PatternCache {
 	static defaults = {
@@ -15,12 +21,22 @@ class PatternCache {
 	}
 
 	set(key, mtime, value, meta) {
-		const {cache} = namespace.get(this);
+		const cache = select(this, 'cache');
+
+		if (!cache) {
+			return;
+		}
+
 		return cache.set(key, {mtime, value, meta});
 	}
 
 	get(key, mtime) {
-		const {cache} = namespace.get(this);
+		const cache = select(this, 'cache');
+
+		if (!cache) {
+			return null;
+		}
+
 		const stored = cache.get(key);
 
 		if (typeof stored === 'undefined') {
@@ -42,18 +58,18 @@ class PatternCache {
 	}
 
 	peek(key) {
-		const {cache} = namespace.get(this);
-		return cache.peek(key);
+		const cache = select(this, 'cache');
+		return cache ? cache.peek(key) : false;
 	}
 
 	get length() {
-		const {cache} = namespace.get(this);
-		return cache.length;
+		const cache = select(this, 'cache');
+		return cache ? cache.length : 0;
 	}
 
 	get itemCount() {
-		const {cache} = namespace.get(this);
-		return cache.itemCount;
+		const cache = select(this, 'cache');
+		return cache ? cache.itemCount : 0;
 	}
 }
 
