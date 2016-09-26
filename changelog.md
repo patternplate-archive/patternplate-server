@@ -1,3 +1,77 @@
+<a name="1.0.1"></a>
+## [1.0.1](https://github.com/sinnerschrader/patternplate-server/compare/v0.17.5...v1.0.1) (2016-09-26)
+
+
+### Bug Fixes
+
+* avoid favicon requests for demos ([cc51a83](https://github.com/sinnerschrader/patternplate-server/commit/cc51a83))
+* avoid reference errors in cache ([08caef3](https://github.com/sinnerschrader/patternplate-server/commit/08caef3))
+
+
+### Chores
+
+* **release:** v1.0.0 :tada: (#64) ([71d45b8](https://github.com/sinnerschrader/patternplate-server/commit/71d45b8))
+
+
+### BREAKING CHANGES
+
+* release: default transform configurations are gone, users will
+have to provide equivalents on their own in the future
+
+* chore: remove all default configuration regarding formats and transforms
+* release: users have to provide all format configuration
+
+* chore(release): v1.0.0-beta2
+
+* chore: get rid of obsolete script route
+
+* fix: normalize pattern.formats[ext]
+
+* fix: correctly select outFormats based on formats[ext].transforms
+
+* feat: simplify outFormat => format matching for demos
+
+* fix: speed up getPatternDemo by transforming only one file
+
+* fix: correct type access key
+
+* fix: harden tasks against missing config
+
+* refactor: restructure tasks
+
+* refactor: reorganize pattern
+
+* fix: fall back to informat if possible
+
+* chore: harden Pattern method interfaces
+
+* chore: factor out build-static
+
+* fix: harden prop lookup
+
+* feat: expose pattern.use
+
+* fix: ensure correct format for files used by get-pattern-demo
+
+* chore(release): v1.0.0-beta3
+
+* chore: remove obsolete archiver package
+
+* fix: ensure presence of at least one environment
+
+* fix: ensure reference formats are read correct for named formats
+
+* chore(release): 1.0.0
+<a name="1.0.0"></a>
+# [1.0.0](https://github.com/sinnerschrader/patternplate-server/compare/v1.0.0-beta3...v1.0.0) (2016-09-21)
+
+### Bug Fixes
+
+* ensure presence of at least one environment ([a59872c](https://github.com/sinnerschrader/patternplate-server/commit/a59872c))
+* ensure reference formats are read correct for named formats ([6cc5b15](https://github.com/sinnerschrader/patternplate-server/commit/6cc5b15))
+
+
+
 <a name="1.0.0"></a>
 # [1.0.0](https://github.com/sinnerschrader/patternplate-server/compare/v1.0.0-beta3...v1.0.0) (2016-09-21)
 
