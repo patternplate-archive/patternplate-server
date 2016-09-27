@@ -1,3 +1,13 @@
+<a name="0.17.8"></a>
+## [0.17.8](https://github.com/sinnerschrader/patternplate-server/compare/v0.17.7...v0.17.8) (2016-09-27)
+
+
+### Bug Fixes
+
+* **system:** downgrade to transform-browserify[@0](https://github.com/0).3.4 for npm2 compat ([2caea44](https://github.com/sinnerschrader/patternplate-server/commit/2caea44))
+
+
+
 <a name="0.17.7"></a>
 ## [0.17.7](https://github.com/sinnerschrader/patternplate-server/compare/v0.17.6...v0.17.7) (2016-09-27)
 
