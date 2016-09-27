@@ -1,3 +1,13 @@
+<a name="0.17.7"></a>
+## [0.17.7](https://github.com/sinnerschrader/patternplate-server/compare/v0.17.6...v0.17.7) (2016-09-27)
+
+
+### Bug Fixes
+
+* **system:** forcefully quit console after task resolved ([bd099f0](https://github.com/sinnerschrader/patternplate-server/commit/bd099f0))
+
+
+
 <a name="0.17.6"></a>
 ## [0.17.6](https://github.com/sinnerschrader/patternplate-server/compare/v0.17.5...v0.17.6) (2016-09-25)
 
