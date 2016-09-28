@@ -1,3 +1,8 @@
+<a name="0.17.10"></a>
+## [0.17.10](https://github.com/sinnerschrader/patternplate-server/compare/v0.17.9...v0.17.10) (2016-09-28)
+
+
+
 <a name="0.17.9"></a>
 ## [0.17.9](https://github.com/sinnerschrader/patternplate-server/compare/v0.17.8...v0.17.9) (2016-09-28)
 
