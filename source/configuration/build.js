@@ -20,7 +20,8 @@ export default {
 			},
 			browserify: {
 				opts: {
-					debug: false
+					debug: false,
+					watch: false
 				}
 			}
 		},
