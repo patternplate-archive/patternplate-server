@@ -1,3 +1,13 @@
+<a name="0.17.9"></a>
+## [0.17.9](https://github.com/sinnerschrader/patternplate-server/compare/v0.17.8...v0.17.9) (2016-09-28)
+
+
+### Bug Fixes
+
+* **system:** disable watchify for bundles build ([40e33ba](https://github.com/sinnerschrader/patternplate-server/commit/40e33ba))
+
+
+
 <a name="0.17.8"></a>
 ## [0.17.8](https://github.com/sinnerschrader/patternplate-server/compare/v0.17.7...v0.17.8) (2016-09-27)
 
