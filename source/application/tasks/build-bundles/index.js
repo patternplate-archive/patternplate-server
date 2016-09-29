@@ -1,3 +1,4 @@
+import assert from 'assert';
 import path from 'path';
 import {debuglog} from 'util';
 
@@ -16,23 +17,21 @@ import getPatternMtimes from '../../../library/utilities/get-pattern-mtimes';
 import getPatterns from '../../../library/utilities/get-patterns';
 import writeSafe from '../../../library/filesystem/write-safe';
 
-export default async (application, settings, args) => {
+const where = `Configure it at configuration/patternplate-server/tasks.js.`;
+
+export default async (application, settings) => {
 	if (!settings) {
 		throw new Error('build-bundles is not configured in .tasks');
 	}
 
-	if (!settings.patterns) {
-		throw new Error('build-bundles dependens on valid patterns config');
-	}
-
-	if (!settings.transforms) {
-		throw new Error('build-bundles dependens on valid transfoms config');
-	}
+	assert(typeof settings.patterns === 'object', `build-commonjs needs a valid patterns configuration. ${where} build-bundles.patterns`);
+	assert(typeof settings.patterns.formats === 'object', `build-commonjs needs a valid patterns.formats configuration. ${where} build-bundles.patterns.formats`);
+	assert(typeof settings.transforms === 'object', `build-commonjs needs a valid transforms configuration. ${where} build-bundles.transforms`);
 
 	const filterEnvironments = settings.env ? env => settings.env.includes(env.name) : () => true;
 
 	const debug = debuglog('bundles');
-	const spinner = args.command ? {stop() {}, text: '', succeed() {}} : ora().start();
+	const spinner = ora().start();
 
 	debug('calling bundles with');
 	debug(settings);
@@ -65,10 +64,7 @@ export default async (application, settings, args) => {
 	};
 
 	// Get environments
-	const loadedEnvironments = await getEnvironments(base, {
-		cache,
-		log
-	});
+	const loadedEnvironments = await getEnvironments(base, {cache, log});
 
 	// Environments have to apply on all patterns
 	const environments = loadedEnvironments
@@ -77,11 +73,6 @@ export default async (application, settings, args) => {
 			environment.applyTo = '**/*';
 			return environment;
 		});
-
-	if (args.command === 'list') {
-		environments.forEach(env => console.log(`${env.name}`));
-		return;
-	}
 
 	// Get available patterns
 	const availablePatterns = await getPatternMtimes(base, {

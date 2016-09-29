@@ -1,3 +1,4 @@
+import assert from 'assert';
 import {debuglog} from 'util';
 import denodeify from 'denodeify';
 
@@ -34,7 +35,13 @@ const pkg = require(resolve(process.cwd(), 'package.json'));
 const readFile = denodeify(readFileNodeback);
 const pathFormatString = '%(outputName)s/%(patternId)s/index.%(extension)s';
 
+const where = `Configure it at configuration/patternplate-server/tasks.js.`;
+
 async function exportAsCommonjs(application, settings) {
+	assert(typeof settings.patterns === 'object', `build-commonjs needs a valid patterns configuration. ${where} build-commonjs.patterns`);
+	assert(typeof settings.patterns.formats === 'object', `build-commonjs needs a valid patterns.formats configuration. ${where} build-commonjs.patterns.formats`);
+	assert(typeof settings.transforms === 'object', `build-commonjs needs a valid transforms configuration. ${where} build-commonjs.transforms`);
+
 	let spinner = ora().start();
 	const debug = debuglog('commonjs');
 	debug('calling commonjs with');
@@ -45,7 +52,7 @@ async function exportAsCommonjs(application, settings) {
 	const patternRoot = resolve(cwd, 'patterns');
 	const commonjsRoot = resolve(cwd, 'build', 'build-commonjs');
 	const manifestPath = resolve(commonjsRoot, 'package.json');
-	const filters = {...settings.filters, baseNames: ['index']};
+	const filters = {...settings.filters || {}, baseNames: ['index']};
 
 	const warnings = [];
 	const warn = application.log.warn;
@@ -90,7 +97,7 @@ async function exportAsCommonjs(application, settings) {
 	const hasManifest = await exists(resolve(commonjsRoot, 'package.json'));
 	const previousPkgString = hasManifest ?
 		(await readFile(manifestPath)).toString('utf-8') :
-		'{dependencies: {}, devDependencies: {}, ppcommonjs: {}, ppDependencies: {}, ppDevdependencies: {}}';
+		'{"dependencies": {}, "devDependencies": {}, "ppcommonjs": {}, "ppDependencies": {}, "ppDevdependencies": {}}';
 
 	const pkgConfig = settings.pkg || {};
 	const previousPkg = JSON.parse(previousPkgString) || {ppcommonjs: {}};
@@ -99,8 +106,8 @@ async function exportAsCommonjs(application, settings) {
 	const previousDevdependencies = previousPkg.ppDevdependencies || {};
 
 	const pkgConfigChanged = !isEqual(previousPkgConfig, pkgConfig) ||
-		!isEqual(previousDependencies, pkg.dependencies) ||
-		!isEqual(previousDevdependencies, pkg.devDependencies);
+		!isEqual(previousDependencies, pkg.dependencies || {}) ||
+		!isEqual(previousDevdependencies, pkg.devDependencies || {});
 
 	// obtain patterns we have to build
 	application.log.debug(wait`Calculating pattern collection to build`);
@@ -117,9 +124,7 @@ async function exportAsCommonjs(application, settings) {
 		.reduce((a, b) => a > b ? a : b, 0) + 1);
 
 	if (pkgConfigChanged) {
-		application.log.info(ok`No manifest at ${commonjsRoot}, building all ${patternMtimes.length} patterns`);
-	} else {
-		application.log.debug(ok`No manifest at ${commonjsRoot}, building all ${patternMtimes.length} patterns`);
+		application.log.debug(ok`Manifest or pkg config change, building all ${patternMtimes.length} patterns`);
 	}
 
 	const pruneDetectionStart = new Date();
@@ -213,7 +218,7 @@ async function exportAsCommonjs(application, settings) {
 		}
 
 		if (artifact) {
-			filters.inFormats = changedFiles.map(file => extname(file).slice(1));
+			filters.in3 = changedFiles.map(file => extname(file).slice(1));
 			const formats = chalk.grey(`[${filters.inFormats.join(', ')}]`);
 			application.log.debug(
 				ok`Building ${filters.inFormats.length} files for ${pattern.id} ${formats} ${filterStart}`);

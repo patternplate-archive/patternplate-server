@@ -65,5 +65,7 @@ export default async function getEnvironments(base, options = {}) {
 	envDebug('read environment data');
 	envDebug(userEnvironments);
 
-	return userEnvironments;
+	return userEnvironments.length ?
+		userEnvironments :
+		[defaultEnvironment];
 }
