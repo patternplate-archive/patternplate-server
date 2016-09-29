@@ -1,3 +1,13 @@
+<a name="1.0.4"></a>
+## [1.0.4](https://github.com/sinnerschrader/patternplate-server/compare/v1.0.3...v1.0.4) (2016-09-29)
+
+
+### Bug Fixes
+
+* **system:** rewrite commonjs manifest if config changed ([27dd395](https://github.com/sinnerschrader/patternplate-server/commit/27dd395)), closes [#94](https://github.com/sinnerschrader/patternplate-server/issues/94)
+
+
+
 <a name="1.0.3"></a>
 ## [1.0.3](https://github.com/sinnerschrader/patternplate-server/compare/v1.0.2...v1.0.3) (2016-09-27)
 
