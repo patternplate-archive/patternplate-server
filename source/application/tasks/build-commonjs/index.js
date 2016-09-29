@@ -6,8 +6,9 @@ import {resolve, join, dirname, extname, relative} from 'path';
 import {readFile as readFileNodeback} from 'fs';
 
 import boxen from 'boxen';
-import {find, flatten, omit, uniq} from 'lodash';
+import {find, flatten, isEqual, omit, uniq} from 'lodash';
 import {padEnd} from 'lodash/fp';
+
 import throat from 'throat';
 import chalk from 'chalk';
 import exists from 'path-exists';
@@ -19,6 +20,7 @@ import {ok, wait, ready} from '../../../library/log/decorations';
 import {loadTransforms} from '../../../library/transforms';
 import {normalizeFormats} from '../../../library/pattern';
 import copyStatic from '../common/copy-static';
+
 import getArtifactMtimes from '../../../library/utilities/get-artifact-mtimes';
 import getArtifactsToPrune from '../../../library/utilities/get-artifacts-to-prune';
 import getPackageString from './get-package-string';
@@ -32,7 +34,7 @@ const pkg = require(resolve(process.cwd(), 'package.json'));
 const readFile = denodeify(readFileNodeback);
 const pathFormatString = '%(outputName)s/%(patternId)s/index.%(extension)s';
 
-async function exportAsCommonjs(application, settings, args) {
+async function exportAsCommonjs(application, settings) {
 	let spinner = ora().start();
 	const debug = debuglog('commonjs');
 	debug('calling commonjs with');
@@ -86,24 +88,36 @@ async function exportAsCommonjs(application, settings, args) {
 
 	// check if package.json is in distribution
 	const hasManifest = await exists(resolve(commonjsRoot, 'package.json'));
+	const previousPkgString = hasManifest ?
+		(await readFile(manifestPath)).toString('utf-8') :
+		'{dependencies: {}, devDependencies: {}, ppcommonjs: {}, ppDependencies: {}, ppDevdependencies: {}}';
+
+	const pkgConfig = settings.pkg || {};
+	const previousPkg = JSON.parse(previousPkgString) || {ppcommonjs: {}};
+	const previousPkgConfig = previousPkg.ppcommonjs || {};
+	const previousDependencies = previousPkg.ppDependencies || {};
+	const previousDevdependencies = previousPkg.ppDevdependencies || {};
+
+	const pkgConfigChanged = !isEqual(previousPkgConfig, pkgConfig) ||
+		!isEqual(previousDependencies, pkg.dependencies) ||
+		!isEqual(previousDevdependencies, pkg.devDependencies);
 
 	// obtain patterns we have to build
-	const selectionStart = new Date();
 	application.log.debug(wait`Calculating pattern collection to build`);
 
 	let buildCount = 1;
-	const patternsToBuild = hasManifest ?
-		patternMtimes
-			.filter(getPatternsToBuild(artifactMtimes, application.configuration.patterns))
-			.sort((a, b) => b.mtime.getTime() - a.mtime.getTime()) :
-		patternMtimes;
+	const patternFilter = pkgConfigChanged ? i => i :
+		getPatternsToBuild(artifactMtimes, application.configuration.patterns);
+
+	const patternsToBuild = patternMtimes
+			.filter(patternFilter)
+			.sort((a, b) => b.mtime.getTime() - a.mtime.getTime());
 
 	const padMaxBuild = padEnd(patternsToBuild.map(pattern => pattern.id.length)
 		.reduce((a, b) => a > b ? a : b, 0) + 1);
 
-	if (hasManifest) {
-		application.log.debug(ok`Calculated pattern collection to build ${selectionStart}`);
-		application.log.debug(wait`Building ${patternsToBuild.length} of ${patternMtimes.length} patterns`);
+	if (pkgConfigChanged) {
+		application.log.info(ok`No manifest at ${commonjsRoot}, building all ${patternMtimes.length} patterns`);
 	} else {
 		application.log.debug(ok`No manifest at ${commonjsRoot}, building all ${patternMtimes.length} patterns`);
 	}
@@ -276,61 +290,49 @@ async function exportAsCommonjs(application, settings, args) {
 	spinner.text = `static files copied`;
 	spinner.succeed();
 
-	if (built.length > 0) {
+	// Extract dependency information
+	const dependencyLists = flatten(built).reduce((registry, patternItem) => {
+		const {meta: {dependencies, devDependencies}} = patternItem;
+		return {
+			dependencies: [...registry.dependencies, ...(dependencies || [])],
+			devDependencies: [...registry.devDependencies, ...(devDependencies || [])]
+		};
+	}, {
+		dependencies: [],
+		devDependencies: []
+	});
+
+	const deps = pkg.dependencies || {};
+	const devDeps = pkg.devDependencies || {};
+
+	const dependencies = dependencyLists.dependencies
+		.reduce((results, dependencyName) => {
+			return {...results,
+				[dependencyName]: deps[dependencyName] || devDeps[dependencyName] || '*'};
+		}, previousPkg.dependencies);
+
+	const devDependencies = dependencyLists.devDependencies
+		.reduce((results, dependencyName) => {
+			return {...results,
+				[dependencyName]: deps[dependencyName] || devDeps[dependencyName] || '*'};
+		}, previousPkg.devDependencies);
+
+	const prunedDependencies = omit(dependencies, [...(settings.ignoredDependencies || []), coreModuleNames]);
+	const prunedDevDependencies = omit(devDependencies, [...(settings.ignoredDevDependencies || []), coreModuleNames, ...Object.keys(dependencies)]);
+
+	const updatedPackageString = getPackageString(prunedDependencies, previousPkg,
+		{
+			devDependencies: prunedDevDependencies, ppcommonjs: pkgConfig,
+			ppDependencies: pkg.dependencies, ppDevdependencies: pkg.devDependencies
+		},
+	omit(pkg, ['dependencies', 'devDependencies', 'scripts', 'config', 'main']),
+	settings.pkg);
+
+	if (updatedPackageString !== previousPkgString) {
 		const pkgStart = new Date();
 		application.log.debug(wait`Writing package.json`);
 
-		const previousPkg = hasManifest ?
-			JSON.parse(await readFile(manifestPath)) :
-			{dependencies: {}, devDependencies: {}};
-
-		// Extract dependency information
-		const dependencyLists = flatten(built).reduce((registry, patternItem) => {
-			const {meta: {dependencies, devDependencies}} = patternItem;
-			return {
-				dependencies: [...registry.dependencies, ...(dependencies || [])],
-				devDependencies: [...registry.devDependencies, ...(devDependencies || [])]
-			};
-		}, {
-			dependencies: [],
-			devDependencies: []
-		});
-
-		const deps = pkg.dependencies || {};
-		const devDeps = pkg.devDependencies || {};
-
-		const dependencies = dependencyLists.dependencies
-			.reduce((results, dependencyName) => {
-				return {...results,
-					[dependencyName]: deps[dependencyName] || devDeps[dependencyName] || '*'};
-			}, previousPkg.dependencies);
-
-		const devDependencies = dependencyLists.devDependencies
-			.reduce((results, dependencyName) => {
-				return {...results,
-					[dependencyName]: deps[dependencyName] || devDeps[dependencyName] || '*'};
-			}, previousPkg.devDependencies);
-
-		const writingPkg = writeSafe(
-			manifestPath,
-			getPackageString(
-				omit(
-					dependencies,
-					[...(settings.ignoredDependencies || []), coreModuleNames]
-				),
-				previousPkg,
-				{
-					devDependencies: omit(
-						devDependencies,
-						[...(settings.ignoredDevDependencies || []), coreModuleNames, ...Object.keys(dependencies)]
-					)
-				},
-			omit(pkg, ['dependencies', 'devDependencies', 'scripts', 'config', 'main']),
-			settings.pkg
-			)
-		);
-
-		await writingPkg;
+		await writeSafe(manifestPath, updatedPackageString);
 		application.log.debug(ready`Wrote package.json ${pkgStart}`);
 	}
 
