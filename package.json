@@ -7,8 +7,8 @@
     "patternplate-server": "binary/patternplate-server.js"
   },
   "scripts": {
-    "start": "node --harmony binary/patternplate-server.js",
-    "console": "node --harmony binary/patternplate-server-console.js",
+    "start": "binary/patternplate-server.js",
+    "console": "binary/patternplate-server-console.js",
     "commitmsg": "conventional-changelog-lint -e",
     "commit": "git-cz",
     "changelog": "conventional-changelog --preset angular --infile changelog.md --same-file --output-unreleased",

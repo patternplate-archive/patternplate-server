@@ -37,6 +37,14 @@ const pathFormatString = '%(outputName)s/%(patternId)s/index.%(extension)s';
 
 const where = `Configure it at configuration/patternplate-server/tasks.js.`;
 
+const fallbackManifest = {
+	dependencies: {},
+	devDependencies: {},
+	ppcommonjs: {},
+	ppDependencies: {},
+	ppDevdependencies: {}
+};
+
 async function exportAsCommonjs(application, settings) {
 	assert(typeof settings.patterns === 'object', `build-commonjs needs a valid patterns configuration. ${where} build-commonjs.patterns`);
 	assert(typeof settings.patterns.formats === 'object', `build-commonjs needs a valid patterns.formats configuration. ${where} build-commonjs.patterns.formats`);
@@ -95,12 +103,11 @@ async function exportAsCommonjs(application, settings) {
 
 	// check if package.json is in distribution
 	const hasManifest = await exists(resolve(commonjsRoot, 'package.json'));
-	const previousPkgString = hasManifest ?
-		(await readFile(manifestPath)).toString('utf-8') :
-		'{"dependencies": {}, "devDependencies": {}, "ppcommonjs": {}, "ppDependencies": {}, "ppDevdependencies": {}}';
+
+	const previousPkgString = hasManifest ? (await readFile(manifestPath)).toString('utf-8') : null;
 
 	const pkgConfig = settings.pkg || {};
-	const previousPkg = JSON.parse(previousPkgString) || {ppcommonjs: {}};
+	const previousPkg = hasManifest ? parseJSON(previousPkgString) : fallbackManifest;
 	const previousPkgConfig = previousPkg.ppcommonjs || {};
 	const previousDependencies = previousPkg.ppDependencies || {};
 	const previousDevdependencies = previousPkg.ppDevdependencies || {};
@@ -350,3 +357,11 @@ async function exportAsCommonjs(application, settings) {
 }
 
 export default exportAsCommonjs;
+
+function parseJSON(jsonString) {
+	try {
+		return JSON.parse(jsonString);
+	} catch (error) {
+		return fallbackManifest;
+	}
+}
