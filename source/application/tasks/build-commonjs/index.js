@@ -42,6 +42,14 @@ import getPackageString from './get-package-string';
 const pkg = require(resolve(process.cwd(), 'package.json'));
 const readFile = denodeify(readFileNodeback);
 
+const fallbackManifest = {
+	dependencies: {},
+	devDependencies: {},
+	ppcommonjs: {},
+	ppDependencies: {},
+	ppDevdependencies: {}
+};
+
 async function exportAsCommonjs(application, settings) {
 	const debug = debuglog('commonjs');
 	debug('calling commonjs with');
@@ -106,12 +114,10 @@ async function exportAsCommonjs(application, settings) {
 
 	// check if package.json is in distribution
 	const hasManifest = await exists(resolve(commonjsRoot, 'package.json'));
-	const previousPkgString = hasManifest ?
-		(await readFile(manifestPath)).toString('utf-8') :
-		'{dependencies: {}, devDependencies: {}, ppcommonjs: {}, ppDependencies: {}, ppDevdependencies: {}}';
+	const previousPkgString = hasManifest ? (await readFile(manifestPath)).toString('utf-8') : null;
 
 	const pkgConfig = config.pkg || {};
-	const previousPkg = JSON.parse(previousPkgString) || {ppcommonjs: {}};
+	const previousPkg = hasManifest ? parseJSON(previousPkgString) : fallbackManifest;
 	const previousPkgConfig = previousPkg.ppcommonjs || {};
 	const previousDependencies = previousPkg.ppDependencies || {};
 	const previousDevdependencies = previousPkg.ppDevdependencies || {};
@@ -343,3 +349,11 @@ async function exportAsCommonjs(application, settings) {
 }
 
 export default exportAsCommonjs;
+
+function parseJSON(jsonString) {
+	try {
+		return JSON.parse(jsonString);
+	} catch (error) {
+		return fallbackManifest;
+	}
+}
