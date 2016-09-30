@@ -1,3 +1,14 @@
+<a name="0.17.11"></a>
+## [0.17.11](https://github.com/sinnerschrader/patternplate-server/compare/v0.17.9...v0.17.11) (2016-09-30)
+
+
+### Bug Fixes
+
+* **system:** rewrite commonjs manifest if config changed ([4ee70cd](https://github.com/sinnerschrader/patternplate-server/commit/4ee70cd)), closes [#94](https://github.com/sinnerschrader/patternplate-server/issues/94)
+* **task:** add failsafes when reading previously created commonjs json ([1d4d1df](https://github.com/sinnerschrader/patternplate-server/commit/1d4d1df))
+
+
+
 <a name="0.17.10"></a>
 ## [0.17.10](https://github.com/sinnerschrader/patternplate-server/compare/v0.17.9...v0.17.10) (2016-09-29)
 
