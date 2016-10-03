@@ -1,4 +1,4 @@
-import {last, merge, uniq} from 'lodash';
+import {last, uniq} from 'lodash';
 import getTransform from './get-transform';
 import toString from './to-string';
 
@@ -29,7 +29,17 @@ async function transform(pattern) {
 		return results;
 	}, {});
 
-	merge(pattern.files, files);
+	Object.entries(files).forEach(entry => {
+		const [name, file] = entry;
+		const ref = pattern.files[name];
+		if (ref) {
+			ref.buffer = file.buffer;
+			ref.dependencies = file.dependencies;
+			ref.meta = file.meta;
+			return;
+		}
+		pattern.files[name] = file;
+	});
 
 	// Join demo and index files of the same format
 	// if there is a demo, it occupies the results[format.name] key
@@ -50,23 +60,19 @@ async function transform(pattern) {
 	// Reduce to format.name => result map
 	pattern.results = sanitizedResults.reduce((results, transformResult) => {
 		const format = formats[transformResult.format];
-		const source = toString(transformResult.source);
-		const buffer = toString(transformResult.buffer);
+		const isDemo = transformResult.baseName === 'demo';
 
-		const base = {
+		results[format.name] = {
 			name: transformResult.name,
 			concern: transformResult.basename,
-			source,
-			buffer,
+			source: toString(transformResult.source),
+			buffer: toString(transformResult.buffer),
 			in: transformResult.in,
-			out: transformResult.out
+			out: transformResult.out,
+			demoBuffer: isDemo ? toString(transformResult.demoBuffer) : null,
+			demoSource: isDemo ? toString(transformResults.demoSource) : null
 		};
 
-		const amend = transformResult.baseName === 'demo' ? {
-			demoBuffer: toString(transformResult.demoBuffer),
-			demoSource: toString(transformResults.demoSource)
-		} : {};
-		results[format.name] = merge(base, amend);
 		return results;
 	}, {});
 

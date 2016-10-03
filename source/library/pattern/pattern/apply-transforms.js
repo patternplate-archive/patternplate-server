@@ -24,7 +24,8 @@ function applyTransforms(file, transformNames, options) {
 			throw new Error(message);
 		}
 
-		return [...results, result];
+		results.push(result);
+		return results;
 	}, Promise.resolve([file]));
 }
 

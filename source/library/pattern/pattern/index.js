@@ -1,6 +1,5 @@
 /* eslint-disable max-len*/
 import path from 'path';
-import {merge} from 'lodash';
 import fauxCache from './faux-cache';
 import fauxLog from './faux-log';
 import inject from './inject';
@@ -14,22 +13,20 @@ export class Pattern {
 	constructor(patternPath, base, config = {}, transforms = {}, filters = {}, cache = null) {
 		const id = patternPath.split(path.sep).join('/');
 
-		merge(this, {
-			base,
-			cache: cache || fauxCache,
-			config: {parents: [], ...config},
-			dependencies: {},
-			environments: {index: {manifest: {name: 'index'}}},
-			files: {},
-			filters: merge({}, defaultFilters, filters),
-			id,
-			isEnvironment: id.includes('@environment'),
-			log: config.log || fauxLog,
-			manifest: {},
-			path: path.resolve(base, id),
-			results: {},
-			transforms
-		});
+		this.base = base;
+		this.cache = cache || fauxCache;
+		this.config = {parents: [], ...config};
+		this.dependencies = {};
+		this.environments = {index: {manifest: {name: 'index'}}};
+		this.files = {};
+		this.filters = {...defaultFilters, ...filters};
+		this.id = id;
+		this.isEnvironment = id.includes('@environment');
+		this.log = config.log || fauxLog;
+		this.manifest = {};
+		this.path = path.resolve(base, id);
+		this.results = {};
+		this.transforms = transforms;
 	}
 
 	inject(manifest, patterns) {
