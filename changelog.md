@@ -1,3 +1,13 @@
+<a name="1.0.7"></a>
+## [1.0.7](https://github.com/sinnerschrader/patternplate-server/compare/v1.0.6...v1.0.7) (2016-10-10)
+
+
+### Bug Fixes
+
+* skip nullable formats ([f493dba](https://github.com/sinnerschrader/patternplate-server/commit/f493dba))
+
+
+
 <a name="1.0.6"></a>
 ## [1.0.6](https://github.com/sinnerschrader/patternplate-server/compare/v1.0.5...v1.0.6) (2016-10-03)
 
