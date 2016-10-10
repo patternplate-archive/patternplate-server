@@ -81,9 +81,14 @@ const formatNames = {
 };
 
 function getUriByFormat(pattern, format = '') {
+	if (!format) {
+		return null;
+	}
+
 	const outFormats = pattern.outFormats || [];
 	const type = format.toLowerCase();
 	const match = outFormats.find(o => o.type === type);
+
 	if (match) {
 		return `./index.${match.extension}`;
 	}
