@@ -1,5 +1,5 @@
 import path from 'path';
-import copyDirectory from '../../../library/filesystem/copy-directory';
+import copyDirectory from '../..//library/filesystem/copy-directory';
 export default copyStatic;
 
 function copyStatic(cwd, targetRoot) {

@@ -17,19 +17,19 @@ import coreModuleNames from 'node-core-module-names';
 import {resolvePathFormatString} from 'patternplate-transforms-core';
 import ora from 'ora';
 
-import {ok, wait, ready} from '../../../library/log/decorations';
-import {loadTransforms} from '../../../library/transforms';
-import {normalizeFormats} from '../../../library/pattern';
+import {ok, wait, ready} from '../..//library/log/decorations';
+import {loadTransforms} from '../..//library/transforms';
+import {normalizeFormats} from '../..//library/pattern';
 import copyStatic from '../common/copy-static';
 
-import getArtifactMtimes from '../../../library/utilities/get-artifact-mtimes';
-import getArtifactsToPrune from '../../../library/utilities/get-artifacts-to-prune';
+import getArtifactMtimes from '../..//library/utilities/get-artifact-mtimes';
+import getArtifactsToPrune from '../..//library/utilities/get-artifacts-to-prune';
 import getPackageString from './get-package-string';
-import getPatternMtimes from '../../../library/utilities/get-pattern-mtimes';
-import getPatterns from '../../../library/utilities/get-patterns';
-import getPatternsToBuild from '../../../library/utilities/get-patterns-to-build';
-import removeFile from '../../../library/filesystem/remove-file';
-import writeSafe from '../../../library/filesystem/write-safe';
+import getPatternMtimes from '../..//library/utilities/get-pattern-mtimes';
+import getPatterns from '../..//library/utilities/get-patterns';
+import getPatternsToBuild from '../..//library/utilities/get-patterns-to-build';
+import removeFile from '../..//library/filesystem/remove-file';
+import writeSafe from '../..//library/filesystem/write-safe';
 
 const pkg = require(resolve(process.cwd(), 'package.json'));
 const readFile = denodeify(readFileNodeback);

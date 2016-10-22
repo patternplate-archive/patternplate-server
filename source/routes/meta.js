@@ -1,4 +1,4 @@
-import getNavigation from '../../library/get-navigation';
+import getNavigation from '../library/get-navigation';
 
 export default (application, configuration) => {
 	return async function metaRoute() {

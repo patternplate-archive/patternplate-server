@@ -9,13 +9,13 @@ import minimatch from 'minimatch';
 import ora from 'ora';
 import throat from 'throat';
 
-import {loadTransforms} from '../../../library/transforms';
-import {normalizeFormats} from '../../../library/pattern';
+import {loadTransforms} from '../..//library/transforms';
+import {normalizeFormats} from '../..//library/pattern';
 import copyStatic from '../common/copy-static';
-import getEnvironments from '../../../library/utilities/get-environments';
-import getPatternMtimes from '../../../library/utilities/get-pattern-mtimes';
-import getPatterns from '../../../library/utilities/get-patterns';
-import writeSafe from '../../../library/filesystem/write-safe';
+import getEnvironments from '../..//library/utilities/get-environments';
+import getPatternMtimes from '../..//library/utilities/get-pattern-mtimes';
+import getPatterns from '../..//library/utilities/get-patterns';
+import writeSafe from '../..//library/filesystem/write-safe';
 
 const where = `Configure it at configuration/patternplate-server/tasks.js.`;
 

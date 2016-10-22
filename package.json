@@ -2,9 +2,9 @@
   "name": "patternplate-server",
   "version": "1.0.7",
   "description": "Programmatically serve atomic patterns via a REST API",
-  "main": "library/",
+  "main": "distribution/library/",
   "bin": {
-    "patternplate-server": "binary/patternplate-server.js"
+    "patternplate-server": "distribution/binary/patternplate-server.js"
   },
   "scripts": {
     "start": "binary/patternplate-server.js",
@@ -17,8 +17,8 @@
     "test": "eslint source/**/*.js",
     "build": "npm run clean && npm run babel",
     "watch": "npm run babel -- --watch",
-    "babel": "babel source --out-dir ./",
-    "clean": "rm -rf application binary configuration library assets",
+    "babel": "babel source --out-dir ./distribution",
+    "clean": "rm -rf distribution",
     "preversion": "npm run build && npm test",
     "version": "npm run changelog && git add . && echo \"$(conventional-changelog -p angular)\" > .git/COMMITMSG.tmp",
     "postversion": "echo $(git log -1 --pretty=%B HEAD^..HEAD) > .git/RELEASE_VERSION.tmp && git tag -d v$(cat .git/RELEASE_VERSION.tmp) && git commit --amend -m \"chore(release): $(cat .git/RELEASE_VERSION.tmp)\n$(cat .git/COMMITMSG.tmp)\" && git tag -a v$(cat .git/RELEASE_VERSION.tmp) -m \"$(cat .git/COMMITMSG.tmp)\""
@@ -72,7 +72,6 @@
     "arson": "^0.2.3",
     "babel-polyfill": "^6.5.0",
     "babel-runtime": "^5.8.24",
-    "boilerplate-server": "^0.12.0",
     "boxen": "^0.8.0",
     "chalk": "^1.1.1",
     "denodeify": "^1.2.1",
@@ -81,6 +80,7 @@
     "find-and-read-package-json": "^1.0.0",
     "find-root": "^0.1.1",
     "hotswap": "^1.1.0",
+    "koa": "^1.2.4",
     "koa-cors": "0.0.16",
     "lodash": "^4.15.0",
     "lru-cache": "^2.6.3",

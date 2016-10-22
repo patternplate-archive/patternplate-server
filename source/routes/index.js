@@ -1,4 +1,4 @@
-import getSchema from '../../library/get-schema';
+import getSchema from '../library/get-schema';
 
 export default function indexRouteFactory(application) {
 	return async function indexRoute() {
@@ -6,5 +6,3 @@ export default function indexRouteFactory(application) {
 		this.body = await getSchema(application);
 	};
 }
-
-module.change_code = 1;

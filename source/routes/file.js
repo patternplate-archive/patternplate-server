@@ -1,6 +1,6 @@
 import path from 'path';
-import patternSource from '../../library/get-pattern-source';
-import urlQuery from '../../library/utilities/url-query';
+import patternSource from '../library/get-pattern-source';
+import urlQuery from '../library/utilities/url-query';
 
 export default function fileRouteFactory(application) {
 	const getPatternSource = patternSource(application);
