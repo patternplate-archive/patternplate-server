@@ -13,7 +13,7 @@ async function transform(pattern) {
 		log: pattern.log
 	};
 
-	// get the transform job, execute in parallel
+	// get the transform jobs, execute in parallel
 	const jobs = Object.values(pattern.files)
 		.map(getTransform(pattern.transforms, config));
 
@@ -21,7 +21,9 @@ async function transform(pattern) {
 	const filesResults = await Promise.all(jobs);
 
 	// pick the last item each
-	const transformResults = filesResults.map(last);
+	const transformResults = filesResults
+		.filter(fileResults => fileResults.length > 0)
+		.map(last);
 
 	// Save into files map
 	const files = transformResults.reduce((results, transformResult) => {
@@ -59,7 +61,7 @@ async function transform(pattern) {
 
 	// Reduce to format.name => result map
 	pattern.results = sanitizedResults.reduce((results, transformResult) => {
-		const format = formats[transformResult.format];
+		const format = formats[transformResult.format] || {name: transformResult.format};
 		const isDemo = transformResult.baseName === 'demo';
 
 		results[format.name] = {
@@ -67,8 +69,8 @@ async function transform(pattern) {
 			concern: transformResult.basename,
 			source: toString(transformResult.source),
 			buffer: toString(transformResult.buffer),
-			in: transformResult.in,
-			out: transformResult.out,
+			in: transformResult.in || transformResult.format,
+			out: transformResult.out || transformResult.format,
 			demoBuffer: isDemo ? toString(transformResult.demoBuffer) : null,
 			demoSource: isDemo ? toString(transformResults.demoSource) : null
 		};

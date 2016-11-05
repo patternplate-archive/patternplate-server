@@ -1,5 +1,5 @@
 import path from 'path';
-import {omit, uniqBy} from 'lodash';
+import {isEmpty, omit, uniqBy} from 'lodash';
 import getPatternData from './get-pattern-data';
 
 export default getPatternMetaData;
@@ -30,12 +30,15 @@ async function getPatternMetaData(application, id, env = 'index') {
 	};
 }
 
+const defaultFormats = {js: {name: 'js'}, css: {name: 'css'}, html: {name: 'html'}};
+
 function selectPatternFiles(data, config) {
 	const {files} = data;
 	return data.outFormats.reduce((registry, outFormat) => {
 		const {name, type} = outFormat;
+		const formats = isEmpty(config.formats) ? defaultFormats : config.formats;
 
-		const candidates = Object.entries(config.formats)
+		const candidates = Object.entries(formats)
 			.filter(entry => entry[1].name === outFormat.name)
 			.map(entry => entry[0]);
 

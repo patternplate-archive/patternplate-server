@@ -18,15 +18,11 @@ async function getPatternDemo(application, id, filters, environment) {
 
 	const order = ['demo', 'index'];
 
-	const path = Object.values(pattern.files)
+	const file = Object.values(pattern.files)
 		.sort((a, b) => order.indexOf(a.basename) - order.indexOf(b.basename))
-		.map(file => file.path)[0];
+		.find(file => file.format === 'html');
 
-	if (!path) {
-		return null;
-	}
-
-	const content = await getFile(path, 'transformed', environment);
+	const content = file ? await getFile(file.path, 'transformed', environment) : {body: ''};
 
 	const {formats} = application.configuration.patterns;
 	const automount = selectAutoMount(application, pattern);
@@ -93,6 +89,12 @@ function getUriByFormat(pattern, format = '') {
 		return `./index.${match.extension}`;
 	}
 
+	const extensionMatch = outFormats.find(o => o.extension === type);
+
+	if (extensionMatch) {
+		return `./index.${extensionMatch.extension}`;
+	}
+
 	return null;
 }
 
@@ -116,7 +118,8 @@ function getFormat(formats, transforms, type) {
 		return (legacy[0] || {}).name || legacy[0];
 	}
 
-	return null;
+	// fall back to formatName
+	return formatName;
 }
 
 function findByName(name) {
