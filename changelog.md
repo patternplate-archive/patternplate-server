@@ -1,3 +1,13 @@
+<a name="1.0.8"></a>
+## [1.0.8](https://github.com/sinnerschrader/patternplate-server/compare/v1.0.7...v1.0.8) (2016-11-11)
+
+
+### Bug Fixes
+
+* ensure pattern format.name is used in lowerCase for path resolving ([1401b88](https://github.com/sinnerschrader/patternplate-server/commit/1401b88))
+
+
+
 <a name="1.0.7"></a>
 ## [1.0.7](https://github.com/sinnerschrader/patternplate-server/compare/v1.0.6...v1.0.7) (2016-10-10)
 
