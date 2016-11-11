@@ -112,6 +112,6 @@ export default async function getSchema(application, client, server) {
 		port,
 		routes,
 		meta: await gettingPatternTree, // TODO: optimize this
-		readme: await renderingReadme // TODO: optimize this
+		readme: await renderingReadme
 	});
 }

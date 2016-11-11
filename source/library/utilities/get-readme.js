@@ -1,5 +1,6 @@
 import {resolve, sep} from 'path';
 
+import escapeHtml from 'escape-html';
 import {find} from 'lodash';
 import pathExists from 'path-exists';
 
@@ -40,7 +41,7 @@ async function getMarkdown(id, base, options) {
 
 	if (markdownPath) {
 		const buffer = await readFile(markdownPath);
-		return buffer.toString('utf-8');
+		return escapeHtml(buffer.toString('utf-8'));
 	}
 
 	return '';
