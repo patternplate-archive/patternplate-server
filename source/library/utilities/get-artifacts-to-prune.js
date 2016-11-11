@@ -35,7 +35,7 @@ export default function getArtifactsToPrune(search, patterns, artifacts, config)
 			const lastTransformName = transformNames[transformNames.length - 1];
 			const lastTransform = config.transforms[lastTransformName] || {};
 
-			const fileType = format.name;
+			const fileType = format.name.toLowerCase();
 			const targetExtension = lastTransform.outFormat || fileExtension.slice(1);
 
 			const expectedRelativePath = resolvePathFormatString(

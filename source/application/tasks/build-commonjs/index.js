@@ -208,7 +208,7 @@ async function exportAsCommonjs(application, settings) {
 				const targetFile = resolvePathFormatString(
 					pathFormatString,
 					pattern.id,
-					format.name,
+					format.name.toLowerCase(),
 					targetExtension
 				);
 
@@ -265,12 +265,8 @@ async function exportAsCommonjs(application, settings) {
 					Object.entries(patternItem.results)
 						.map(async resultsEntry => {
 							const [resultName, result] = resultsEntry;
-							const resultPath = join(
-								commonjsRoot,
-								resolvePathFormatString(
-									pathFormatString, patternItem.id, resultName, result.out
-								)
-							);
+							const relativePath = resolvePathFormatString(pathFormatString, patternItem.id, resultName.toLowerCase(), result.out);
+							const resultPath = join(commonjsRoot, relativePath);
 							return writeSafe(resultPath, result.buffer);
 						}));
 

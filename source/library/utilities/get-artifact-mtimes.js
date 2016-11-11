@@ -10,7 +10,7 @@ export default async function getArtifactMtimes(search, patterns) {
 	const distributionDirectory = resolve(process.cwd(), search);
 
 	const types = Object.keys(patterns.formats)
-		.map(extension => patterns.formats[extension].name);
+		.map(extension => patterns.formats[extension].name.toLowerCase());
 
 	const typedFiles = await Promise.all([...new Set(types)].map(async type => {
 		const files = await readTree(resolve(search, type));

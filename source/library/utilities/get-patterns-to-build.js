@@ -34,7 +34,7 @@ export default function getPatternsToBuild(artifacts, patterns) {
 			.filter(Boolean)
 			.map(extension => patterns.formats[extension])
 			.filter(Boolean)
-			.map(format => format.name))];
+			.map(format => format.name.toLowerCase()))];
 
 		// Build if pattern has types that are not in artifacts
 		if (difference(types, artifact.types).length) {
