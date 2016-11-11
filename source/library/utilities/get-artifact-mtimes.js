@@ -7,7 +7,7 @@ import readTree from '../filesystem/read-tree';
 
 export default async function getArtifactMtimes(search, patterns) {
 	const debug = debuglog('artifact-mtimes');
-	const distributionDirectory = resolve(search);
+	const distributionDirectory = resolve(process.cwd(), search);
 
 	const types = Object.keys(patterns.formats)
 		.map(extension => patterns.formats[extension].name);
