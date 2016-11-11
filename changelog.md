@@ -1,3 +1,13 @@
+<a name="1.0.9"></a>
+## [1.0.9](https://github.com/sinnerschrader/patternplate-server/compare/v1.0.8...v1.0.9) (2016-11-11)
+
+
+### Bug Fixes
+
+* escape html in markdown files ([5e91604](https://github.com/sinnerschrader/patternplate-server/commit/5e91604))
+
+
+
 <a name="1.0.8"></a>
 ## [1.0.8](https://github.com/sinnerschrader/patternplate-server/compare/v1.0.7...v1.0.8) (2016-11-11)
 
