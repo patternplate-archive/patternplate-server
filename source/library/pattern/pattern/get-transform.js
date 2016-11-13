@@ -3,15 +3,21 @@ import applyTransforms from './apply-transforms';
 
 export default getTransform;
 
+const passthroughFormats = ['html', 'css', 'js', 'md'];
+
 function getTransform(transformFunctions, config) {
 	return async file => {
-		const {patterns, log, transformConfigs} = config;
+		const {patterns, transformConfigs} = config;
 		const format = patterns.formats[file.format];
+		const formatConfigured = isObject(format);
+		const isPassThroughFormat = passthroughFormats.includes(file.format);
 
-		if (!isObject(format)) {
-			const formatNames = Object.keys(patterns.formats);
-			log.debug(`${file.path} has no configured format. Available: ${formatNames}`);
-			return null;
+		if (!formatConfigured && isPassThroughFormat) {
+			return Promise.resolve([file]);
+		}
+
+		if (!formatConfigured) {
+			return Promise.resolve([]);
 		}
 
 		file.meta.devDependencies = getDevDependencies(file, format);

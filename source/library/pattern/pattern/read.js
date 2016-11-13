@@ -1,6 +1,6 @@
 import path from 'path';
 import chalk from 'chalk';
-import {uniq} from 'lodash';
+import {isEmpty, uniq} from 'lodash';
 import mzFs from 'mz/fs';
 import throat from 'throat';
 import constructFileDependencies from './construct-file-dependencies';
@@ -21,7 +21,9 @@ async function read(pattern, subPath) {
 	// use filter, use all formats if none given
 	const inFormats = pattern.filters.inFormats.length > 0 ?
 		pattern.filters.inFormats :
-		uniq(Object.keys(pattern.config.patterns.formats));
+		isEmpty(pattern.config.patterns.formats) ?
+			['html', 'js', 'css', 'md'] :
+			uniq(Object.keys(pattern.config.patterns.formats));
 
 	const filterOutFormats = pattern.filters.outFormats.length ?
 		outFormat => pattern.filters.outFormats.includes(outFormat) :
@@ -96,7 +98,7 @@ async function read(pattern, subPath) {
 		.map(file => {
 			const inFileFormat = path.extname(file).slice(1);
 			const formatConfig = pattern.config.patterns.formats[inFileFormat] || {};
-			const name = formatConfig.name || '';
+			const name = formatConfig.name || inFileFormat;
 			const transformNames = formatConfig.transforms || [];
 			const lastTransform = pattern.config.transforms[transformNames[transformNames.length - 1]] || {};
 
