@@ -1,9 +1,12 @@
 import path from 'path';
-import {readdir, stat} from 'mz/fs';
-import {flattenDeep} from 'lodash';
+import {readdir, stat as fsStat} from 'mz/fs';
+import {flattenDeep, memoize} from 'lodash';
 import exists from 'path-exists';
 
 export default readTree;
+
+const read = memoize(readdir);
+const stat = memoize(fsStat);
 
 async function readTree(directoryPath) {
 	if (!await exists(directoryPath)) {
@@ -17,7 +20,7 @@ async function readTree(directoryPath) {
 	}
 
 	if (stats.isDirectory()) {
-		const list = await readdir(directoryPath);
+		const list = await read(directoryPath);
 		const jobs = list.map(item => readTree(path.resolve(directoryPath, item)));
 		return flattenDeep(await Promise.all(jobs));
 	}
