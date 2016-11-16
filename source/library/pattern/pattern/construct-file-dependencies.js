@@ -1,17 +1,32 @@
-import {memoize} from 'lodash';
 export default constructFileDependencies;
 
-const getMatchingFile = memoize((files, search) => {
-	const name = Object.keys(files).find(file => search.includes(file));
-	return files[name] || {};
-});
+function matchFileName(fileNames, search) {
+	if (search.length > 1) {
+		return fileNames.find(fileName => search.includes(fileName));
+	}
+
+	const [exact] = search;
+	return fileNames.find(fileName => fileName === exact);
+}
 
 function constructFileDependencies(dependencies, search) {
 	return Object
 		.entries(dependencies)
 		.reduce((results, entry) => {
 			const [dependencyName, dependencyPattern] = entry;
-			const dependencyFile = getMatchingFile(dependencyPattern.files, search);
+			const {files} = dependencyPattern;
+
+			if (!files) {
+				return results;
+			}
+
+			const fileNames = Object.keys(files);
+			const matchedFileName = matchFileName(fileNames, search);
+			const dependencyFile = dependencyPattern.files[matchedFileName];
+
+			if (!dependencyFile) {
+				return results;
+			}
 
 			if (dependencyFile.path) {
 				dependencyFile.dependencies = constructFileDependencies(
