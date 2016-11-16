@@ -1,82 +1,59 @@
+import assert from 'assert';
 import path from 'path';
 
 import {merge} from 'lodash';
-import streamToString from 'stream-to-string';
 
 import getPatterns from './utilities/get-patterns';
-import getMountTransformChain from './utilities/get-mount-transform-chain';
-import getStaticCacheItem from './utilities/get-static-cache-item';
 
 export default getComponent;
 
-const overrides = {
-	transforms: {
-		'react': {
-			inFormat: 'jsx',
-			outFormat: 'jsx',
-			resolveDependencies: false,
-			convertDependencies: true
-		},
-		'react-mount': {
-			inFormat: 'js',
-			outFormat: 'js'
-		},
-		'browserify': {
-			inFormat: 'js',
-			outFormat: 'js'
-		}
-	}
-};
-
 async function getComponent(app, id, env = 'index') {
+	const mount = app.configuration.patterns.mount || {};
+	assert.ok(Array.isArray(mount.transforms), 'mount.transforms has to be an array');
+	assert.ok(typeof mount.name === 'string', 'mount.format has to be a string');
+	assert.ok(typeof mount.name === 'string', 'mount.name has to be a string');
+
 	const cwd = app.runtime.patterncwd || app.runtime.cwd;
-	const base = path.resolve(cwd, app.configuration.patterns.path);
-	const jsxFormat = app.configuration.patterns.formats.jsx;
-	const mountableCacheRoot = path.resolve(cwd, '.cache', 'react-mount');
-	const transforms = getMountTransformChain(jsxFormat, app.configuration.transforms);
-	const name = 'Component';
-	const componentFormat = {name, transforms};
-	const useCache = app.cache && app.cache.config.static;
+	const base = path.resolve(cwd, './patterns');
 
-	// special cache for react-mount
-	const cached = useCache && await getStaticCacheItem({
-		id,
-		base: mountableCacheRoot,
-		cache: app.cache,
-		extension: 'js',
-		stream: true,
-		filters: {
-			environments: [env].filter(Boolean)
-		}
-	});
+	const {transforms} = app.configuration;
+	const first = mount.transforms[0];
+	const last = mount.transforms[mount.transforms.length - 1];
 
-	if (cached) {
-		const buffer = await streamToString(cached);
-		return {buffer};
-	}
+	const {inFormat} = transforms[first];
+	const {outFormat} = transforms[last];
 
-	const passed = {
-		transforms: app.configuration.transforms,
-		patterns: app.configuration.patterns
+	assert.ok(typeof inFormat === 'string', `transforms.${first}.inFormat has to be a string`);
+	assert.ok(typeof outFormat === 'string', `transforms.${last}.outFormat has to be a string`);
+
+	const filters = {
+		environments: [env],
+		outFormats: [outFormat],
+		inFormats: [inFormat]
 	};
 
-	const formats = {jsx: componentFormat, html: componentFormat};
-	const patterns = {formats};
-
-	const config = merge({}, passed, overrides, {patterns});
+	const config = merge({}, app.configuration, {
+		patterns: {
+			formats: {
+				[mount.format]: {
+					name: mount.name,
+					transforms: mount.transforms
+				}
+			}
+		}
+	});
 
 	const [pattern] = await getPatterns({
 		id,
 		base,
 		config,
 		factory: app.pattern.factory,
-		filters: {
-			environments: [env].filter(Boolean),
-			outFormats: ['js']
-		},
+		filters,
 		transforms: app.transforms,
 		log: app.log
 	}, app.cache);
 
-	return pattern.results[name] ? pattern.results[name] : null;
+	return pattern.results[mount.name] ?
+		pattern.results[mount.name] :
+		null;
 }
