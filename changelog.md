@@ -1,3 +1,13 @@
+<a name="1.0.11"></a>
+## [1.0.11](https://github.com/sinnerschrader/patternplate-server/compare/v1.0.10...v1.0.11) (2016-11-16)
+
+
+### Bug Fixes
+
+* perform match for file deps faithfully ([5068f7d](https://github.com/sinnerschrader/patternplate-server/commit/5068f7d))
+
+
+
 <a name="1.0.10"></a>
 ## [1.0.10](https://github.com/sinnerschrader/patternplate-server/compare/v1.0.9...v1.0.10) (2016-11-15)
 
