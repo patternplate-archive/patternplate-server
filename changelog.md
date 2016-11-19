@@ -1,3 +1,13 @@
+<a name="1.0.13"></a>
+## [1.0.13](https://github.com/sinnerschrader/patternplate-server/compare/v1.0.12...v1.0.13) (2016-11-19)
+
+
+### Bug Fixes
+
+* leave foreign files in build/build-commonjs alone (#66) ([0a9b2c0](https://github.com/sinnerschrader/patternplate-server/commit/0a9b2c0))
+
+
+
 <a name="1.0.12"></a>
 ## [1.0.12](https://github.com/sinnerschrader/patternplate-server/compare/v1.0.11...v1.0.12) (2016-11-17)
 
