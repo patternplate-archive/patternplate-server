@@ -5,7 +5,11 @@ import {debuglog} from 'util';
 
 import readTree from '../filesystem/read-tree';
 
-export default async function getArtifactMtimes(search, patterns) {
+export default async function getArtifactMtimes(search, patterns, transforms) {
+	const outFormats = Object.values(transforms)
+		.map(t => t.outFormat)
+		.reduce((o, t) => [...o, t], []);
+
 	const debug = debuglog('artifact-mtimes');
 	const distributionDirectory = resolve(process.cwd(), search);
 
@@ -14,7 +18,9 @@ export default async function getArtifactMtimes(search, patterns) {
 
 	const typedFiles = await Promise.all([...new Set(types)].map(async type => {
 		const files = await readTree(resolve(search, type));
-		return files.filter(path => extname(path));
+		return files
+			.filter(path => extname(path))
+			.filter(path => outFormats.includes(extname(path).slice(1)));
 	}));
 
 	const artifactPaths = typedFiles

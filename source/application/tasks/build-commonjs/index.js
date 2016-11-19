@@ -91,7 +91,11 @@ async function exportAsCommonjs(application, settings) {
 
 	// start reading artifact mtimes
 	const artifactMtimesStart = new Date();
-	const readingArtifactMtimes = getArtifactMtimes(commonjsRoot, application.configuration.patterns);
+	const readingArtifactMtimes = getArtifactMtimes(
+		commonjsRoot,
+		application.configuration.patterns,
+		application.configuration.transforms
+	);
 
 	// wait for all mtimes to trickle in
 	const patternMtimes = await readingPatternMtimes;
