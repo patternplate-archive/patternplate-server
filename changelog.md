@@ -1,3 +1,13 @@
+<a name="1.0.14"></a>
+## [1.0.14](https://github.com/sinnerschrader/patternplate-server/compare/v1.0.13...v1.0.14) (2016-11-30)
+
+
+### Bug Fixes
+
+* remove buggy memoization ([8c0178b](https://github.com/sinnerschrader/patternplate-server/commit/8c0178b))
+
+
+
 <a name="1.0.13"></a>
 ## [1.0.13](https://github.com/sinnerschrader/patternplate-server/compare/v1.0.12...v1.0.13) (2016-11-19)
 
