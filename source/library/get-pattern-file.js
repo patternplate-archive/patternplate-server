@@ -8,6 +8,10 @@ export default async function(application, id, filters, out, environment) {
 		id, filters, environment, ['read', 'transform']
 	);
 
+	if (!pattern) {
+		return null;
+	}
+
 	// find a file with matching out format
 	const file = find(Object.values(pattern.results), {out}) || {};
 	return file.buffer;
