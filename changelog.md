@@ -1,3 +1,13 @@
+<a name="1.0.15"></a>
+## [1.0.15](https://github.com/sinnerschrader/patternplate-server/compare/v1.0.14...v1.0.15) (2016-12-13)
+
+
+### Bug Fixes
+
+* return null if pattern is undefined ([1744ba4](https://github.com/sinnerschrader/patternplate-server/commit/1744ba4))
+
+
+
 <a name="1.0.14"></a>
 ## [1.0.14](https://github.com/sinnerschrader/patternplate-server/compare/v1.0.13...v1.0.14) (2016-11-30)
 
