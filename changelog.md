@@ -1,3 +1,13 @@
+<a name="1.0.16"></a>
+## [1.0.16](https://github.com/sinnerschrader/patternplate-server/compare/v1.0.15...v1.0.16) (2016-12-14)
+
+
+### Bug Fixes
+
+* select pattern dependencies correctly ([3f4e194](https://github.com/sinnerschrader/patternplate-server/commit/3f4e194)), closes [#129](https://github.com/sinnerschrader/patternplate-server/issues/129)
+
+
+
 <a name="1.0.15"></a>
 ## [1.0.15](https://github.com/sinnerschrader/patternplate-server/compare/v1.0.14...v1.0.15) (2016-12-13)
 
