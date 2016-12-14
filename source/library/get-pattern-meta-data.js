@@ -1,6 +1,5 @@
 import path from 'path';
-import {omit, uniqBy} from 'lodash';
-import flatPick from './utilities/flat-pick';
+import {entries, omit, pick, uniqBy} from 'lodash';
 import getPatternData from './get-pattern-data';
 
 export default getPatternMetaData;
@@ -32,8 +31,12 @@ async function getPatternMetaData(application, id, env = 'index') {
 }
 
 function selectDependencies(data) {
-	const sanitized = omit(data, ['Pattern']);
-	return flatPick(sanitized, ['id', 'manifest']);
+	const sanitized = omit(data.dependencies, ['Pattern']);
+	return entries(sanitized).reduce((dependencies, entry) => {
+		const [name, dependency] = entry;
+		dependencies[name] = pick(dependency, ['id', 'manifest']);
+		return dependencies;
+	}, {});
 }
 
 function selectPatternFiles(data, config) {
