@@ -1,5 +1,7 @@
 # patternplate-server
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/sinnerschrader/patternplate-server.svg)](https://greenkeeper.io/)
+
 ## Installation
 ```shell
 npm install --save patternplate-server
