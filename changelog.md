@@ -1,3 +1,13 @@
+<a name="1.1.0-0"></a>
+# [1.1.0-0](https://github.com/sinnerschrader/patternplate-server/compare/v1.0.16...v1.1.0-0) (2017-03-20)
+
+
+### Features
+
+* add resources queue for transforms with side-effects ([d46e764](https://github.com/sinnerschrader/patternplate-server/commit/d46e764))
+
+
+
 <a name="1.0.16"></a>
 ## [1.0.16](https://github.com/sinnerschrader/patternplate-server/compare/v1.0.15...v1.0.16) (2016-12-14)
 
