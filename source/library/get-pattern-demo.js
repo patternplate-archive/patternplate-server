@@ -1,7 +1,8 @@
-import {merge} from 'lodash';
+import {merge, uniqBy} from 'lodash';
 
 import getPatternRetriever from './utilities/get-pattern-retriever';
 import getPatternSource from './get-pattern-source';
+import getComponent from './get-component';
 import layout from '../application/layouts';
 
 export default getPatternDemo;
@@ -30,9 +31,14 @@ async function getPatternDemo(application, id, filters, environment) {
 
 	const {formats} = application.configuration.patterns;
 	const automount = selectAutoMount(application, pattern);
-	const render = getRenderer(formats, automount);
 
-	return render(content.body, pattern);
+	if (automount) {
+		await getComponent(application, pattern.id, environment);
+	}
+
+	const render = getRenderer(formats, automount);
+	const resources = application.resources.filter(({pattern: p}) => p === null || p === pattern.id);
+	return render(content.body, pattern, resources);
 }
 
 function selectAutoMount(a, p) {
@@ -51,24 +57,34 @@ function selectManifestOptions(p) {
 }
 
 function getRenderer(formats, component = false) {
-	return (content, result) => {
+	return (content, result, resources) => {
 		const transforms = result.config.transforms;
 		const styleFormat = getFormat(formats, transforms, 'style');
 		const scriptFormat = getFormat(formats, transforms, 'script');
 		const styleReference = getUriByFormat(result, styleFormat);
 
-		const scriptCandidates = component ?
-			[{uri: './component.js'}] :
-			[{uri: getUriByFormat(result, scriptFormat)}];
+		const markupContent = [{content}];
+		const styleContent = resources.filter(r => r.type === 'css' && !r.reference);
+		const scriptContent = resources.filter(r => r.type === 'js' && !r.reference);
+
+		const scripts = component ? [] : [{uri: getUriByFormat(result, scriptFormat)}];
+		const styles = [{id: styleReference}].filter(i => i.id);
+
+		const markupReferences = uniqBy(resources.filter(r => r.type === 'html' && r.reference), 'id');
+		const styleReferences = uniqBy([...styles, ...resources.filter(r => r.type === 'css' && r.reference)], 'id');
+		const scriptReferences = uniqBy([...resources.filter(r => r.type === 'js' && r.reference), ...scripts], 'id');
 
 		return layout({
 			title: result.id,
 			content: {
-				markup: [{content}]
+				markup: markupContent,
+				style: styleContent,
+				script: scriptContent
 			},
 			reference: {
-				style: [{uri: styleReference}].filter(i => i.uri),
-				script: scriptCandidates.filter(i => i.uri)
+				markup: markupReferences,
+				style: styleReferences,
+				script: scriptReferences
 			}
 		});
 	};

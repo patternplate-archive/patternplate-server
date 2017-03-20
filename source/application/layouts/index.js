@@ -6,21 +6,26 @@ function layout(props) {
 			<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 			<link rel="icon" href="data:;base64,iVBORw0KGgo=">
 			${(props.reference.style || [])
-				.filter(Boolean)
-				.filter(style => Boolean(style.uri))
-				.map(style => `<link rel="stylesheet" href="${style.uri}">`)
+				.map(style => `<link rel="stylesheet" href="/api/resource/${style.id}.css">`)
+				.join('\n')}
+			${(props.content.style || [])
+				.map(style => `<style>${style.content}</style>`)
+				.join('\n')}
+			${(props.reference.markup || [])
+				.map(m => `<link rel="m" href="/api/resource/${m.uri}.html">`)
 				.join('\n')}
 		</head>
 		<body>
 			${(props.content.markup || [])
-				.filter(Boolean)
-				.filter(markup => Boolean(markup.content))
 				.map(markup => markup.content)
 				.join('\n')}
 			${(props.reference.script || [])
+				.map(script => `<script src="/api/resource/${script.id}.js"></script>`)
+				.join('\n')}
+			${props.content.script || []
 				.filter(Boolean)
-				.filter(script => Boolean(script.uri))
-				.map(script => `<script src="${script.uri}"></script>`)
+				.filter(style => Boolean(script.content))
+				.map(style => `<script>${script.content}</script>`)
 				.join('\n')}
 		</body>
 	</html>
