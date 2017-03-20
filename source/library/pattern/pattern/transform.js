@@ -79,14 +79,20 @@ async function transform(pattern) {
 	pattern.meta = Object.entries(pattern.files).reduce((results, entry) => {
 		const [, file] = entry;
 		const meta = file.meta || {};
-		const dependencies = meta.dependencies || [];
-		const devDependencies = meta.devDependencies || [];
-		const scriptDependencies = meta.scripts || [];
+
+		const {
+			resources = [],
+			dependencies = [],
+			devDependencies = [],
+			scriptDependencies = []
+		} = meta;
+
 		return {
 			...results,
 			dependencies: [...(results.dependencies || []), ...dependencies],
 			devDependencies: [...(results.devDependencies || []), ...devDependencies],
-			scriptDependencies: [...(results.scriptDependencies || []), ...scriptDependencies]
+			scriptDependencies: [...(results.scriptDependencies || []), ...scriptDependencies],
+			resources: [...(results.resources || []), ...resources]
 		};
 	}, {});
 }
