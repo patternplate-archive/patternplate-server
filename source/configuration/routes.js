@@ -21,6 +21,10 @@ const routes = {
 				key: 'patterns'
 			}
 		},
+		resource: {
+			enabled: true,
+			path: '/resource/:id+.:ext'
+		},
 		file: {
 			enabled: true,
 			path: '/file/:id+'

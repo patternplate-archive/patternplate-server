@@ -43,7 +43,7 @@ async function getComponent(app, id, env = 'index') {
 		}
 	});
 
-	const [pattern] = await getPatterns({
+	const [pattern = {}] = await getPatterns({
 		id,
 		base,
 		config,
@@ -53,7 +53,9 @@ async function getComponent(app, id, env = 'index') {
 		log: app.log
 	}, app.cache);
 
-	return pattern.results[mount.name] ?
-		pattern.results[mount.name] :
+	const {results = {}} = pattern;
+
+	return results[mount.name] ?
+		results[mount.name] :
 		null;
 }

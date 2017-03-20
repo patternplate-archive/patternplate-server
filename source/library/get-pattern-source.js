@@ -69,7 +69,8 @@ function getPatternSource(application) {
 		const file = pattern.files[basename];
 		return {
 			type: file.out,
-			body: file.buffer
+			body: file.buffer,
+			meta: pattern.meta
 		};
 	};
 }
