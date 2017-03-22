@@ -58,7 +58,7 @@ async function exportAsCommonjs(application, settings) {
 	const cwd = application.runtime.patterncwd || application.runtime.cwd;
 
 	const patternRoot = resolve(cwd, 'patterns');
-	const commonjsRoot = resolve(cwd, 'build', 'build-commonjs');
+	const commonjsRoot = resolve(cwd, settings.out || join('build', 'build-commonjs'));
 	const manifestPath = resolve(commonjsRoot, 'package.json');
 	const filters = {...settings.filters || {}, baseNames: ['index']};
 
