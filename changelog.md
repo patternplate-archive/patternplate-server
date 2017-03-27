@@ -1,3 +1,13 @@
+<a name="1.1.0"></a>
+# [1.1.0](https://github.com/sinnerschrader/patternplate-server/compare/v1.0.16...v1.1.0) (2017-03-27)
+
+
+### Features
+
+* make commonjs build path configurable ([1bcd1cc](https://github.com/sinnerschrader/patternplate-server/commit/1bcd1cc))
+
+
+
 <a name="1.0.16"></a>
 ## [1.0.16](https://github.com/sinnerschrader/patternplate-server/compare/v1.0.15...v1.0.16) (2016-12-14)
 
