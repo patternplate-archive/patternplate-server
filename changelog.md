@@ -1,3 +1,20 @@
+<a name="1.2.0-2"></a>
+# [1.2.0-2](https://github.com/sinnerschrader/patternplate-server/compare/v1.0.16...v1.2.0-2) (2017-04-06)
+
+
+### Bug Fixes
+
+* compute result name for published resources ([404d2c6](https://github.com/sinnerschrader/patternplate-server/commit/404d2c6))
+* emit pattern resources in commonjs build ([0e7fb9d](https://github.com/sinnerschrader/patternplate-server/commit/0e7fb9d))
+
+
+### Features
+
+* add resources queue for transforms with side-effects ([d46e764](https://github.com/sinnerschrader/patternplate-server/commit/d46e764))
+* make commonjs build path configurable ([69b3993](https://github.com/sinnerschrader/patternplate-server/commit/69b3993))
+
+
+
 <a name="1.0.16"></a>
 ## [1.0.16](https://github.com/sinnerschrader/patternplate-server/compare/v1.0.15...v1.0.16) (2016-12-14)
 
