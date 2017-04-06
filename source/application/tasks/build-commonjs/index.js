@@ -295,6 +295,14 @@ async function exportAsCommonjs(application, settings) {
 		return;
 	}
 
+	const resources = application.resources.filter(r => Boolean(r.pattern));
+
+	await Promise.all(resources.map(async resource => {
+		const resourcePath = resolvePathFormatString(pathFormatString, resource.pattern, 'patterns', resource.type);
+		const artifactPath = join(commonjsRoot, resourcePath);
+		return writeSafe(artifactPath, await resource.content);
+	}));
+
 	const copyStart = new Date();
 	application.log.debug(wait`Copying static files`);
 	await copyStatic(cwd, commonjsRoot);
