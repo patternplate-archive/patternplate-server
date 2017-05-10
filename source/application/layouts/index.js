@@ -9,7 +9,7 @@ function layout(props) {
 				.map(style => `<link rel="stylesheet" href="/api/resource/${style.id}.css">`)
 				.join('\n')}
 			${(props.content.style || [])
-				.map(style => `<style>${style.content}</style>`)
+				.map(style => style.wrap === false ? style.content : `<style>${style.content}</style>`)
 				.join('\n')}
 			${(props.reference.markup || [])
 				.map(m => `<link rel="m" href="/api/resource/${m.uri}.html">`)
@@ -24,8 +24,8 @@ function layout(props) {
 				.join('\n')}
 			${props.content.script || []
 				.filter(Boolean)
-				.filter(style => Boolean(script.content))
-				.map(style => `<script>${script.content}</script>`)
+				.filter(script => Boolean(script.content))
+				.map(script => script.wrap === false ? script.content : `<script>${script.content}</script>`)
 				.join('\n')}
 		</body>
 	</html>
