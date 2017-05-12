@@ -1,3 +1,5 @@
+import path from 'path';
+
 export default applyTransforms;
 
 function applyTransforms(file, transformNames, options) {
@@ -41,14 +43,15 @@ async function applyTransform(fn, file, config) {
 }
 
 function augmentTransformError(error, file, transformName) {
-	error.message = [
-		`${error.pattern}:${error.file} [${error.transform}]`,
-		error.message
-	].join('\n');
-
 	error.pattern = error.pattern || file.pattern.id;
 	error.file = error.file || error.fileName || file.path;
 	error.fileName = error.file;
 	error.transform = error.transform || transformName;
+
+	error.message = [
+		`${error.pattern}:${path.basename(error.file)} [${error.transform}]`,
+		error.message
+	].join('\n');
+
 	return error;
 }
