@@ -1,3 +1,13 @@
+<a name="1.1.1"></a>
+## [1.1.1](https://github.com/sinnerschrader/patternplate-server/compare/v1.1.0...v1.1.1) (2017-05-12)
+
+
+### Bug Fixes
+
+* do not print confusing undefined for transform errors ([1353f83](https://github.com/sinnerschrader/patternplate-server/commit/1353f83))
+
+
+
 <a name="1.1.0"></a>
 # [1.1.0](https://github.com/sinnerschrader/patternplate-server/compare/v1.0.16...v1.1.0) (2017-03-27)
 
