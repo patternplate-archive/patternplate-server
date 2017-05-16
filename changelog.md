@@ -1,3 +1,26 @@
+<a name="1.2.0"></a>
+# [1.2.0](https://github.com/sinnerschrader/patternplate-server/compare/v1.1.1...v1.2.0) (2017-05-16)
+
+
+### Bug Fixes
+
+* allow relative references ([aa98736](https://github.com/sinnerschrader/patternplate-server/commit/aa98736))
+* compute result name for published resources ([a8e0796](https://github.com/sinnerschrader/patternplate-server/commit/a8e0796))
+* emit pattern resources in commonjs build ([96cc9ae](https://github.com/sinnerschrader/patternplate-server/commit/96cc9ae))
+
+
+### Features
+
+* add resources queue for transforms with side-effects ([ce0a868](https://github.com/sinnerschrader/patternplate-server/commit/ce0a868))
+* allow content injections to mark themselves as unwrapped ([2f5020d](https://github.com/sinnerschrader/patternplate-server/commit/2f5020d))
+
+
+### Performance Improvements
+
+* improve readTree performance by caching it ([001c3e9](https://github.com/sinnerschrader/patternplate-server/commit/001c3e9))
+
+
+
 <a name="1.1.1"></a>
 ## [1.1.1](https://github.com/sinnerschrader/patternplate-server/compare/v1.1.0...v1.1.1) (2017-05-12)
 
