@@ -2,9 +2,9 @@ import path from 'path';
 import getPatternManifest from './get-pattern-manifest';
 import readTree from '../filesystem/read-tree';
 
-async function loadPatterns(id, base, options = {}) {
+async function getPatternManifests(id, base, options = {}) {
 	const patternPath = id.split('/').join(path.sep);
-	const paths = await readTree(path.resolve(base, patternPath));
+	const paths = await readTree(path.resolve(base, patternPath), options.cache);
 
 	const patternIDs = paths
 		.filter(item => path.basename(item) === 'pattern.json')
@@ -19,4 +19,4 @@ async function loadPatterns(id, base, options = {}) {
 	return await manifests;
 }
 
-export default loadPatterns;
+export default getPatternManifests;

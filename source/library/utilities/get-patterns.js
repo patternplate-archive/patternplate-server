@@ -51,7 +51,7 @@ async function getPatterns(options, cache, cmds = ['read', 'transform']) {
 		path;
 
 	// Get all pattern ids
-	const paths = await readTree(search);
+	const paths = await readTree(search, options.cache);
 
 	const patternIDs = paths
 		.filter(item => basename(item) === 'pattern.json')
