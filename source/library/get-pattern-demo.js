@@ -37,7 +37,7 @@ async function getPatternDemo(application, id, filters, environment) {
 	}
 
 	const render = getRenderer(formats, automount);
-	const resources = application.resources.filter(({pattern: p}) => p === null || p === pattern.id);
+	const resources = (application.resources || []).filter(({pattern: p}) => p === null || p === pattern.id);
 	return render(content.body, pattern, resources);
 }
 

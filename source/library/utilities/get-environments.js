@@ -31,7 +31,7 @@ export default async function getEnvironments(base, options = {}) {
 
 	// Get available environments ids
 	const userEnvironmentPaths = hasUserEnvironments ?
-		(await readTree(environmentBase))
+		(await readTree(environmentBase, cache))
 			.filter(item => basename(item) === 'pattern.json') :
 		[];
 
