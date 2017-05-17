@@ -18,7 +18,7 @@ function layout(props) {
 				.join('\n')}
 			${styleRefs
 				.filter(isRelative)
-				.map(style => `<link rel="stylesheet" href="${style.id}">`)
+				.map(style => `<link rel="stylesheet" href="${style.uri || style.id}">`)
 				.join('\n')}
 			${(props.content.style || [])
 				.map(style => style.wrap === false ? style.content : `<style>${style.content}</style>`)
@@ -37,7 +37,7 @@ function layout(props) {
 				.join('\n')}
 			${scriptRefs
 				.filter(isRelative)
-				.map(script => `<script src="${script.id}"></script>`)
+				.map(script => `<script src="${script.uri || script.id}"></script>`)
 				.join('\n')}
 			${props.content.script || []
 				.filter(Boolean)
