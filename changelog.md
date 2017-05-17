@@ -1,3 +1,13 @@
+<a name="1.2.3"></a>
+## [1.2.3](https://github.com/sinnerschrader/patternplate-server/compare/v1.2.2...v1.2.3) (2017-05-17)
+
+
+### Bug Fixes
+
+* filter out ref with {"uri": null} ([87782ac](https://github.com/sinnerschrader/patternplate-server/commit/87782ac))
+
+
+
 <a name="1.2.2"></a>
 ## [1.2.2](https://github.com/sinnerschrader/patternplate-server/compare/v1.2.1...v1.2.2) (2017-05-17)
 
