@@ -50,13 +50,17 @@ function layout(props) {
 }
 
 function isAbsolute(reference) {
-	return !isRelative(reference);
+	return !isRelative(reference) && !hasUri(reference);
 }
 
 function isReference(reference) {
-	return 'id' in reference;
+	return 'id' in reference || 'uri' in reference;
 }
 
 function isRelative(reference) {
-	return (reference.id || '').charAt(0) === '.';
+	return (reference.id || '').charAt(0) === '.' || hasUri(reference);
+}
+
+function hasUri(reference) {
+	return 'uri' in reference;
 }
