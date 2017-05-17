@@ -37,6 +37,7 @@ function layout(props) {
 				.join('\n')}
 			${scriptRefs
 				.filter(isRelative)
+				.filter(script => Boolean(script.uri || script.id))
 				.map(script => `<script src="${script.uri || script.id}"></script>`)
 				.join('\n')}
 			${props.content.script || []
