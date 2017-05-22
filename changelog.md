@@ -1,3 +1,13 @@
+<a name="1.2.4"></a>
+## [1.2.4](https://github.com/sinnerschrader/patternplate-server/compare/v1.2.3...v1.2.4) (2017-05-22)
+
+
+### Bug Fixes
+
+* selectively clear caches on pattern file changes ([c86b74a](https://github.com/sinnerschrader/patternplate-server/commit/c86b74a))
+
+
+
 <a name="1.2.3"></a>
 ## [1.2.3](https://github.com/sinnerschrader/patternplate-server/compare/v1.2.2...v1.2.3) (2017-05-17)
 
