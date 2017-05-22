@@ -1,5 +1,5 @@
 import path from 'path';
-import {readdir, stat} from 'mz/fs';
+import {readdir, stat} from 'sander';
 import {flattenDeep} from 'lodash';
 import exists from 'path-exists';
 
@@ -18,33 +18,29 @@ const cacheShim = {
 };
 
 async function readTree(directoryPath, cache = cacheShim) {
-	const treeExists = withCache(exists, cache, 'readTree:exists:', false);
+	const key = `fs:readtree:${directoryPath}`;
+	const cached = cache.peek(key);
 
-	if (!await treeExists(directoryPath)) {
+	if (cached) {
+		return cache.get(key);
+	}
+
+	if (!await exists(directoryPath)) {
 		return [];
 	}
 
-	const treeStats = withCache(stat, cache, 'readTree:stat:', false);
-	const stats = await treeStats(directoryPath);
+	const stats = await stat(directoryPath);
 
 	if (stats.isFile()) {
 		return [directoryPath];
 	}
 
-	const treeDir = withCache(readdir, cache, 'readTree:list:', stats.mtime);
-	const list = await treeDir(directoryPath);
+	const list = await readdir(directoryPath);
 
-	const tree = withCache(readTree, cache, 'readTree', stats.mtime);
+	const jobs = list.map(item => readTree(path.resolve(directoryPath, item), cache));
+	const result = flattenDeep(await Promise.all(jobs));
 
-	const jobs = list.map(item => tree(path.resolve(directoryPath, item)));
-	return flattenDeep(await Promise.all(jobs));
-}
+	cache.set(key, result);
 
-function withCache(fn, cache, key, mtime) {
-	return async input => {
-		const id = `${key}${input}`;
-		const result = cache.get(id, mtime) || await fn(input);
-		cache.set(id, mtime, result);
-		return result;
-	};
+	return result;
 }

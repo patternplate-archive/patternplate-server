@@ -1,7 +1,7 @@
 import path from 'path';
 import chalk from 'chalk';
 import {uniq} from 'lodash';
-import mzFs from 'mz/fs';
+import {stat} from 'sander';
 import throat from 'throat';
 import constructFileDependencies from './construct-file-dependencies';
 import getReadFile from '../../filesystem/read-file';
@@ -132,7 +132,7 @@ async function read(pattern, subPath) {
 
 	// read in relevant file information
 	const fileData = await Promise.all(matchingFiles.map(throat(5, async file => {
-		const fileFs = await mzFs.stat(file);
+		const fileFs = await stat(file);
 		fileFs.node = fileFs; // backwards compatibility
 
 		const fileExt = path.extname(file);

@@ -1,5 +1,5 @@
 import {basename, dirname, extname, resolve} from 'path';
-import {readFile, stat} from 'mz/fs';
+import {readFile, stat} from 'sander';
 import {find} from 'lodash';
 import {pathToId} from 'patternplate-transforms-core';
 import throat from 'throat';

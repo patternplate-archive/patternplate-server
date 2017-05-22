@@ -1,5 +1,5 @@
 import {extname, dirname, relative, resolve, sep} from 'path';
-import {stat} from 'mz/fs';
+import {stat} from 'sander';
 import throat from 'throat';
 import {debuglog} from 'util';
 

@@ -1,4 +1,5 @@
 import lrucache from 'lru-cache';
+import multimatch from 'multimatch';
 import {get} from 'lodash';
 
 const namespace = new WeakMap();
@@ -20,41 +21,52 @@ class PatternCache {
 		namespace.set(this, {settings, cache});
 	}
 
-	set(key, mtime, value, meta) {
+	set(key, value) {
 		const cache = select(this, 'cache');
 
 		if (!cache) {
-			return;
+			return null;
 		}
 
-		return cache.set(key, {mtime, value, meta});
+		return cache.set(key, value);
 	}
 
-	get(key, mtime) {
+	delete(prefix = '', raw) {
 		const cache = select(this, 'cache');
 
 		if (!cache) {
 			return null;
 		}
 
-		const stored = cache.get(key);
+		const pattern = raw.replace(prefix, '');
 
-		if (typeof stored === 'undefined') {
+		const unprefixed = this.keys()
+			.filter(key => key.startsWith(prefix))
+			.map(key => key.replace(prefix, ''));
+
+		const matching = multimatch(unprefixed, [pattern]);
+
+		matching.forEach(key => cache.del(`${prefix}${key}`));
+		return matching;
+	}
+
+	get(key) {
+		const cache = select(this, 'cache');
+
+		if (!cache) {
 			return null;
 		}
 
-		const {'mtime': storedMtime, value} = stored;
-
-		if (mtime === false) {
-			return value;
-		}
-
-		if (new Date(storedMtime) < new Date(mtime)) {
-			cache.del(key);
+		if (!cache.peek(key)) {
 			return null;
 		}
 
-		return value;
+		return cache.get(key);
+	}
+
+	keys() {
+		const cache = select(this, 'cache');
+		return cache ? cache.keys() : [];
 	}
 
 	peek(key) {

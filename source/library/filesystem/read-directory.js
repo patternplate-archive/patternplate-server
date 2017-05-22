@@ -1,5 +1,5 @@
 import path from 'path';
-import {readdir, stat} from 'mz/fs';
+import {readdir, stat} from 'sander';
 
 export default readDirectory;
 
