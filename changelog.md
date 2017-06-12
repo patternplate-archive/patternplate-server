@@ -1,3 +1,13 @@
+<a name="1.3.0-0"></a>
+# [1.3.0-0](https://github.com/sinnerschrader/patternplate-server/compare/v1.2.4...v1.3.0-0) (2017-06-12)
+
+
+### Features
+
+* add nodeify task ([e8793bd](https://github.com/sinnerschrader/patternplate-server/commit/e8793bd))
+
+
+
 <a name="1.2.4"></a>
 ## [1.2.4](https://github.com/sinnerschrader/patternplate-server/compare/v1.2.3...v1.2.4) (2017-05-22)
 
