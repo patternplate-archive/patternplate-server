@@ -194,10 +194,10 @@ function treeFromPaths(files) {
 				contents: file.contents,
 				id: parts.slice(0, i + 1).join('/'),
 				path: parts.slice(0, i + 1),
-				type: path.extname(part) ? 'doc' : 'directory'
+				type: path.extname(part) ? 'doc' : 'folder'
 			};
 
-			if (item.type === 'directory') {
+			if (item.type === 'folder') {
 				item.children = [];
 			}
 
