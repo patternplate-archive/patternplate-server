@@ -3,6 +3,8 @@ import getPackageJSON from 'find-and-read-package-json';
 import frontmatter from 'front-matter';
 import globby from 'globby';
 import exists from 'path-exists';
+import remark from 'remark';
+import find from 'unist-util-find';
 import * as sander from 'sander';
 import getPatternTree from './utilities/get-pattern-tree';
 import getReadme from './utilities/get-readme';
@@ -153,11 +155,15 @@ async function getDocs(base) {
 	const items = await Promise.all(files.map(async file => {
 		const read = f => sander.readFile(resolve(f));
 		const contents = String(await read(file));
+		const ast = remark().parse(contents);
+		const first = find(ast, {type: 'heading', depth: 1});
+		const manifest = frontmatter(contents).attributes;
+		manifest.name = first ? first.children[0].value : '';
 
 		return {
 			contents,
 			path: file,
-			manifest: frontmatter(contents).attributes
+			manifest
 		};
 	}));
 
@@ -182,11 +188,6 @@ function treeFromPaths(files) {
 				return;
 			}
 
-			if (part.toLowerCase() === 'readme.md') {
-				level.contents = file.contents;
-				level.manifest = file.manifest;
-			}
-
 			const item = {
 				name: part,
 				manifest: file.manifest,
@@ -200,8 +201,13 @@ function treeFromPaths(files) {
 				item.children = [];
 			}
 
-			level.children.push(item);
-			level = item;
+			if (part.toLowerCase() === 'readme.md') {
+				level.contents = file.contents;
+				level.manifest = file.manifest;
+			} else {
+				level.children.push(item);
+				level = item;
+			}
 		});
 	});
 
