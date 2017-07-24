@@ -1,3 +1,21 @@
+<a name="1.3.0-1"></a>
+# [1.3.0-1](https://github.com/sinnerschrader/patternplate-server/compare/v1.2.4...v1.3.0-1) (2017-07-24)
+
+
+### Bug Fixes
+
+* change to client-compatible type 'folder' ([fde3990](https://github.com/sinnerschrader/patternplate-server/commit/fde3990))
+
+
+### Features
+
+* add meta data to found docs items ([294d7c3](https://github.com/sinnerschrader/patternplate-server/commit/294d7c3))
+* add nodeify task ([e8793bd](https://github.com/sinnerschrader/patternplate-server/commit/e8793bd))
+* expose markdown in [@docs](https://github.com/docs)/ folder ([f4d61db](https://github.com/sinnerschrader/patternplate-server/commit/f4d61db))
+* pick up first level heading as default name ([fe51873](https://github.com/sinnerschrader/patternplate-server/commit/fe51873))
+
+
+
 <a name="1.2.4"></a>
 ## [1.2.4](https://github.com/sinnerschrader/patternplate-server/compare/v1.2.3...v1.2.4) (2017-05-22)
 
