@@ -13,7 +13,11 @@ const defaults = {
 		'README.md',
 		'Readme.md',
 		'readme.md',
-		'index.md'
+		'index.md',
+		'@docs/README.md',
+		'@docs/Readme.md',
+		'@docs/readme.md',
+		'@docs/index.md'
 	]
 };
 
@@ -36,6 +40,7 @@ async function getMarkdown(id, base, options) {
 	const readFile = getReadFile({
 		cache: options.cache
 	});
+
 	const basePath = resolve(base, id.split('/').join(sep));
 	const markdownPath = await getExistingBaseName(basePath, options.baseNames);
 

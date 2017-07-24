@@ -25,6 +25,10 @@ const routes = {
 			enabled: true,
 			path: '/resource/:id+.:ext'
 		},
+		docs: {
+			enabled: true,
+			path: '/docs/:id+'
+		},
 		file: {
 			enabled: true,
 			path: '/file/:id+'
