@@ -1,7 +1,9 @@
 import path from 'path';
 import getPackageJSON from 'find-and-read-package-json';
-import exists from 'path-exists';
+import frontmatter from 'front-matter';
 import globby from 'globby';
+import exists from 'path-exists';
+import * as sander from 'sander';
 import getPatternTree from './utilities/get-pattern-tree';
 import getReadme from './utilities/get-readme';
 
@@ -146,7 +148,20 @@ async function getDocs(base) {
 		return [];
 	}
 
-	return treeFromPaths(await globby(`**/*.md`, {cwd}));
+	const files = await globby(`**/*.md`, {cwd});
+
+	const items = await Promise.all(files.map(async file => {
+		const read = f => sander.readFile(resolve(f));
+		const contents = String(await read(file));
+
+		return {
+			contents,
+			path: file,
+			manifest: frontmatter(contents).attributes
+		};
+	}));
+
+	return treeFromPaths(items);
 }
 
 function treeFromPaths(files) {
@@ -156,19 +171,28 @@ function treeFromPaths(files) {
 	};
 
 	files.forEach(file => {
-		const parts = file.split('/');
+		const parts = file.path.split('/');
 		let level = tree;
 
-		parts.forEach(part => {
-			const existing = level.children.find(c => c.id === part);
+		parts.forEach((part, i) => {
+			const existing = level.children.find(c => c.name === part);
 
 			if (existing) {
 				level = existing;
 				return;
 			}
 
+			if (part.toLowerCase() === 'readme.md') {
+				level.contents = file.contents;
+				level.manifest = file.manifest;
+			}
+
 			const item = {
-				id: part,
+				name: part,
+				manifest: file.manifest,
+				contents: file.contents,
+				id: parts.slice(0, i + 1).join('/'),
+				path: parts.slice(0, i + 1),
 				type: path.extname(part) ? 'doc' : 'directory'
 			};
 
@@ -181,6 +205,5 @@ function treeFromPaths(files) {
 		});
 	});
 
-	// const filesFragments = files.map(file => file.split('/'));
 	return tree;
 }
