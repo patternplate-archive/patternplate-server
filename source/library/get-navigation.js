@@ -1,9 +1,8 @@
 import {resolve} from 'path';
-import getPatternTree from './utilities/get-pattern-tree';
+import {getPatternTree} from './utilities/get-pattern-tree';
 
 export default async function getNavigation(application, client, server) {
 	const {
-		cache,
 		configuration: {
 			patterns
 		},
@@ -13,5 +12,5 @@ export default async function getNavigation(application, client, server) {
 		}
 	} = server;
 	const path = resolve(patterncwd || cwd, patterns.path);
-	return await getPatternTree('.', path, {cache});
+	return await getPatternTree(path);
 }

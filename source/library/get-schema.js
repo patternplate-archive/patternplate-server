@@ -1,12 +1,7 @@
 import path from 'path';
+import {getDocsTree} from './get-docs';
 import getPackageJSON from 'find-and-read-package-json';
-import frontmatter from 'front-matter';
-import globby from 'globby';
-import exists from 'path-exists';
-import remark from 'remark';
-import find from 'unist-util-find';
-import * as sander from 'sander';
-import getPatternTree from './utilities/get-pattern-tree';
+import {getPatternTree} from './utilities/get-pattern-tree';
 import getReadme from './utilities/get-readme';
 
 function getResolvedRoutes(routes, options) {
@@ -114,14 +109,10 @@ export default async function getSchema(application, client = DEFAULT_SUB, serve
 	});
 
 	// get patterns/readme.md
-	const renderingReadme = getReadme('.', basePath, {
-		cache
-	});
+	const renderingReadme = getReadme('.', basePath, {cache});
 
 	// obtain the pattern tree
-	const gettingPatternTree = getPatternTree('.', basePath, {
-		cache
-	});
+	const gettingPatternTree = getPatternTree(basePath);
 
 	return Object.assign({}, {
 		name,
@@ -137,79 +128,7 @@ export default async function getSchema(application, client = DEFAULT_SUB, serve
 		port,
 		routes,
 		meta: await gettingPatternTree,
-		docs: await getDocs(basePath),
+		docs: await getDocsTree(basePath),
 		readme: await renderingReadme
 	});
-}
-
-async function getDocs(base) {
-	const resolve = path.resolve.bind(null, base, '@docs');
-	const cwd = resolve('.');
-
-	if (!await exists(cwd)) {
-		return [];
-	}
-
-	const files = await globby(`**/*.md`, {cwd});
-
-	const items = await Promise.all(files.map(async file => {
-		const read = f => sander.readFile(resolve(f));
-		const contents = String(await read(file));
-		const ast = remark().parse(contents);
-		const first = find(ast, {type: 'heading', depth: 1});
-		const manifest = frontmatter(contents).attributes;
-		manifest.name = first ? first.children[0].value : '';
-
-		return {
-			contents,
-			path: file,
-			manifest
-		};
-	}));
-
-	return treeFromPaths(items);
-}
-
-function treeFromPaths(files) {
-	const tree = {
-		id: 'root',
-		children: []
-	};
-
-	files.forEach(file => {
-		const parts = file.path.split('/');
-		let level = tree;
-
-		parts.forEach((part, i) => {
-			const existing = level.children.find(c => c.name === part);
-
-			if (existing) {
-				level = existing;
-				return;
-			}
-
-			const item = {
-				name: part,
-				manifest: file.manifest,
-				contents: file.contents,
-				id: parts.slice(0, i + 1).join('/'),
-				path: parts.slice(0, i + 1),
-				type: path.extname(part) ? 'doc' : 'folder'
-			};
-
-			if (item.type === 'folder') {
-				item.children = [];
-			}
-
-			if (part.toLowerCase() === 'readme.md') {
-				level.contents = file.contents;
-				level.manifest = file.manifest;
-			} else {
-				level.children.push(item);
-				level = item;
-			}
-		});
-	});
-
-	return tree;
 }
