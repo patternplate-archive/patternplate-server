@@ -21,15 +21,49 @@ export async function getPatterns(base) {
 
 	const files = await globby(`**/pattern.json`, {cwd});
 
-	return await Promise.all(files.map(async file => {
+	const patterns = await Promise.all(files.map(async file => {
 		const data = await read(file);
-
 		data.displayName = data.displayName || data.name || null;
-
 		const id = file.split(path.sep).join('/');
 		const manifest = {...DEFAULT_MANIFEST, ...data};
 		return {id, path: file, manifest};
 	}));
+
+
+	return patterns.map(pattern => {
+		const id = path.dirname(pattern.id);
+		const deps = Object.values(pattern.manifest.patterns || {});
+
+		pattern.dependencies = patterns.reduce((d, p) => {
+			const pId = path.dirname(p.id);
+			if (deps.includes(pId) && pId !== id) {
+				d[pId] = {
+					id: pId,
+					manifest: p.manifest,
+					type: 'pattern'
+				};
+			}
+			return d;
+		}, {});
+
+		pattern.dependents = patterns.reduce((d, p) => {
+			const pId = path.dirname(p.id);
+			const pDeps = Object.values(p.manifest.patterns || {});
+			if (id === 'colors') {
+				console.log(id, pId, pDeps, pDeps.includes(pattern.id) && pId !== id);
+			}
+			if (pDeps.includes(id) && pId !== id) {
+				d[pId] = {
+					id: pId,
+					manifest: p.manifest,
+					type: 'pattern'
+				};
+			}
+			return d;
+		}, {});
+
+		return pattern;
+	});
 }
 
 export async function getPatternTree(base) {
@@ -77,6 +111,9 @@ function treeFromPaths(files) {
 			if (item.type === 'folder') {
 				item.children = [];
 				level = item;
+			} else {
+				item.dependents = file.dependents;
+				item.dependencies = file.dependencies;
 			}
 		});
 	});
