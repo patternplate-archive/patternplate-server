@@ -49,9 +49,6 @@ export async function getPatterns(base) {
 		pattern.dependents = patterns.reduce((d, p) => {
 			const pId = path.dirname(p.id);
 			const pDeps = Object.values(p.manifest.patterns || {});
-			if (id === 'colors') {
-				console.log(id, pId, pDeps, pDeps.includes(pattern.id) && pId !== id);
-			}
 			if (pDeps.includes(id) && pId !== id) {
 				d[pId] = {
 					id: pId,
