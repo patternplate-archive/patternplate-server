@@ -1,3 +1,14 @@
+<a name="1.3.0-2"></a>
+# [1.3.0-2](https://github.com/sinnerschrader/patternplate-server/compare/v1.3.0-1...v1.3.0-2) (2017-07-30)
+
+
+### Features
+
+* expose file change events to client ([09c3015](https://github.com/sinnerschrader/patternplate-server/commit/09c3015))
+* send pattern ids affected by file changes ([36b14a5](https://github.com/sinnerschrader/patternplate-server/commit/36b14a5))
+
+
+
 <a name="1.3.0-1"></a>
 # [1.3.0-1](https://github.com/sinnerschrader/patternplate-server/compare/v1.2.4...v1.3.0-1) (2017-07-24)
 
