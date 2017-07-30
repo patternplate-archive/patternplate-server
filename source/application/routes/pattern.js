@@ -1,5 +1,4 @@
 import path from 'path';
-
 import getPatternMetaData from '../../library/get-pattern-meta-data';
 import urlQuery from '../../library/utilities/url-query';
 
