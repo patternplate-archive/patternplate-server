@@ -4,32 +4,6 @@ import getPackageJSON from 'find-and-read-package-json';
 import {getPatternTree} from './utilities/get-pattern-tree';
 import getReadme from './utilities/get-readme';
 
-function getResolvedRoutes(routes, options) {
-	const {
-		hostname,
-		port,
-		protocol,
-		resolver
-	} = options;
-
-	const host = `${protocol}://${hostname}:${port}`;
-
-	return Object.entries(routes)
-		.filter(entry => {
-			const [, configuration] = entry;
-			return configuration.enabled;
-		})
-		.map(entry => {
-			const [name, configuration] = entry;
-			const {path} = configuration;
-			return {
-				name,
-				path,
-				uri: `${host}${resolver(name)}`
-			};
-		});
-}
-
 const DEFAULT_SUB = {
 	configuration: {
 		pkg: {
@@ -70,13 +44,7 @@ export default async function getSchema(application, client = DEFAULT_SUB, serve
 			server: {
 				host,
 				port
-			},
-			routes: {
-				enabled: routesConfiguration
 			}
-		},
-		router: {
-			url: resolver
 		},
 		runtime: {
 			patterncwd,
@@ -100,14 +68,6 @@ export default async function getSchema(application, client = DEFAULT_SUB, serve
 		version
 	} = await getPackageJSON(patterncwd || cwd);
 
-	// get resolved routes
-	const routes = getResolvedRoutes(routesConfiguration, {
-		hostname: host,
-		port,
-		protocol: 'http',
-		resolver: resolver.bind(application.router)
-	});
-
 	// get patterns/readme.md
 	const renderingReadme = getReadme('.', basePath, {cache});
 
@@ -126,7 +86,6 @@ export default async function getSchema(application, client = DEFAULT_SUB, serve
 		environment,
 		host,
 		port,
-		routes,
 		meta: await gettingPatternTree,
 		docs: await getDocsTree(basePath),
 		readme: await renderingReadme

@@ -1,6 +1,7 @@
 import path from 'path';
 import {PassThrough} from 'stream';
-import {values} from 'lodash';
+import json from 'load-json-file';
+import {isEqual, values} from 'lodash';
 import getSchema from '../../library/get-schema';
 import {getPatternTree} from '../../library/utilities/get-pattern-tree';
 
@@ -23,15 +24,18 @@ export default function indexRouteFactory(application) {
 				this.req.on('close', end);
 				this.req.on('finish', end);
 				this.req.on('error', error => {
-					console.erorr(error);
+					console.error(error);
 					end();
 				});
 
 				if (application.watcher) {
+					let previous = await getPatternTree('./patterns');
+
 					application.watcher.on('all', async (type, file) => {
 						send('change', {type, file});
 						const patterns = await getPatternTree('./patterns');
-						affected(file, patterns).forEach(pattern => send('reload', {pattern}));
+						(await affected(file, patterns, previous)).forEach(pattern => send('reload', {pattern}));
+						previous = patterns;
 					});
 				}
 
@@ -51,17 +55,24 @@ function sse(event, data) {
 	return `event:${event}\ndata: ${JSON.stringify(data)}\n\n`;
 }
 
-function affected(file, patterns) {
+async function affected(file, patterns, previous) {
 	const b = strip(file);
+	const basename = path.basename(file);
 
-	if (!['demo', 'index'].includes(b) && file !== 'pattern.js') {
+	if (!['demo', 'index'].includes(b) && basename !== 'pattern.json') {
 		return [];
 	}
 
 	const guess = path.dirname(file.split(path.sep).slice(1).join('/'));
+
 	const match = find(patterns, guess);
+	const prev = find(previous, guess);
 
 	if (!match) {
+		return [];
+	}
+
+	if (basename === 'pattern.json' && isEqual(prev.manifest.patterns, match.manifest.patterns)) {
 		return [];
 	}
 
