@@ -6,6 +6,7 @@ import exists from 'path-exists';
 import remark from 'remark';
 import find from 'unist-util-find';
 import * as sander from 'sander';
+import getReadme from './utilities/get-readme';
 
 const DEFAULT_MANIFEST = {
 	version: '1.0.0',
@@ -49,10 +50,18 @@ export async function getDocsTree(base) {
 	return treeFromPaths(await getDocs(base));
 }
 
-function treeFromPaths(files) {
+async function treeFromPaths(files) {
+	// Legacy
+	const contents = await getReadme('.', './patterns');
+
 	const tree = {
 		id: 'root',
-		children: []
+		children: [],
+		contents,
+		manifest: merge({}, DEFAULT_MANIFEST, {
+			name: 'readme.md',
+			displayName: 'Documentation'
+		})
 	};
 
 	files.forEach(file => {

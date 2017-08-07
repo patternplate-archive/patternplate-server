@@ -1,6 +1,4 @@
 import {resolve, sep} from 'path';
-
-import escapeHtml from 'escape-html';
 import {find} from 'lodash';
 import pathExists from 'path-exists';
 
@@ -13,11 +11,7 @@ const defaults = {
 		'README.md',
 		'Readme.md',
 		'readme.md',
-		'index.md',
-		'@docs/README.md',
-		'@docs/Readme.md',
-		'@docs/readme.md',
-		'@docs/index.md'
+		'index.md'
 	]
 };
 
@@ -46,7 +40,7 @@ async function getMarkdown(id, base, options) {
 
 	if (markdownPath) {
 		const buffer = await readFile(markdownPath);
-		return escapeHtml(buffer.toString('utf-8'));
+		return buffer.toString('utf-8');
 	}
 
 	return '';

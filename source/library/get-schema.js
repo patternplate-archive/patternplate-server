@@ -2,7 +2,6 @@ import path from 'path';
 import {getDocsTree} from './get-docs';
 import getPackageJSON from 'find-and-read-package-json';
 import {getPatternTree} from './utilities/get-pattern-tree';
-import getReadme from './utilities/get-readme';
 
 const DEFAULT_SUB = {
 	configuration: {
@@ -34,7 +33,6 @@ export default async function getSchema(application, client = DEFAULT_SUB, serve
 	} = application;
 
 	const {
-		cache,
 		configuration: {
 			environment,
 			pkg: {
@@ -61,22 +59,12 @@ export default async function getSchema(application, client = DEFAULT_SUB, serve
 		}
 	} = client;
 
-	const basePath = path.resolve(patterncwd || cwd, 'patterns');
-
-	const {
-		name,
-		version
-	} = await getPackageJSON(patterncwd || cwd);
-
-	// get patterns/readme.md
-	const renderingReadme = getReadme('.', basePath, {cache});
-
-	// obtain the pattern tree
-	const gettingPatternTree = getPatternTree(basePath);
+	const base = path.resolve(patterncwd || cwd, 'patterns');
+	const pkg = await getPackageJSON(patterncwd || cwd);
 
 	return Object.assign({}, {
-		name,
-		version,
+		name: pkg.name,
+		version: pkg.version,
 		appName,
 		clientName,
 		serverName,
@@ -86,8 +74,7 @@ export default async function getSchema(application, client = DEFAULT_SUB, serve
 		environment,
 		host,
 		port,
-		meta: await gettingPatternTree,
-		docs: await getDocsTree(basePath),
-		readme: await renderingReadme
+		meta: await getPatternTree(base),
+		docs: await getDocsTree(base)
 	});
 }

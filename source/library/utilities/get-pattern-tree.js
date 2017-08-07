@@ -21,13 +21,15 @@ export async function getPatterns(base) {
 
 	const files = await globby(`**/pattern.json`, {cwd});
 
-	const patterns = await Promise.all(files.map(async file => {
-		const data = await read(file);
-		data.displayName = data.displayName || data.name || null;
-		const id = file.split(path.sep).join('/');
-		const manifest = {...DEFAULT_MANIFEST, ...data};
-		return {id, path: file, manifest};
-	}));
+	const patterns = await Promise.all(files
+		.filter(file => ['@environments', '@docs'].every(i => !file.startsWith(i)))
+		.map(async file => {
+			const data = await read(file);
+			data.displayName = data.displayName || data.name || null;
+			const id = file.split(path.sep).join('/');
+			const manifest = {...DEFAULT_MANIFEST, ...data};
+			return {id, path: file, manifest};
+		}));
 
 
 	return patterns.map(pattern => {
