@@ -76,12 +76,15 @@ async function treeFromPaths(files) {
 				return;
 			}
 
+			const id = parts.slice(0, i + 1).join('/');
+			const sid = path.join(path.dirname(id), path.basename(id, path.extname(id)));
+
 			const item = {
 				name: part,
 				manifest: file.manifest,
 				contents: file.contents,
-				id: parts.slice(0, i + 1).join('/'),
-				path: parts.slice(0, i + 1),
+				id: sid,
+				path: sid.split('/'),
 				type: path.extname(part) ? 'doc' : 'folder'
 			};
 
