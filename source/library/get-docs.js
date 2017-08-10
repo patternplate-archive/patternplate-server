@@ -59,7 +59,7 @@ async function treeFromPaths(files) {
 		children: [],
 		contents,
 		manifest: merge({}, DEFAULT_MANIFEST, {
-			name: 'readme.md',
+			name: 'readme',
 			displayName: 'Documentation'
 		})
 	};
@@ -80,7 +80,7 @@ async function treeFromPaths(files) {
 			const sid = path.join(path.dirname(id), path.basename(id, path.extname(id)));
 
 			const item = {
-				name: part,
+				name: path.basename(part, path.extname(part)),
 				manifest: file.manifest,
 				contents: file.contents,
 				id: sid,
