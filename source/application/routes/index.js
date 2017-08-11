@@ -1,6 +1,5 @@
 import path from 'path';
 import {PassThrough} from 'stream';
-import json from 'load-json-file';
 import {isEqual, values} from 'lodash';
 import getSchema from '../../library/get-schema';
 import {getPatternTree} from '../../library/utilities/get-pattern-tree';
@@ -9,37 +8,7 @@ export default function indexRouteFactory(application) {
 	return async function indexRoute() {
 		switch (this.accepts('json', 'text/event-stream')) {
 			case 'text/event-stream': {
-				const stream = new PassThrough();
-				const send = (type, data) => stream.write(sse(type, data));
-				const heartbeat = setInterval(() => {
-					send('heartbeat', Date.now());
-				}, 1000);
-
-				const end = () => {
-					clearInterval(heartbeat);
-					this.res.end();
-				};
-
-				this.type = 'text/event-stream';
-				this.req.on('close', end);
-				this.req.on('finish', end);
-				this.req.on('error', error => {
-					console.error(error);
-					end();
-				});
-
-				if (application.watcher) {
-					let previous = await getPatternTree('./patterns');
-
-					application.watcher.on('all', async (type, file) => {
-						send('change', {type, file});
-						const patterns = await getPatternTree('./patterns');
-						(await affected(file, patterns, previous)).forEach(pattern => send('reload', {pattern}));
-						previous = patterns;
-					});
-				}
-
-				this.body = stream;
+				this.body = await watch(this, application);
 				return;
 			}
 			case 'json':
@@ -51,11 +20,45 @@ export default function indexRouteFactory(application) {
 	};
 }
 
+async function watch(context, application) {
+	const stream = new PassThrough();
+	const send = (type, data) => stream.write(sse(type, data));
+	const heartbeat = setInterval(() => {
+		send('heartbeat', Date.now());
+	}, 1000);
+
+	const end = () => {
+		clearInterval(heartbeat);
+		context.res.end();
+	};
+
+	context.type = 'text/event-stream';
+	context.req.on('close', end);
+	context.req.on('finish', end);
+	context.req.on('error', error => {
+		console.error(error);
+		end();
+	});
+
+	if (application.watcher) {
+		let previous = await getPatternTree('./patterns');
+
+		application.watcher.on('all', async (type, file) => {
+			send('change', {type, file});
+			const patterns = await getPatternTree('./patterns');
+			(await affected(file, patterns, previous)).forEach(pattern => send('reload', {pattern}));
+			previous = patterns;
+		});
+	}
+
+	return stream;
+}
+
 function sse(event, data) {
 	return `event:${event}\ndata: ${JSON.stringify(data)}\n\n`;
 }
 
-async function affected(file, patterns, previous) {
+function affected(file, patterns, previous) {
 	const b = strip(file);
 	const basename = path.basename(file);
 
