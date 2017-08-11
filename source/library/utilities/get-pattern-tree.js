@@ -11,6 +11,7 @@ import throat from 'throat';
 
 const DEFAULT_MANIFEST = {
 	version: '1.0.0',
+	flag: 'alpha',
 	options: {}
 };
 

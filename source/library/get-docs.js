@@ -10,6 +10,7 @@ import getReadme from './utilities/get-readme';
 
 const DEFAULT_MANIFEST = {
 	version: '1.0.0',
+	flag: 'alpha',
 	options: {}
 };
 
