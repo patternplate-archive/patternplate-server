@@ -4,8 +4,10 @@ import {find, flattenDeep, invert, uniqBy} from 'lodash';
 import minimatch from 'minimatch';
 import exists from 'path-exists';
 import throat from 'throat';
+import constructDemoDependencies from './construct-demo-dependencies';
 import constructDependencies from './construct-dependencies';
 import getDependenciesToRead from './get-dependencies-to-read';
+import getDemoDependenciesToRead from './get-demo-dependencies-to-read';
 import getPatternManifests from '../../utilities/get-pattern-manifests';
 import getPatternManifestsData from './get-pattern-manifest-data';
 import getReadFile from '../../filesystem/read-file';
@@ -75,7 +77,7 @@ async function readManifest(pattern) {
 
 		pattern.log.silly(`Fetching manifests for ${pattern.id}`);
 		const pool = await getPatternManifests('.', pattern.base, {cache: pattern.cache});
-		const manifests = getPatternManifestsData(pattern.base, pattern.manifest.patterns, pool);
+		const manifests = getPatternManifestsData(pattern.base, {...pattern.manifest.patterns, ...(pattern.manifest.demoPatterns || {})}, pool);
 		const manifestDuration = chalk.grey(`[${new Date() - manifestsStart}ms]`);
 		pattern.log.silly(`Fetched manifests for ${pattern.id} ${manifestDuration}`);
 
@@ -104,6 +106,7 @@ async function readManifest(pattern) {
 			});
 
 		const dependenciesToRead = getDependenciesToRead(pattern.manifest.patterns, dependencyPatterns);
+		const demoDependenciesToRead = getDemoDependenciesToRead(pattern.manifest.demoPatterns, dependencyPatterns);
 
 		pattern.log.silly(`Determined dependency chain for ${pattern.id}`);
 
@@ -116,9 +119,10 @@ async function readManifest(pattern) {
 			return find(dependencyPatterns, {id}).read();
 		};
 
-		const dependencyJobs = dependenciesToRead.map(throat(1, readDependency));
-		const readDependencies = await Promise.all(dependencyJobs);
+		const readDependencies = await Promise.all(dependenciesToRead.map(throat(1, readDependency)));
+		const readDemoDependencies = await Promise.all(demoDependenciesToRead.map(throat(1, readDependency)));
 
 		pattern.dependencies = constructDependencies(pattern.manifest.patterns, readDependencies);
+		pattern.demoDependencies = constructDemoDependencies(pattern.manifest.demoPatterns || {}, readDemoDependencies);
 	}
 }

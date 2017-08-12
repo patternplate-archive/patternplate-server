@@ -38,32 +38,11 @@ export async function getPatterns(base) {
 
 	return patterns.map(pattern => {
 		const id = path.dirname(pattern.id);
-		const deps = Object.values(pattern.manifest.patterns || {});
 
-		pattern.dependencies = patterns.reduce((d, p) => {
-			const pId = path.dirname(p.id);
-			if (deps.includes(pId) && pId !== id) {
-				d[pId] = {
-					id: pId,
-					manifest: p.manifest,
-					type: 'pattern'
-				};
-			}
-			return d;
-		}, {});
-
-		pattern.dependents = patterns.reduce((d, p) => {
-			const pId = path.dirname(p.id);
-			const pDeps = Object.values(p.manifest.patterns || {});
-			if (pDeps.includes(id) && pId !== id) {
-				d[pId] = {
-					id: pId,
-					manifest: p.manifest,
-					type: 'pattern'
-				};
-			}
-			return d;
-		}, {});
+		pattern.dependencies = getDependencies(id, {pattern, pool: patterns, key: 'patterns'});
+		pattern.demoDependencies = getDependencies(id, {pattern, pool: patterns, key: 'demoPatterns'});
+		pattern.dependents = getDependents(id, {pool: patterns, key: 'patterns'});
+		pattern.demoDependents = getDependents(id, {pool: patterns, key: 'demoPatterns'});
 
 		return pattern;
 	});
@@ -71,6 +50,37 @@ export async function getPatterns(base) {
 
 export async function getPatternTree(base) {
 	return treeFromPaths(await getPatterns(base));
+}
+
+function getDependencies(id, config) {
+	const selection = Object.values(config.pattern.manifest[config.key] || {});
+
+	return config.pool.reduce((d, p) => {
+		const pId = path.dirname(p.id);
+		if (selection.includes(pId) && pId !== id) {
+			d[pId] = {
+				id: pId,
+				manifest: p.manifest,
+				type: 'pattern'
+			};
+		}
+		return d;
+	}, {});
+}
+
+function getDependents(id, config) {
+	return config.pool.reduce((d, p) => {
+		const pId = path.dirname(p.id);
+		const pDeps = Object.values(p.manifest[config.key] || {});
+		if (pDeps.includes(id) && pId !== id) {
+			d[pId] = {
+				id: pId,
+				manifest: p.manifest,
+				type: 'pattern'
+			};
+		}
+		return d;
+	}, {});
 }
 
 async function treeFromPaths(files) {
@@ -125,7 +135,9 @@ async function treeFromPaths(files) {
 				level = item;
 			} else {
 				item.dependents = file.dependents;
+				item.demoDependents = file.demoDependents;
 				item.dependencies = file.dependencies;
+				item.demoDependencies = file.demoDependencies;
 			}
 
 			return null;

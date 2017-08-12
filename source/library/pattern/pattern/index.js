@@ -17,6 +17,7 @@ export class Pattern {
 		this.cache = cache || fauxCache;
 		this.config = {parents: [], ...config};
 		this.dependencies = {};
+		this.demoDependencies = {};
 		this.environments = {index: {manifest: {name: 'index'}}};
 		this.files = {};
 		this.filters = {...defaultFilters, ...filters};

@@ -3,6 +3,7 @@ import chalk from 'chalk';
 import {uniq} from 'lodash';
 import {stat} from 'sander';
 import throat from 'throat';
+import constructDemoFileDependencies from './construct-demo-file-dependencies';
 import constructFileDependencies from './construct-file-dependencies';
 import getReadFile from '../../filesystem/read-file';
 import readDirectory from '../../filesystem/read-directory';
@@ -155,28 +156,35 @@ async function read(pattern, subPath) {
 			pattern.log.silly(`Reading ${pattern.id} as dependeny of ${pattern.config.parents[pattern.config.parents.length - 1]}`);
 		}
 
+		const dependencies = constructFileDependencies(pattern.dependencies, [`index${fileExt}`]);
+
+		if (fileRumpName === 'demo') {
+			const demoDependencies = constructDemoFileDependencies(pattern.demoDependencies, [`index${fileExt}`]);
+			const overridden = Object.keys(demoDependencies).filter(key => key in dependencies);
+
+			if (overridden.length > 0) {
+				throw new Error(`Found .demoPattern entries duplicating .pattern entries in ${pattern.id}'s manifest': ${overridden.join(', ')}. Remove them from .demoPatterns.`);
+			}
+
+			Object.assign(dependencies, demoDependencies);
+		}
+
 		// collect data in format expected by transforms
-		const data = {
-			buffer: fileContents,
-			source: fileContents,
-			name: fileBaseName,
+		return {
 			basename: fileRumpName,
+			buffer: fileContents,
+			dependencies,
 			ext: fileExt,
 			format: fileFormat,
 			fs: fileFs,
+			name: fileBaseName,
 			path: file,
 			pattern,
+			source: fileContents,
 			meta: {
 				dependencies: [],
 				devDependencies: []
 			}
-		};
-
-		const dependencies = constructFileDependencies(pattern.dependencies, [`index${data.ext}`]);
-
-		return {
-			...data,
-			dependencies
 		};
 	})));
 

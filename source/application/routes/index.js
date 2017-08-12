@@ -83,12 +83,12 @@ function affected(file, patterns, previous) {
 		return [match.id];
 	}
 
-	return [match.id, ...deps(match)];
+	return [match.id, ...deps(match, 'dependents')];
 }
 
-function deps(p) {
-	return values(p.dependents)
-		.reduce((d, p) => [...d, p.id, ...deps(p)], []);
+function deps(p, key) {
+	return values(p[key])
+		.reduce((d, p) => [...d, p.id, ...deps(p, key)], []);
 }
 
 function find(tree, id, depth = 1) {
