@@ -1,7 +1,7 @@
 import urlQuery from '../../library/utilities/url-query';
 const getComponent = require('../../library/get-component');
 
-export default (application, configuration) => {
+export default application => {
 	return async function resourceRoute() {
 		const id = this.params.id;
 		const ext = this.params.ext;

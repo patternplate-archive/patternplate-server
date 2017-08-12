@@ -7,13 +7,6 @@ const routes = {
 			enabled: true,
 			path: '/'
 		},
-		meta: {
-			enabled: true,
-			path: '/meta/',
-			options: {
-				key: 'patterns'
-			}
-		},
 		pattern: {
 			enabled: true,
 			path: '/pattern/:id+',
