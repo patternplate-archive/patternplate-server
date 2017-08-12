@@ -83,7 +83,7 @@ function affected(file, patterns, previous) {
 		return [match.id];
 	}
 
-	return [match.id, ...deps(match, 'dependents')];
+	return [match.id, ...deps(match, 'dependents'), ...deps(match, 'demoDependents')];
 }
 
 function deps(p, key) {
