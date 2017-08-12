@@ -9,6 +9,8 @@ import find from 'unist-util-find';
 import * as sander from 'sander';
 import throat from 'throat';
 
+import getEnvironments from './get-environments';
+
 const DEFAULT_MANIFEST = {
 	version: '1.0.0',
 	flag: 'alpha',
@@ -26,6 +28,10 @@ export async function getPatterns(base) {
 
 	const files = await globby(`**/pattern.json`, {cwd});
 
+	const envs = (await getEnvironments(cwd))
+		.filter(env => env.display)
+		.map(env => env.name);
+
 	const patterns = await Promise.all(files
 		.filter(file => ['@environments', '@docs'].every(i => !file.startsWith(i)))
 		.map(async file => {
@@ -33,7 +39,7 @@ export async function getPatterns(base) {
 			data.displayName = data.displayName || data.name || null;
 			const id = file.split(path.sep).join('/');
 			const manifest = {...DEFAULT_MANIFEST, ...data};
-			return {id, path: file, manifest};
+			return {id, path: file, manifest, envs};
 		}));
 
 	return patterns.map(pattern => {
@@ -53,34 +59,17 @@ export async function getPatternTree(base) {
 }
 
 function getDependencies(id, config) {
-	const selection = Object.values(config.pattern.manifest[config.key] || {});
-
-	return config.pool.reduce((d, p) => {
-		const pId = path.dirname(p.id);
-		if (selection.includes(pId) && pId !== id) {
-			d[pId] = {
-				id: pId,
-				manifest: p.manifest,
-				type: 'pattern'
-			};
-		}
-		return d;
-	}, {});
+	return Object.values(config.pattern.manifest[config.key] || {});
 }
 
 function getDependents(id, config) {
 	return config.pool.reduce((d, p) => {
-		const pId = path.dirname(p.id);
-		const pDeps = Object.values(p.manifest[config.key] || {});
-		if (pDeps.includes(id) && pId !== id) {
-			d[pId] = {
-				id: pId,
-				manifest: p.manifest,
-				type: 'pattern'
-			};
+		const dependents = Object.values(p.manifest[config.key] || {});
+		if (dependents.includes(id)) {
+			return [...d, ...dependents];
 		}
 		return d;
-	}, {});
+	}, []);
 }
 
 async function treeFromPaths(files) {
@@ -138,6 +127,7 @@ async function treeFromPaths(files) {
 				item.demoDependents = file.demoDependents;
 				item.dependencies = file.dependencies;
 				item.demoDependencies = file.demoDependencies;
+				item.envs = file.envs;
 			}
 
 			return null;

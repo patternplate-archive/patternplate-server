@@ -1,15 +1,11 @@
-import {basename, resolve} from 'path';
-import {debuglog} from 'util';
-import exists from 'path-exists';
+import path from 'path';
+import globby from 'globby';
+import json from 'load-json-file';
 import {merge} from 'lodash';
 
-import getReadFile from '../filesystem/read-file';
-import readTree from '../filesystem/read-tree';
-import {fail} from '../log/decorations';
+export default getEnvironments;
 
-const envDebug = debuglog('environments');
-
-export const defaultEnvironment = {
+const TEMPLATE_ENVIRONMENT = {
 	name: 'index',
 	display: true,
 	displayName: 'Default',
@@ -21,51 +17,34 @@ export const defaultEnvironment = {
 	environment: {}
 };
 
-export default async function getEnvironments(base, options = {}) {
-	const {log, cache} = options;
-	const readFile = getReadFile({cache});
+export const DEFAULT_ENVIRONMENT = {
+	name: 'index',
+	display: true,
+	displayName: 'Default',
+	version: '0.1.0',
+	applyTo: ['**/*'],
+	include: ['**/*'],
+	excludes: [],
+	priority: 0,
+	environment: {}
+};
 
-	// Check if there is a user environment folder
-	const environmentBase = resolve(base, '@environments');
-	const hasUserEnvironments = await exists(environmentBase);
+async function getEnvironments(base) {
+	const resolve = path.resolve.bind(null, base, '@environments');
+	const cwd = resolve('.');
+	const read = f => json(resolve(f));
+	const files = await globby(`**/pattern.json`, {cwd});
 
-	// Get available environments ids
-	const userEnvironmentPaths = hasUserEnvironments ?
-		(await readTree(environmentBase, cache))
-			.filter(item => basename(item) === 'pattern.json') :
-		[];
-
-	envDebug('found environment files at %s', userEnvironmentPaths);
-
-	// Load environments
-	const userEnvironmentFiles = await Promise.all(
-		userEnvironmentPaths.map(envFilePath => {
-			envDebug('reading env file %s', envFilePath);
-			const content = readFile(envFilePath);
-			envDebug('%s %s', envFilePath, content);
-			return content;
+	const envs = await Promise.all(
+		files.map(async file => {
+			const data = await read(file);
+			return merge({}, TEMPLATE_ENVIRONMENT, data);
 		})
 	);
 
-	// Parse environment file contents
-	const userEnvironments = userEnvironmentFiles
-		.map(userEnvironmentFile => {
-			try {
-				const raw = JSON.parse(userEnvironmentFile.toString('utf-8'));
-				return merge({}, defaultEnvironment, raw);
-			} catch (error) {
-				if (log) {
-					log.error(fail`Failed reading environment file ${userEnvironmentFile}:\n${error}`);
-				}
-				return null;
-			}
-		})
-		.filter(Boolean);
+	if (!envs.some(e => e.name === 'index')) {
+		envs.push(DEFAULT_ENVIRONMENT);
+	}
 
-	envDebug('read environment data');
-	envDebug(userEnvironments);
-
-	return userEnvironments.length ?
-		userEnvironments :
-		[defaultEnvironment];
+	return envs;
 }
