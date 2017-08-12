@@ -66,7 +66,10 @@ function getDependents(id, config) {
 	return config.pool.reduce((d, p) => {
 		const dependents = Object.values(p.manifest[config.key] || {});
 		if (dependents.includes(id)) {
-			return [...d, ...dependents];
+			return [
+				...d,
+				...dependents.filter(dep => !d.includes(dep) && dep !== id)
+			];
 		}
 		return d;
 	}, []);
