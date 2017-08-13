@@ -1,6 +1,7 @@
 import path from 'path';
-import {getDocsTree} from './get-docs';
 import getPackageJSON from 'find-and-read-package-json';
+import {getDocsTree} from './get-docs';
+import getEnvironments from './utilities/get-environments';
 import {getPatternTree} from './utilities/get-pattern-tree';
 
 const DEFAULT_SUB = {
@@ -63,18 +64,19 @@ export default async function getSchema(application, client = DEFAULT_SUB, serve
 	const pkg = await getPackageJSON(patterncwd || cwd);
 
 	return Object.assign({}, {
-		name: pkg.name,
-		version: pkg.version,
 		appName,
-		clientName,
-		serverName,
 		appVersion,
+		clientName,
 		clientVersion,
-		serverVersion,
+		docs: await getDocsTree(base),
 		environment,
+		envs: await getEnvironments(base),
 		host,
-		port,
 		meta: await getPatternTree(base),
-		docs: await getDocsTree(base)
+		name: pkg.name,
+		port,
+		serverName,
+		serverVersion,
+		version: pkg.version
 	});
 }

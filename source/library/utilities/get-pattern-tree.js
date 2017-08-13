@@ -43,12 +43,10 @@ export async function getPatterns(base) {
 		}));
 
 	return patterns.map(pattern => {
-		const id = path.dirname(pattern.id);
-
-		pattern.dependencies = getDependencies(id, {pattern, pool: patterns, key: 'patterns'});
-		pattern.demoDependencies = getDependencies(id, {pattern, pool: patterns, key: 'demoPatterns'});
-		pattern.dependents = getDependents(id, {pool: patterns, key: 'patterns'});
-		pattern.demoDependents = getDependents(id, {pool: patterns, key: 'demoPatterns'});
+		pattern.dependencies = getDependencies(pattern, {key: 'patterns'});
+		pattern.demoDependencies = getDependencies(pattern, {key: 'demoPatterns'});
+		pattern.dependents = getDependents(pattern, {pool: patterns, key: 'patterns'});
+		pattern.demoDependents = getDependents(pattern, {pool: patterns, key: 'demoPatterns'});
 
 		return pattern;
 	});
@@ -58,21 +56,17 @@ export async function getPatternTree(base) {
 	return treeFromPaths(await getPatterns(base));
 }
 
-function getDependencies(id, config) {
-	return Object.values(config.pattern.manifest[config.key] || {});
+function getDependencies(pattern, config) {
+	return Object.values(pattern.manifest[config.key] || {});
 }
 
-function getDependents(id, config) {
-	return config.pool.reduce((d, p) => {
-		const dependents = Object.values(p.manifest[config.key] || {});
-		if (dependents.includes(id)) {
-			return [
-				...d,
-				...dependents.filter(dep => !d.includes(dep) && dep !== id)
-			];
-		}
-		return d;
-	}, []);
+function getDependents(pattern, config) {
+	const id = path.dirname(pattern.id);
+
+	return config.pool
+		.filter(item => getDependencies(item, {key: config.key}).includes(id))
+		.filter(item => item.id !== id)
+		.map(item => path.dirname(item.id));
 }
 
 async function treeFromPaths(files) {

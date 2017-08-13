@@ -7,7 +7,7 @@ import exists from 'path-exists';
 import {merge, omit, pick} from 'lodash';
 import throat from 'throat';
 
-import getEnvironments, {defaultEnvironment} from './get-environments';
+import getEnvironments, {DEFAULT_ENVIRONMENT} from './get-environments';
 import getDependentPatterns from './get-dependent-patterns';
 import getStaticCacheItem from './get-static-cache-item.js';
 import getMatchingEnvironments from './get-matching-environments';
@@ -116,8 +116,8 @@ async function getPatterns(options, cache, cmds = ['read', 'transform']) {
 
 				// directly stuff mismatching keys into transforms config to retain previous behaviour
 				return omit(merge({}, results, omit(environment, misplacedKeyNames), {transforms: misplacedKeys}),
-					Object.keys(misplacedKeys).concat(Object.keys(defaultEnvironment)));
-			}, defaultEnvironment);
+					Object.keys(misplacedKeys).concat(Object.keys(DEFAULT_ENVIRONMENT)));
+			}, DEFAULT_ENVIRONMENT);
 
 		envDebug('applying env config to pattern %s', patternID);
 		envDebug('%s', inspect(environmentsConfig, {depth: null}));
@@ -145,10 +145,10 @@ async function getPatterns(options, cache, cmds = ['read', 'transform']) {
 			.map(env => pick(env, ['name', 'displayName']));
 
 		pattern.manifest.availableEnvironments = availableEnvironments.length ?
-			availableEnvironments : [pick(defaultEnvironment, ['name', 'displayName'])];
+			availableEnvironments : [pick(DEFAULT_ENVIRONMENT, ['name', 'displayName'])];
 
 		pattern.manifest.demoEnvironments = demoEnvironments.length ?
-			demoEnvironments : [pick(defaultEnvironment, ['name', 'displayName'])];
+			demoEnvironments : [pick(DEFAULT_ENVIRONMENT, ['name', 'displayName'])];
 
 		// Determine dependening patterns
 		const gettingDepending = await getDependentPatterns(patternID, base, {cache});
