@@ -8,7 +8,7 @@ export default getPatternSource;
 function getPatternSource(application) {
 	const cwd = application.runtime.patterncwd;
 
-	return async (pathname, type, environment) => {
+	return async (pathname, type, environment, options) => {
 		if (type === 'source') {
 			const sourcePath = path.resolve(cwd, 'patterns', pathname);
 			return {
@@ -51,7 +51,7 @@ function getPatternSource(application) {
 		};
 
 		const retrieve = getPatternRetriever(application);
-		const [pattern] = await retrieve(id, filters, environment, ['read', 'transform']);
+		const [pattern] = await retrieve(id, filters, environment, ['read', 'transform'], options);
 
 		if (!pattern) {
 			const error = new Error(`No pattern with id ${id} found`);

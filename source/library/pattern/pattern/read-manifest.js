@@ -47,6 +47,10 @@ async function readManifest(pattern) {
 			});
 		}
 
+		if ('automount' in pattern.options) {
+			(((pattern.manifest.options || {})['react-to-markup'] || {}).opts || {}).automount = (pattern.options || {}).automount;
+		}
+
 		if (pattern.isEnvironment && !pattern.manifest.patterns) {
 			let list = await readDirectory(pattern.base);
 			const range = pattern.manifest.range || '*';

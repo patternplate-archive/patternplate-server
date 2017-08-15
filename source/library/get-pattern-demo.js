@@ -27,10 +27,9 @@ async function getPatternDemo(application, id, filters, environment, options) {
 		return null;
 	}
 
-	const content = await getFile(path, 'transformed', environment);
-
-	const {formats} = application.configuration.patterns;
 	const automount = selectAutoMount(application, pattern, options.mount);
+	const content = await getFile(path, 'transformed', environment, {automount});
+	const {formats} = application.configuration.patterns;
 
 	if (automount) {
 		await getComponent(application, pattern.id, environment);
@@ -72,7 +71,8 @@ function getRenderer(formats, component = false) {
 
 		const markupReferences = uniqBy(resources.filter(r => r.type === 'html' && r.reference), 'id');
 		const styleReferences = uniqBy([...styles, ...resources.filter(r => r.type === 'css' && r.reference)], 'id');
-		const scriptReferences = uniqBy([...resources.filter(r => r.type === 'js' && r.reference), ...scripts], 'id');
+		const scriptReferences = uniqBy([...resources.filter(r => r.type === 'js' && r.reference), ...scripts], 'id')
+			.filter(s => component || !String(s.id).startsWith('react-mount'));
 
 		return layout({
 			title: result.id,

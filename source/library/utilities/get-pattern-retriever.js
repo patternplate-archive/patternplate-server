@@ -18,14 +18,14 @@ export default function getPatternRetriever(application) {
 	const cwd = application.runtime.patterncwd || application.runtime.cwd;
 	const base = path.resolve(cwd, config.patterns.path);
 
-	return (id, filters = {}, environment, cmds = ['read', 'transform']) => {
+	return (id, filters = {}, environment, cmds = ['read', 'transform'], options) => {
 		assert.ok(isString(id), 'id should be a string');
 		assert.ok(isObject(filters), 'filters should be an object');
 		assert.ok(isString(environment), 'environment should be a string');
 		assert.ok(isArray(cmds), 'cmds should be an array');
 
 		return getPatterns({
-			id, base, config, factory, transforms, log, filters, environment
+			id, base, config, factory, transforms, log, filters, environment, options
 		}, application.cache, cmds);
 	};
 }

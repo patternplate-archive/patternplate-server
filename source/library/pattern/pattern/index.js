@@ -13,6 +13,7 @@ export class Pattern {
 	constructor(patternPath, base, config = {}, transforms = {}, filters = {}, cache = null) {
 		const id = patternPath.split(path.sep).join('/');
 
+		this.options = config.options || {};
 		this.base = base;
 		this.cache = cache || fauxCache;
 		this.config = {parents: [], ...config};

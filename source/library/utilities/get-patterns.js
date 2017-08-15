@@ -124,7 +124,8 @@ async function getPatterns(options, cache, cmds = ['read', 'transform']) {
 
 		// merge the determined environments config onto the pattern config
 		const patternConfiguration = merge({}, config, environmentsConfig, {
-			environments: environmentNames
+			environments: environmentNames,
+			options: settings.options || {}
 		});
 
 		// Initialize the pattern object
