@@ -7,7 +7,7 @@ import layout from '../application/layouts';
 
 export default getPatternDemo;
 
-async function getPatternDemo(application, id, filters, environment) {
+async function getPatternDemo(application, id, filters, environment, options) {
 	const getFile = getPatternSource(application);
 	filters.outFormats = ['html'];
 
@@ -30,7 +30,7 @@ async function getPatternDemo(application, id, filters, environment) {
 	const content = await getFile(path, 'transformed', environment);
 
 	const {formats} = application.configuration.patterns;
-	const automount = selectAutoMount(application, pattern);
+	const automount = selectAutoMount(application, pattern, options.mount);
 
 	if (automount) {
 		await getComponent(application, pattern.id, environment);
@@ -41,10 +41,10 @@ async function getPatternDemo(application, id, filters, environment) {
 	return render(content.body, pattern, resources);
 }
 
-function selectAutoMount(a, p) {
+function selectAutoMount(a, p, forced) {
 	const transform = a.configuration.transforms['react-to-markup'] || {};
 	const pattern = selectReactToMarkup(selectManifestOptions(p));
-	const settings = merge({}, transform.opts, pattern.opts);
+	const settings = merge({}, transform.opts, pattern.opts, {automount: forced});
 	return settings.automount || false;
 }
 
