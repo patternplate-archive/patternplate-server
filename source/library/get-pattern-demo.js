@@ -65,13 +65,13 @@ function getRenderer(formats, component = false) {
 		const transforms = result.config.transforms;
 		const styleFormat = getFormat(formats, transforms, 'style');
 		const scriptFormat = getFormat(formats, transforms, 'script');
-		const styleReference = getUriByFormat(result, styleFormat, `/demo`);
+		const styleReference = getUriByFormat(result, styleFormat, '/demo');
 
 		const markupContent = [{content}];
 		const styleContent = resources.filter(r => r.type === 'css' && !r.reference);
 		const scriptContent = resources.filter(r => r.type === 'js' && !r.reference);
 
-		const scripts = component ? [] : [{uri: getUriByFormat(result, scriptFormat)}];
+		const scripts = component ? [] : [{uri: getUriByFormat(result, scriptFormat, '/demo')}];
 		const styles = [{id: styleReference}].filter(i => i.id);
 
 		const markupReferences = uniqBy(resources.filter(r => r.type === 'html' && r.reference), 'id');
