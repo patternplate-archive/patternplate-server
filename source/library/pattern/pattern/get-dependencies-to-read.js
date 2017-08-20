@@ -7,6 +7,7 @@ function getDependenciesToRead(patterns = {}, pool = []) {
 		.reduce((result, id) => {
 			const dependency = find(pool, {id});
 			if (!dependency) {
+				console.log('dependencies-to-read', id, pool.map(p => p.id));
 				return result;
 			}
 			const sub = getDependenciesToRead(dependency.manifest.patterns, pool);

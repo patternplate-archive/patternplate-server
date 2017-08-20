@@ -1,4 +1,5 @@
 import {find} from 'lodash';
+import constructDependencies from './construct-dependencies';
 export default constructDemoDependencies;
 
 function constructDemoDependencies(patterns = {}, pool = []) {
@@ -10,7 +11,7 @@ function constructDemoDependencies(patterns = {}, pool = []) {
 			if (!dependency) {
 				return result;
 			}
-			dependency.dependencies = constructDemoDependencies(dependency.manifest.demoPatterns, pool);
+			dependency.dependencies = constructDependencies(dependency.manifest.patterns, pool);
 			result[name] = dependency;
 			return result;
 		}, {});

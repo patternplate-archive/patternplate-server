@@ -1,3 +1,4 @@
+import constructFileDependencies from './construct-file-dependencies';
 export default constructDemoFileDependencies;
 
 function matchFileName(fileNames, search) {
@@ -14,6 +15,7 @@ function constructDemoFileDependencies(dependencies, search) {
 		.entries(dependencies)
 		.reduce((results, entry) => {
 			const [dependencyName, dependencyPattern] = entry;
+
 			const {files} = dependencyPattern;
 
 			if (!files) {
@@ -29,9 +31,10 @@ function constructDemoFileDependencies(dependencies, search) {
 			}
 
 			if (dependencyFile.path) {
-				dependencyFile.demo = constructDemoFileDependencies(
-					dependencyPattern.demoDependencies, search
+				dependencyFile.dependencies = constructFileDependencies(
+					dependencyPattern.dependencies, search
 				);
+
 				results[dependencyName] = dependencyFile;
 			}
 			return results;

@@ -7,7 +7,6 @@ import throat from 'throat';
 import constructDemoDependencies from './construct-demo-dependencies';
 import constructDependencies from './construct-dependencies';
 import getDependenciesToRead from './get-dependencies-to-read';
-import getDemoDependenciesToRead from './get-demo-dependencies-to-read';
 import getPatternManifests from '../../utilities/get-pattern-manifests';
 import getPatternManifestsData from './get-pattern-manifest-data';
 import getReadFile from '../../filesystem/read-file';
@@ -117,8 +116,10 @@ async function readManifest(pattern) {
 				return dep;
 			});
 
-		const dependenciesToRead = getDependenciesToRead(pattern.manifest.patterns, dependencyPatterns);
-		const demoDependenciesToRead = getDemoDependenciesToRead(pattern.manifest.demoPatterns, dependencyPatterns);
+		const dependenciesToRead = getDependenciesToRead({
+			...pattern.manifest.patterns,
+			...pattern.manifest.demoPatterns
+		}, dependencyPatterns);
 
 		pattern.log.silly(`Determined dependency chain for ${pattern.id}`);
 
@@ -132,9 +133,8 @@ async function readManifest(pattern) {
 		};
 
 		const readDependencies = await Promise.all(dependenciesToRead.map(throat(1, readDependency)));
-		const readDemoDependencies = await Promise.all(demoDependenciesToRead.map(throat(1, readDependency)));
 
 		pattern.dependencies = constructDependencies(pattern.manifest.patterns, readDependencies);
-		pattern.demoDependencies = constructDemoDependencies(pattern.manifest.demoPatterns || {}, readDemoDependencies);
+		pattern.demoDependencies = constructDemoDependencies(pattern.manifest.demoPatterns || {}, readDependencies);
 	}
 }

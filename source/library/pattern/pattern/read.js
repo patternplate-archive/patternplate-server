@@ -1,6 +1,6 @@
 import path from 'path';
 import chalk from 'chalk';
-import {uniq} from 'lodash';
+import {merge, uniq} from 'lodash';
 import {stat} from 'sander';
 import throat from 'throat';
 import constructDemoFileDependencies from './construct-demo-file-dependencies';
@@ -166,7 +166,7 @@ async function read(pattern, subPath) {
 				throw new Error(`Found .demoPattern entries duplicating .pattern entries in ${pattern.id}'s manifest': ${overridden.join(', ')}. Remove them from .demoPatterns.`);
 			}
 
-			Object.assign(dependencies, demoDependencies);
+			merge(dependencies, demoDependencies);
 		}
 
 		// collect data in format expected by transforms
