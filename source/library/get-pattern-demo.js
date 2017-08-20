@@ -1,13 +1,16 @@
+import url from 'url';
 import {merge, uniqBy} from 'lodash';
+import React from 'react';
+import {renderToStaticMarkup} from 'react-dom/server';
 
 import getPatternRetriever from './utilities/get-pattern-retriever';
+import urlQuery from './utilities/url-query';
 import getPatternSource from './get-pattern-source';
 import getComponent from './get-component';
-import layout from '../application/layouts';
 
 export default getPatternDemo;
 
-async function getPatternDemo(application, id, filters, environment, options) {
+async function getPatternDemo(application, id, filters, environment, options, base) {
 	const getFile = getPatternSource(application);
 	filters.outFormats = ['html'];
 
@@ -35,7 +38,7 @@ async function getPatternDemo(application, id, filters, environment, options) {
 		await getComponent(application, pattern.id, environment);
 	}
 
-	const render = getRenderer(formats, automount);
+	const render = getRenderer(formats, automount, base);
 	const resources = (application.resources || []).filter(({pattern: p}) => p === null || p === pattern.id);
 	return render(content.body, pattern, resources);
 }
@@ -60,7 +63,7 @@ function getRenderer(formats, component = false) {
 		const transforms = result.config.transforms;
 		const styleFormat = getFormat(formats, transforms, 'style');
 		const scriptFormat = getFormat(formats, transforms, 'script');
-		const styleReference = getUriByFormat(result, styleFormat);
+		const styleReference = getUriByFormat(result, styleFormat, `/demo`);
 
 		const markupContent = [{content}];
 		const styleContent = resources.filter(r => r.type === 'css' && !r.reference);
@@ -96,7 +99,7 @@ const formatNames = {
 	script: 'js'
 };
 
-function getUriByFormat(pattern, format = '') {
+function getUriByFormat(pattern, format = '', base = '') {
 	if (!format) {
 		return null;
 	}
@@ -106,7 +109,12 @@ function getUriByFormat(pattern, format = '') {
 	const match = outFormats.find(o => o.type === type);
 
 	if (match) {
-		return `./index.${match.extension}`;
+		return urlQuery.format({
+			pathname: `${base}/${pattern.id}/index.${match.extension}`,
+			query: {
+				environment: pattern.filters.environments[0] || 'index'
+			}
+		});
 	}
 
 	return null;
@@ -157,4 +165,64 @@ function getOutFormat(entry, transforms) {
 	const transformName = entryTransforms[entryTransforms.length - 1];
 	const transformConfig = transforms[transformName];
 	return transformConfig.outFormat;
+}
+
+function layout(props) {
+	const styleRefs = (props.reference.style || []).filter(isReference);
+	const scriptRefs = (props.reference.script || []).filter(isReference);
+
+	const demo = (
+		<Demo
+			content={props.content}
+			title={props.title}
+			styleRefs={styleRefs}
+			scriptRefs={scriptRefs}
+			/>
+	);
+
+	return `<!doctype html>\n${renderToStaticMarkup(demo)}`;
+}
+
+function isAbsolute(reference) {
+	return !isRelative(reference) && !hasUri(reference);
+}
+
+function isReference(reference) {
+	return 'id' in reference || 'uri' in reference;
+}
+
+function isRelative(reference) {
+	return (reference.id || '').charAt(0) === '.' || hasUri(reference);
+}
+
+function hasUri(reference) {
+	return 'uri' in reference;
+}
+
+function Demo(props) {
+	return (
+		<html>
+			<head>
+				<title>{props.title}</title>
+				<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+				<link rel="icon" href="data:;base64,iVBORw0KGgo="/>
+				{props.styleRefs
+					.filter(isAbsolute)
+					.map(style => <link rel="stylesheet" href={url.resolve(`/api/resource/`, style.id)}/>)}
+				{props.styleRefs
+					.filter(isRelative)
+					.map(style => <link rel="stylesheet" href={style.uri || style.id}/>)}
+			</head>
+			<body>
+				{(props.content.markup || []).map(markup => <div dangerouslySetInnerHTML={{__html: markup.content}}/>)}
+				{props.scriptRefs
+					.filter(isAbsolute)
+					.map(script => <script src={`/api/resource/${script.id}.js`}/>)}
+				{props.scriptRefs
+					.filter(isRelative)
+					.filter(script => Boolean(script.uri || script.id))
+					.map(script => <script src={script.uri || script.id}></script>)}
+			</body>
+		</html>
+	);
 }
