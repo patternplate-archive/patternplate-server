@@ -1,6 +1,6 @@
 import path from 'path';
 import chalk from 'chalk';
-import {find, flattenDeep, invert, uniqBy} from 'lodash';
+import {find, flattenDeep, invert, merge, uniqBy} from 'lodash';
 import minimatch from 'minimatch';
 import exists from 'path-exists';
 import throat from 'throat';
@@ -48,7 +48,15 @@ async function readManifest(pattern) {
 		}
 
 		if ('automount' in pattern.options) {
-			(((pattern.manifest.options || {})['react-to-markup'] || {}).opts || {}).automount = (pattern.options || {}).automount;
+			merge(pattern.manifest, {
+				options: {
+					'react-to-markup': {
+						opts: {
+							automount: pattern.options.automount
+						}
+					}
+				}
+			});
 		}
 
 		if (pattern.isEnvironment && !pattern.manifest.patterns) {

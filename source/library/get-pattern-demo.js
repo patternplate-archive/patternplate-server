@@ -10,11 +10,13 @@ import getComponent from './get-component';
 
 export default getPatternDemo;
 
-async function getPatternDemo(application, id, filters, environment, options, base) {
+async function getPatternDemo(application, id, filters, environment, options) {
 	const getFile = getPatternSource(application);
 	filters.outFormats = ['html'];
 
-	const [pattern] = await getPatternRetriever(application)(id, filters, environment, ['read']);
+	const [pattern] = await getPatternRetriever(application)(id, filters, environment, ['read'], {
+		automount: options.mount
+	});
 
 	if (!pattern) {
 		return null;
@@ -38,7 +40,7 @@ async function getPatternDemo(application, id, filters, environment, options, ba
 		await getComponent(application, pattern.id, environment);
 	}
 
-	const render = getRenderer(formats, automount, base);
+	const render = getRenderer(formats, automount);
 	const resources = (application.resources || []).filter(({pattern: p}) => p === null || p === pattern.id);
 	return render(content.body, pattern, resources);
 }
